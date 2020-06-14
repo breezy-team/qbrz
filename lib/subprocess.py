@@ -88,7 +88,7 @@ class WarningInfoWidget(InfoWidget):
         InfoWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout(self)
         label_layout = QtGui.QHBoxLayout()
-        
+
         icon = QtGui.QLabel()
         icon.setPixmap(self.style().standardPixmap(
                        QtGui.QStyle.SP_MessageBoxWarning))
@@ -261,7 +261,7 @@ class SubProcessWindowBase(object):
     def make_default_layout_widgets(self):
         """Yields widgets to add to main dialog layout: status and button boxes.
         Status box has progress bar and console area.
-        Button box has 2 buttons: OK and Cancel (after successfull command 
+        Button box has 2 buttons: OK and Cancel (after successfull command
         execution there will be Close and Cancel).
         """
         yield self.make_default_status_box()
@@ -331,10 +331,10 @@ class SubProcessWindowBase(object):
     def on_failed(self, error):
         self.emit(QtCore.SIGNAL("subprocessFailed(bool)"), False)
         self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
-        
+
         if error=='UncommittedChanges':
             self.action_url = self.process_widget.error_data['display_url']
-            self.infowidget.setup_for_uncommitted(self.open_commit_win, 
+            self.infowidget.setup_for_uncommitted(self.open_commit_win,
                                                   self.open_revert_win,
                                                   self.open_shelve_win)
             self.infowidget.show()
@@ -357,7 +357,7 @@ class SubProcessWindowBase(object):
         commit_window = CommitWindow(tree, None, parent=self)
         self.windows.append(commit_window)
         commit_window.show()
-    
+
     def open_revert_win(self, b):
         # XXX refactor so that the tree can be opened by the window
         tree, branch = BzrDir.open_tree_or_branch(self.action_url)
@@ -377,7 +377,7 @@ class SubProcessWindowBase(object):
         QtCore.QObject.connect(window,
                                QtCore.SIGNAL("allResolved(bool)"),
                                self.infowidget,
-                               QtCore.SLOT("setHidden(bool)")) 
+                               QtCore.SLOT("setHidden(bool)"))
 
 class SubProcessWindow(SubProcessWindowBase, QBzrWindow):
 
@@ -621,7 +621,7 @@ class SubProcessWidget(QtGui.QWidget):
 
         args = bencode_unicode(args)
 
-        # win32 has command-line length limit about 32K, but it seems 
+        # win32 has command-line length limit about 32K, but it seems
         # problems with command-line buffer limit occurs not only on windows.
         # see bug https://bugs.launchpad.net/qbrz/+bug/396165
         # on Linux I believe command-line is in utf-8,
@@ -691,7 +691,7 @@ class SubProcessWidget(QtGui.QWidget):
                     signal_event(get_child_pid(self.process.pid()))
                 else:
                     # be nice and try to use ^C
-                    os.kill(self.process.pid(), signal.SIGINT) 
+                    os.kill(self.process.pid(), signal.SIGINT)
                 self.setProgress(None, [gettext("Aborting...")])
             else:
                 self.process.terminate()
@@ -751,7 +751,7 @@ class SubProcessWidget(QtGui.QWidget):
                 button = QtGui.QMessageBox.question(
                     self, "Bazaar", prompt,
                     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-                
+
                 data = (button == QtGui.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
             elif line.startswith(SUB_CHOOSE):
@@ -843,7 +843,7 @@ class SubProcessWidget(QtGui.QWidget):
                 self.finished = True
                 self.setProgress(1000000, [gettext("Finished!")])
                 if self.conflicted:
-                    self.emit(QtCore.SIGNAL("conflicted(QString)"), 
+                    self.emit(QtCore.SIGNAL("conflicted(QString)"),
                               self.conflict_tree_path)
                 time.sleep(2)
                 self.emit(QtCore.SIGNAL("finished()"))
@@ -918,10 +918,10 @@ class SubprocessUIFactory(TextUIFactory):
 
     def make_progress_view(self):
         return SubprocessProgressView(self.stdout)
-    
+
     # This is to be compatabile with bzr < rev 4558
     _make_progress_view = make_progress_view
-    
+
     def clear_term(self):
         """Prepare the terminal for output.
 
@@ -936,7 +936,7 @@ class SubprocessUIFactory(TextUIFactory):
         if line.startswith(name):
             return bencode.bdecode(line[len(name):].rstrip('\r\n'))
         raise Exception("Did not recive a answer from the main process.")
-    
+
     def _choose_from_main(self, msg, choices, default):
         name = SUB_CHOOSE
         self.stdout.write(name + bencode_choose_args(msg, choices, default) + '\n')
@@ -945,7 +945,7 @@ class SubprocessUIFactory(TextUIFactory):
         if line.startswith(name):
             return bencode.bdecode(line[len(name):].rstrip('\r\n'))
         raise Exception("Did not recive a answer from the main process.")
-    
+
     def get_password(self, prompt='', **kwargs):
         prompt = prompt % kwargs
         passwd, accepted = self._get_answer_from_main(SUB_GETPASS, prompt)
@@ -953,7 +953,7 @@ class SubprocessUIFactory(TextUIFactory):
             return passwd
         else:
             raise KeyboardInterrupt()
-    
+
     def get_username(self, prompt='', **kwargs):
         prompt = prompt % kwargs
         username, accepted = self._get_answer_from_main(SUB_GETUSER, prompt)
@@ -1090,18 +1090,25 @@ if MS_WINDOWS:
             ev.Close()
         thread.interrupt_main()
 
-
 def bencode_unicode(args):
     """Bencode list of unicode strings as list of utf-8 strings and converting
     resulting string to unicode.
     """
+    # bencode wants strings...
     args_utf8 = bencode.bencode([str(a).encode('utf-8') for a in args])
+    # ...and returns bytes
     return str(args_utf8, 'utf-8')
 
 def bencode_prompt(arg):
+    # encode wants a string and returns bytes
+    if not isinstance(arg, str):
+        arg = str(arg, 'utf-8')
     return bencode.bencode(arg.encode('unicode-escape'))
 
 def bdecode_prompt(s):
+    # The decode wants bytes
+    if not isinstance(s, bytes):
+        s = bytes(s, 'utf-8')
     return bencode.bdecode(s).decode('unicode-escape')
 
 def bencode_choose_args(msg, choices, default):
@@ -1171,6 +1178,8 @@ def decode_unicode_escape(obj):
     if isinstance(obj, dict):
         result = {}
         for k,v in obj.items():
+            if not isinstance(v, bytes):
+                v = bytes(v, 'utf-8')
             result[k] = v.decode('unicode-escape')
         return result
     else:

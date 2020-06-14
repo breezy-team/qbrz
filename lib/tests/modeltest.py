@@ -276,42 +276,40 @@ class ModelTest(QtCore.QObject):
         # The above is no longer true: it should return None...
         assert(self.model.data(QtCore.QModelIndex(), QtCore.Qt.DisplayRole) is None)
 
-        # if self.model.rowCount(QtCore.QModelIndex()) == 0:
-        #     return
-
-        # print('*** PROCEEDING ! ***')
+        if self.model.rowCount(QtCore.QModelIndex()) == 0:
+            return
 
         # A valid index should have a valid QtCore.QVariant data
-        print('***** TYPE: ', type(self.model.index(0,0, QtCore.QModelIndex())))
-        assert(self.model.index(0,0, QtCore.QModelIndex()).isValid())
+        assert(self.model.index(0,0, QtCore.QModelIndex()) is not None)
 
         # shouldn't be able to set data on an invalid index
-        assert( self.model.setData( QtCore.QModelIndex(), QtCore.QVariant("foo"), QtCore.Qt.DisplayRole) == False)
+        assert(self.model.setData(QtCore.QModelIndex(), "foo", QtCore.Qt.DisplayRole) is False)
 
         # General Purpose roles that should return a QString
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.ToolTipRole)
-        if variant.isValid():
+        # We no longer use isValid(), so just test it exists
+        if variant:
             assert( variant.canConvert( QtCore.QVariant.String ) )
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.StatusTipRole)
-        if variant.isValid():
+        if variant:
             assert( variant.canConvert( QtCore.QVariant.String ) )
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.WhatsThisRole)
-        if variant.isValid():
+        if variant:
             assert( variant.canConvert( QtCore.QVariant.String ) )
 
         # General Purpose roles that should return a QSize
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.SizeHintRole)
-        if variant.isValid():
+        if variant:
             assert( variant.canConvert( QtCore.QVariant.Size ) )
 
         # General Purpose roles that should return a QFont
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.FontRole)
-        if variant.isValid():
+        if variant:
             assert( variant.canConvert( QtCore.QVariant.Font ) )
 
         # Check that the alignment is one we know about
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.TextAlignmentRole)
-        if variant.isValid():
+        if variant:
             alignment = variant.toInt()[0]
             assert( alignment == QtCore.Qt.AlignLeft or
                 alignment == QtCore.Qt.AlignRight or
@@ -320,15 +318,15 @@ class ModelTest(QtCore.QObject):
 
         # General Purpose roles that should return a QColor
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.BackgroundColorRole)
-        if variant.isValid():
+        if variant:
             assert( variant.canConvert( QtCore.QVariant.Color ) )
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.TextColorRole)
-        if variant.isValid():
+        if variant:
             assert( variant.canConvert( QtCore.QVariant.Color ) )
 
         # Check that the "check state" is one we know about.
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.CheckStateRole)
-        if variant.isValid():
+        if variant:
             state = variant.toInt()[0]
             assert( state == QtCore.Qt.Unchecked or
                 state == QtCore.Qt.PartiallyChecked or
@@ -467,7 +465,10 @@ class ModelTest(QtCore.QObject):
                 assert( index.column() == c )
                 # While you can technically return a QtCore.QVariant usually this is a sign
                 # if an bug in data() Disable if this really is ok in your self.model
-                assert( self.model.data(index, QtCore.Qt.DisplayRole).isValid() == True )
+                # assert( self.model.data(index, QtCore.Qt.DisplayRole).isValid() == True )
+                #
+                # We no longer check isValid(), just make sure it's not None
+                assert( self.model.data(index, QtCore.Qt.DisplayRole) is not None)
 
                 #if the next test fails here is some somehwat useful debug you play with
                 # if self.model.parent(index) != parent:

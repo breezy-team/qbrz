@@ -24,7 +24,7 @@ checkone: test
 
 # Test specific item
 checkspecific: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz class TestLog
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz class TestBencode
 
 test:
 	brz selftest -s bp.qbrz
