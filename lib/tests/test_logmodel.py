@@ -34,8 +34,7 @@ class TestModel(qtests.QTestCase):
             pass
         throbber = ThrobberWidget(None)
         log_model = LogModel(processEvents, throbber)
-        modeltest = ModelTest(log_model, None);
-
+        modeltest = ModelTest(log_model, None)
         bi = BranchInfo('', wt, wt.branch)
         log_model.load((bi,), bi, None, False, GraphVizLoader)
 
@@ -49,25 +48,25 @@ class TestModel(qtests.QTestCase):
         wt.lock_write()
         self.addCleanup(wt.unlock)
         wt.add('')
-        wt.commit('rev-1', rev_id='rev-1',
+        wt.commit('rev-1', rev_id=b'rev-1',
                   timestamp=1132586655, timezone=36000,
                   committer='Joe Foo <joe@foo.com>')
-        wt.commit('rev-merged', rev_id='rev-2a',
+        wt.commit('rev-merged', rev_id=b'rev-2a',
                   timestamp=1132586700, timezone=36000,
                   committer='Joe Foo <joe@foo.com>')
-        wt.set_parent_ids(['rev-1', 'rev-2a'])
-        wt.branch.set_last_revision_info(1, 'rev-1')
-        wt.commit('rev-2', rev_id='rev-2b',
+        wt.set_parent_ids(['rev-1', b'rev-2a'])
+        wt.branch.set_last_revision_info(1, b'rev-1')
+        wt.commit('rev-2', rev_id=b'rev-2b',
                   timestamp=1132586800, timezone=36000,
                   committer='Joe Foo <joe@foo.com>')
         if with_tags:
             branch = wt.branch
-            branch.tags.set_tag('v0.2', 'rev-2b')
-            wt.commit('rev-3', rev_id='rev-3',
+            branch.tags.set_tag('v0.2', b'rev-2b')
+            wt.commit('rev-3', rev_id=b'rev-3',
                       timestamp=1132586900, timezone=36000,
                       committer='Jane Foo <jane@foo.com>')
-            branch.tags.set_tag('v1.0rc1', 'rev-3')
-            branch.tags.set_tag('v1.0', 'rev-3')
+            branch.tags.set_tag('v1.0rc1', b'rev-3')
+            branch.tags.set_tag('v1.0', b'rev-3')
         return wt
 
     def test_merges(self):

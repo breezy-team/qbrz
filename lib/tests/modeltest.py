@@ -34,6 +34,17 @@ class ModelTest(QtCore.QObject):
         """
         QtCore.QObject.__init__(self,parent)
         self._model = _model
+        # QAbstractItemModel gives us a simple table of rows and columns. Each item in it (cell)
+        # has a unique index via QModelIndex with row, colum
+        # for example:
+        #   0 1 2
+        # 0 . , ,
+        # 1 . . X  <-- this X is at row:1, column:2
+        # 2 . . .
+        #
+        # Any data associated with X can be retrieved via the data() function
+        # passing it the 'role' that the data plays. The data is set via setData()
+        #
         self.model = sip.cast(_model, QtCore.QAbstractItemModel)
         self.insert = []
         self.remove = []
@@ -69,19 +80,40 @@ class ModelTest(QtCore.QObject):
         assert(self.model.buddy(QtCore.QModelIndex()) == QtCore.QModelIndex())
         self.model.canFetchMore(QtCore.QModelIndex())
         assert(self.model.columnCount(QtCore.QModelIndex()) >= 0)
-        assert(self.model.data(QtCore.QModelIndex(), QtCore.Qt.DisplayRole) == QtCore.QVariant())
+        # Try to fetch something from nothing - this:
+        #
+        #   self.model.data(QtCore.QModelIndex(), QtCore.Qt.DisplayRole)
+        #
+        # reads as:
+        #
+        #   from the (.data) table at (an invalid QModelIndex) try to get a DisplayRole
+        #
+        # A bare QModelIndex() creates a new empty index, and will be invalid: asking for the
+        # displayRole will bring back (or used to bring back) an invalid QVariant rather than
+        # raising an exception. With QVariant(2) set via sip, we don't get QVariants at all
+        # but a NoneType.
+        # Was: assert(self.model.data(QtCore.QModelIndex(), QtCore.Qt.DisplayRole) == QtCore.QVariant())
+        assert(self.model.data(QtCore.QModelIndex(), QtCore.Qt.DisplayRole) is None)
         self.fetchingMore = True
         self.model.fetchMore(QtCore.QModelIndex())
         self.fetchingMore = False
         flags = self.model.flags(QtCore.QModelIndex())
-        assert( int(flags & QtCore.Qt.ItemIsEnabled) == QtCore.Qt.ItemIsEnabled or int(flags & QtCore.Qt.ItemIsEnabled ) == 0 )
+        assert(int(flags & QtCore.Qt.ItemIsEnabled) == QtCore.Qt.ItemIsEnabled or int(flags & QtCore.Qt.ItemIsEnabled) == 0)
         self.model.hasChildren(QtCore.QModelIndex())
         self.model.hasIndex(0,0)
         self.model.headerData(0,QtCore.Qt.Horizontal, QtCore.Qt.DisplayRole)
         self.model.index(0,0, QtCore.QModelIndex())
         self.model.itemData(QtCore.QModelIndex())
-        cache = QtCore.QVariant()
-        self.model.match(QtCore.QModelIndex(), -1, cache)
+        # Match returns indices for items were the data role (e.g. DisplayRole) matches the value (QVariant)
+        #
+        # so, this:
+        #       cache = QtCore.QVariant()
+        #       self.model.match(QtCore.QModelIndex(), -1, cache)
+        # reads as:
+        #   Try to get things from the table that match the (non-existent) -1 'role'
+        #   where the data stored there matches Qvariant
+        # We haven't got QVariants any more, so just pass anything
+        self.model.match(QtCore.QModelIndex(), -1, 'a string')
         self.model.mimeTypes()
         assert(self.model.parent(QtCore.QModelIndex()) == QtCore.QModelIndex())
         assert(self.model.rowCount(QtCore.QModelIndex()) >= 0)
