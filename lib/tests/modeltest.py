@@ -43,7 +43,7 @@ class ModelTest(QtCore.QObject):
         # 2 . . .
         #
         # Any data associated with X can be retrieved via the data() function
-        # passing it the 'role' that the data plays. The data is set via setData()
+        # passing it the 'role' that the data plays. The data is set via setData().
         #
         self.model = sip.cast(_model, QtCore.QAbstractItemModel)
         self.insert = []
@@ -117,11 +117,22 @@ class ModelTest(QtCore.QObject):
         self.model.mimeTypes()
         assert(self.model.parent(QtCore.QModelIndex()) == QtCore.QModelIndex())
         assert(self.model.rowCount(QtCore.QModelIndex()) >= 0)
-        variant = QtCore.QVariant()
-        self.model.setData(QtCore.QModelIndex(), variant, -1)
-        self.model.setHeaderData(-1, QtCore.Qt.Horizontal, QtCore.QVariant())
-        self.model.setHeaderData(0, QtCore.Qt.Horizontal, QtCore.QVariant())
-        self.model.setHeaderData(999999, QtCore.Qt.Horizontal, QtCore.QVariant())
+        # setData(index, value, role) sets the (role) data at the index to value.
+        # so, this:
+        #       variant = QtCore.QVariant()
+        #       self.model.setData(QtCore.QModelIndex(), variant, -1)
+        # reads as:
+        #   Put an empty QVariant() at an invalid index as an invalid role
+        self.model.setData(QtCore.QModelIndex(), 'a string', -1)
+        # Sets the data a dummy horizontal section (-1) to an empty QVariant...
+        #   self.model.setHeaderData(-1, QtCore.Qt.Horizontal, QtCore.QVariant())
+        # ...and for section zero
+        #   self.model.setHeaderData(0, QtCore.Qt.Horizontal, QtCore.QVariant())
+        # and for section 999999
+        #   self.model.setHeaderData(999999, QtCore.Qt.Horizontal, QtCore.QVariant())
+        self.model.setHeaderData(-1, QtCore.Qt.Horizontal, 'a string')
+        self.model.setHeaderData(0, QtCore.Qt.Horizontal, 'a string')
+        self.model.setHeaderData(999999, QtCore.Qt.Horizontal, 'a string')
         self.model.sibling(0,0,QtCore.QModelIndex())
         self.model.span(QtCore.QModelIndex())
         self.model.supportedDropActions()
@@ -137,7 +148,7 @@ class ModelTest(QtCore.QObject):
         rows = self.model.rowCount(topindex)
         assert(rows >= 0)
         if rows > 0:
-            assert(self.model.hasChildren(topindex) == True )
+            assert(self.model.hasChildren(topindex) is True)
 
         secondlvl = self.model.index(0,0,topindex)
         if secondlvl.isValid():
@@ -145,7 +156,7 @@ class ModelTest(QtCore.QObject):
             rows = self.model.rowCount(secondlvl)
             assert(rows >= 0)
             if rows > 0:
-                assert(self.model.hasChildren(secondlvl) == True)
+                assert(self.model.hasChildren(secondlvl) is True)
 
         # The self.models rowCount() is tested more extensively in checkChildren,
         # but this catches the big mistakes
@@ -260,13 +271,19 @@ class ModelTest(QtCore.QObject):
         Tests self.model's implementation of QtCore.QAbstractItemModel::data()
         """
         # Invalid index should return an invalid qvariant
-        assert( not self.model.data(QtCore.QModelIndex(), QtCore.Qt.DisplayRole).isValid())
+        # assert( not self.model.data(QtCore.QModelIndex(), QtCore.Qt.DisplayRole).isValid())
+        #
+        # The above is no longer true: it should return None...
+        assert(self.model.data(QtCore.QModelIndex(), QtCore.Qt.DisplayRole) is None)
 
-        if self.model.rowCount(QtCore.QModelIndex()) == 0:
-            return
+        # if self.model.rowCount(QtCore.QModelIndex()) == 0:
+        #     return
+
+        # print('*** PROCEEDING ! ***')
 
         # A valid index should have a valid QtCore.QVariant data
-        assert( self.model.index(0,0, QtCore.QModelIndex()).isValid())
+        print('***** TYPE: ', type(self.model.index(0,0, QtCore.QModelIndex())))
+        assert(self.model.index(0,0, QtCore.QModelIndex()).isValid())
 
         # shouldn't be able to set data on an invalid index
         assert( self.model.setData( QtCore.QModelIndex(), QtCore.QVariant("foo"), QtCore.Qt.DisplayRole) == False)
