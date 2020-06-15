@@ -1134,18 +1134,30 @@ def bittorrent_b_encode_unicode(args):
     args_utf8 = bencode.bencode([str(a).encode('utf-8') for a in args])
     return str(args_utf8, 'utf-8')
 
-def bittorrent_b_encode_prompt(arg):
-    return bencode.bencode(arg.encode('unicode-escape'))
+def bittorrent_b_encode_prompt(utf_string: str) -> str:
+    # The brz.bencode returns bytes but can be passed
+    # integer, list, bytes, and dictionaries
+    # BUT only those (so NO strings, even in dictionaries)
+    # The problem is that the original code called bencode like so:
+    #
+    # ``bencode.bencode(arg.encode('unicode-escape'))``
+    #
+    # ...and you can only do encode() with strings
+    # What we *can* do is insist we only get strings sent to us
+    if not isinstance(utf_string, str):
+        raise TypeError('bittorrent_b_encode_prompt accepts only strings')
+    return bencode.bencode(utf_string.encode('unicode-escape'))
 
-# def bittorrent_b_decode_prompt(s):
-#     return bencode.bdecode(s).decode('unicode-escape')
 
-def bittorrent_b_decode_prompt(s):
-    # bdecode requires bytes
-    print('\n\n*** bittorrent_b_decode_prompt s as supplied was [{0}]'.format(s), type(s))
-    b_result = bencode.bdecode(s)
-    print('\n  === result was [{0}]'.format(b_result), type(b_result))
-    return bencode.bdecode(s).decode('unicode-escape')
+def bittorrent_b_decode_prompt(bencoded_bytes: bytes) -> str:
+    # bdecode requires an already bittorrent-encoded bytes
+    # (it'll give a TypeError for plain strings)
+    # So we can insist that we have bytes
+    if not isinstance(bencoded_bytes, bytes):
+        raise TypeError('bittorrent_b_decode_prompt accepts only bytes')
+    # However, it can return bytes, integer, list or dictionary, but here we assume
+    # bytes... and we convert them to a string
+    return bencode.bdecode(bencoded_bytes).decode('unicode-escape')
 
 def bittorrent_b_encode_choose_args(msg, choices, default):
     if default is None:

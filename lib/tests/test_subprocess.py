@@ -49,29 +49,17 @@ class TestBencode(TestCase):
 
     def test_bittorrent_b_encode_unicode(self):
         self.assertEqual("l7:versione", bittorrent_b_encode_unicode(["version"]))
-        self.assertEqual("l3:add3:\u1234e",
-            bittorrent_b_encode_unicode(["add", "\u1234"]))
+        self.assertEqual("l3:add3:\u1234e", bittorrent_b_encode_unicode(["add", "\u1234"]))
 
     def test_bittorrent_b_encode_prompt(self):
-        self.assertEqual("4:spam", bittorrent_b_encode_prompt('spam'))
+        self.assertEqual("4:spam", bittorrent_b_encode_prompt(utf_string='spam'))
         self.assertEqual("10:spam\\neggs", bittorrent_b_encode_prompt('spam'+'\n'+'eggs'))
-        self.assertEqual("14:\\u0420\\n\\u0421",
-            bittorrent_b_encode_prompt('\u0420\n\u0421'))
+        self.assertEqual("14:\\u0420\\n\\u0421", bittorrent_b_encode_prompt('\u0420\n\u0421'))
 
     def test_bittorrent_b_decode_prompt(self):
-        s_test = 'RJLTest'
-        b_test = b'RJLTest'
-        dec_result = bittorrent_b_decode_prompt(s_test)
-        print('\n...... dec_result was [{0}] given {1}'.format(dec_result, b_test), type(dec_result))
-
-        self.assertEqual(s_test, bittorrent_b_encode_prompt(bittorrent_b_decode_prompt(b_test)))
-        self.assertEqual(s_test, bittorrent_b_decode_prompt(bittorrent_b_encode_prompt(s_test)))
-
-
-        self.assertEqual('spam', bittorrent_b_decode_prompt("4:spam"))
-        self.assertEqual('spam'+'\n'+'eggs', bittorrent_b_decode_prompt("10:spam\\neggs"))
-        self.assertEqual('\u0420\n\u0421',
-            bittorrent_b_decode_prompt("14:\\u0420\\n\\u0421"))
+        self.assertEqual('spam', bittorrent_b_decode_prompt(b"4:spam"))
+        self.assertEqual('spam'+'\n'+'eggs', bittorrent_b_decode_prompt(b"10:spam\\neggs"))
+        self.assertEqual('\u0420\n\u0421', bittorrent_b_decode_prompt(b"14:\\u0420\\n\\u0421"))
 
     def test_bittorrent_b_encode_unicode_escape_dict(self):
         self.assertEqual({'key': 'foo\\nbar', 'ukey': '\\u1234'},
