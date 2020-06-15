@@ -75,6 +75,7 @@ class TestExceptionInstanceSerialisation(TestCase):
 
     def check_exception_instance(self, e):
         encoded = bittorrent_b_encode_exception_instance(e)
+        print('\n\n================ encoded', encoded, type(encoded))
         name, attr_dict = bittorrent_b_decode_exception_instance(encoded)
         self.assertEqual(name, e.__class__.__name__)
         return attr_dict

@@ -1175,33 +1175,70 @@ def bittorrent_b_decode_choose_args(s):
     choices = choices.decode('unicode-escape')
     return msg, choices, default
 
-def bittorrent_b_encode_exception_instance(e):
-    """Serialise the main information about an exception instance with bencode
+def bittorrent_b_encode_exception_instance(e: Exception) -> bytes:
+    """
+    Serialise the main information about an exception instance with bencode
 
     For now, nearly all exceptions just give the exception name as a string,
     but a dictionary is also given that may contain unicode-escaped attributes.
+
+    RJLRJL: actually, one has to pass bytes as both dictionary keys and values.
+    For example:
+
+      ``bencode.bencode((b'something', {b'somekey':b'fred'}))``
+
+    gives
+
+      ``b'l9:somethingd7:somekey4:fredee'``
+
+    but if either is a plain string, bencode will choke. b-encoded keys and values
+    are accepted too, so:
+
+      ``bencode.bencode((b'something', {b'7:somekey':b'4:fred'}))``
+      ``bencode.bencode((b'something', {b'somekey':b'4:fred'}))``
+      ``bencode.bencode((b'something', {b'7:somekey':b'fred'}))``
+
+    would all work, as does, perhaps unsurprisingly:
+
+      ``bencode.bencode((b'9:something', {b'7:somekey':b'4:fred'}))``
+
     """
     # GZ 2011-04-15: Could use breezy.trace._qualified_exception_name in 2.4
-    ename = e.__class__.__name__
+    # Convert to bytes...
+    ename = e.__class__.__name__.encode('unicode-escape')
     d = {}
     # For now be conservative and only serialise attributes that will get used
+    # RJL: in 2020 nothing has yet been added! However, we'll keep the same code
     keys = []
     if isinstance(e, errors.UncommittedChanges):
+        # Keys need to be bytes: however, when we use getattr, we need to use
+        # a string (not bytes). What larks!
         keys.append("display_url")
     for key in keys:
         # getattr and __repr__ can break in lots of ways, so catch everything
         # but exceptions that occur as interrupts, allowing for Python 2.4
         try:
+            # Fetch (presumably) a string
             val = getattr(e, key)
-            if not isinstance(val, str):
-                if not isinstance(val, str):
+            # RJL: the following is to get the representation as a string
+            # the problem is that bytes will get wrapped in ".." which is probably not
+            # what is wanted.
+            # ``if not isinstance(val, str):
+            #     val = repr(val)
+            #   val = val.decode("ascii", "replace")``
+            #
+            # We only need to convert other things than bytes
+            if not isinstance(val, bytes):
+                if not isinstance(str):
                     val = repr(val)
-                val = val.decode("ascii", "replace")
+                # Now convert to bytes...
+                val = val.encode('unicode-escape')
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            val = "[QBzr could not serialize this attribute]"
-        d[key] = val.encode("unicode-escape")
+            val = b"[QBzr could not serialize this attribute]"
+        # The key needs to be bytes too
+        d[key.encode('unicode-escape')] = val
     return bencode.bencode((ename, d))
 
 
