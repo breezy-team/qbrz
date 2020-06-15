@@ -619,7 +619,7 @@ class SubProcessWidget(QtGui.QWidget):
             return s
         self.logMessageEx("Run command: "+format_args_for_log(args), "cmdline", self.stderr)
 
-        args = bencode_unicode(args)
+        args = bittorrent_b_encode_unicode(args)
 
         # win32 has command-line length limit about 32K, but it seems
         # problems with command-line buffer limit occurs not only on windows.
@@ -728,7 +728,7 @@ class SubProcessWidget(QtGui.QWidget):
                 else:
                     self.setProgress(progress, messages, transport_activity.decode("utf-8"))
             elif line.startswith(SUB_GETPASS):
-                prompt = bdecode_prompt(line[len(SUB_GETPASS):])
+                prompt = bittorrent_b_decode_prompt(line[len(SUB_GETPASS):])
                 passwd, ok = QtGui.QInputDialog.getText(self,
                                                         gettext("Enter Password"),
                                                         prompt,
@@ -738,7 +738,7 @@ class SubProcessWidget(QtGui.QWidget):
                 if not ok:
                     self.abort_futher_processes()
             elif line.startswith(SUB_GETUSER):
-                prompt = bdecode_prompt(line[len(SUB_GETUSER):])
+                prompt = bittorrent_b_decode_prompt(line[len(SUB_GETUSER):])
                 passwd, ok = QtGui.QInputDialog.getText(self,
                                                         gettext("Enter Username"),
                                                         prompt)
@@ -747,7 +747,7 @@ class SubProcessWidget(QtGui.QWidget):
                 if not ok:
                     self.abort_futher_processes()
             elif line.startswith(SUB_GETBOOL):
-                prompt = bdecode_prompt(line[len(SUB_GETBOOL):])
+                prompt = bittorrent_b_decode_prompt(line[len(SUB_GETBOOL):])
                 button = QtGui.QMessageBox.question(
                     self, "Bazaar", prompt,
                     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
@@ -755,7 +755,7 @@ class SubProcessWidget(QtGui.QWidget):
                 data = (button == QtGui.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
             elif line.startswith(SUB_CHOOSE):
-                msg, choices, default = bdecode_choose_args(line[len(SUB_CHOOSE):])
+                msg, choices, default = bittorrent_b_decode_choose_args(line[len(SUB_CHOOSE):])
                 mbox = QtGui.QMessageBox(parent=self)
                 mbox.setText(msg)
                 mbox.setIcon(QtGui.QMessageBox.Question)
@@ -769,13 +769,13 @@ class SubProcessWidget(QtGui.QWidget):
                 index = mbox.exec_()
                 self.process.write(SUB_CHOOSE + bencode.bencode(index) + "\n")
             elif line.startswith(SUB_ERROR):
-                self.error_class, self.error_data = bdecode_exception_instance(
+                self.error_class, self.error_data = bittorrent_b_decode_exception_instance(
                     line[len(SUB_ERROR):])
             elif line.startswith(SUB_NOTIFY):
                 msg = line[len(SUB_NOTIFY):]
                 if msg.startswith(NOTIFY_CONFLICT):
                     self.conflicted = True
-                    self.conflict_tree_path = bdecode_prompt(msg[len(NOTIFY_CONFLICT):])
+                    self.conflict_tree_path = bittorrent_b_decode_prompt(msg[len(NOTIFY_CONFLICT):])
             else:
                 self.logMessageEx(line, 'plain', self.stdout)
 
@@ -919,18 +919,20 @@ class SubprocessUIFactory(TextUIFactory):
     def make_progress_view(self):
         return SubprocessProgressView(self.stdout)
 
-    # This is to be compatabile with bzr < rev 4558
+    # This is to be compatabile with bzr less rev 4558
     _make_progress_view = make_progress_view
 
     def clear_term(self):
-        """Prepare the terminal for output.
+        """
+        # Prepare the terminal for output.
 
-        This will, for example, clear text progress bars, and leave the
-        cursor at the leftmost position."""
+        # This will, for example, clear text progress bars, and leave the
+        # cursor at the leftmost position.
+        """
         pass
 
     def _get_answer_from_main(self, name, arg):
-        self.stdout.write(name + bencode_prompt(arg) + '\n')
+        self.stdout.write(name + bittorrent_b_encode_prompt(arg) + '\n')
         self.stdout.flush()
         line = self.stdin.readline()
         if line.startswith(name):
@@ -939,7 +941,7 @@ class SubprocessUIFactory(TextUIFactory):
 
     def _choose_from_main(self, msg, choices, default):
         name = SUB_CHOOSE
-        self.stdout.write(name + bencode_choose_args(msg, choices, default) + '\n')
+        self.stdout.write(name + bittorrent_b_encode_choose_args(msg, choices, default) + '\n')
         self.stdout.flush()
         line = self.stdin.readline()
         if line.startswith(name):
@@ -1031,13 +1033,13 @@ def run_subprocess_command(cmd, bencoded=False):
         argv = [str(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
     try:
         def on_conflicted(wtpath):
-            print("%s%s%s" % (SUB_NOTIFY, NOTIFY_CONFLICT, bencode_prompt(wtpath)))
+            print("%s%s%s" % (SUB_NOTIFY, NOTIFY_CONFLICT, bittorrent_b_encode_prompt(wtpath)))
         with watch_conflicts(on_conflicted):
             return commands.run_bzr(argv)
     except (KeyboardInterrupt, SystemExit):
         raise
     except Exception as e:
-        print("%s%s" % (SUB_ERROR, bencode_exception_instance(e)))
+        print("%s%s" % (SUB_ERROR, bittorrent_b_encode_exception_instance(e)))
         raise
 
 
@@ -1090,37 +1092,77 @@ if MS_WINDOWS:
             ev.Close()
         thread.interrupt_main()
 
+# === Bncode / Bdecode (B-Encode)
 
-# def bencode_unicode(args):
-#     """Bencode list of unicode strings as list of utf-8 strings and converting
-#     resulting string to unicode.
-#     """
-#     args_utf8 = bencode.bencode([str(a).encode('utf-8') for a in args])
-#     return str(args_utf8, 'utf-8')
+# Bencode (pronounced _B-Encode_, not _Ben Code_) is a serialization encoding format used in torrent files for
+# the BitTorrent protocol. It consists of a series of strings, integers, lists, and dictionaries; since
+# lists and dictionaries contain multiple elements of the Bencode types, they can be nested hierarchically,
+# encapsulating complex data structures.
+#
+# <https://wiki.theory.org/index.php/BitTorrentSpecification#Bencoding>
+#
+# The elements are:-
+#
+#   * Strings: coded as a decimal number giving the length of the string, then a colon,
+#   then the string itself; e.g., ``5:stuff``. The empty string is ``0:``
+#
+#   * Integers: coded as the letter ``i``, then the integer
+#      as a series of decimal digits), then the letter ``e``. E.g., ``i42e`` is 42.
+#      Leading zeroes (e.g. ``i-04e``) are invalid, except for zero itself: ``i0e``.
+#
+#   * Lists: coded as the letter ``l`` (lower-case L), then the list elements
+#      (each encoded as one of the Bencode types, which can include other lists), then the
+#       letter ``e``. E.g.,
+#
+#       ``li42e5:stuffi666ee``
+#
+#     which contains ``42``, ``stuff`` (strictly ``5:stuff``) and ``666``
+#      as its elements)
+#
+#   * Dictionaries: pairs of keys and values, where the key is a string
+#     and the value can be any Bencode type; surrounded by an opening letter ``d``
+#     and closing letter ``e``; keys must appear in alphabetic order; e.g.,
+#
+#     ``d4:testi42e3:zzz4:junke``
+#
+#     is a dictionary where key ``test`` has value ``42`` and key ``zzz`` has value ``junk``.
 
-# def bencode_prompt(arg):
-#     return bencode.bencode(arg.encode('unicode-escape'))
+def bittorrent_b_encode_unicode(args):
+    """Bencode list of unicode strings as list of utf-8 strings and converting
+    resulting string to unicode.
+    """
+    args_utf8 = bencode.bencode([str(a).encode('utf-8') for a in args])
+    return str(args_utf8, 'utf-8')
 
-# def bdecode_prompt(s):
+def bittorrent_b_encode_prompt(arg):
+    return bencode.bencode(arg.encode('unicode-escape'))
+
+# def bittorrent_b_decode_prompt(s):
 #     return bencode.bdecode(s).decode('unicode-escape')
 
-# def bencode_choose_args(msg, choices, default):
-#     if default is None:
-#         default = -1
-#     return bencode.bencode([
-#         msg.encode('unicode-escape'),
-#         choices.encode('unicode-escape'),
-#         default
-#     ])
+def bittorrent_b_decode_prompt(s):
+    # bdecode requires bytes
+    print('\n\n*** bittorrent_b_decode_prompt s as supplied was [{0}]'.format(s), type(s))
+    b_result = bencode.bdecode(s)
+    print('\n  === result was [{0}]'.format(b_result), type(b_result))
+    return bencode.bdecode(s).decode('unicode-escape')
 
+def bittorrent_b_encode_choose_args(msg, choices, default):
+    if default is None:
+        default = -1
+    return bencode.bencode([
+        msg.encode('unicode-escape'),
+        choices.encode('unicode-escape'),
+        default
+    ])
 
-def bdecode_choose_args(s):
+def bittorrent_b_decode_choose_args(s):
     msg, choices, default = bencode.bdecode(s)
     msg = msg.decode('unicode-escape')
     choices = choices.decode('unicode-escape')
     return msg, choices, default
 
-def bencode_exception_instance(e):
+def bittorrent_b_encode_exception_instance(e):
     """Serialise the main information about an exception instance with bencode
 
     For now, nearly all exceptions just give the exception name as a string,
@@ -1150,7 +1192,7 @@ def bencode_exception_instance(e):
     return bencode.bencode((ename, d))
 
 
-def bdecode_exception_instance(s):
+def bittorrent_b_decode_exception_instance(s):
     """Deserialise information about an exception instance with bdecode"""
     ename, d = bencode.bdecode(s)
     for k in d:
@@ -1159,20 +1201,20 @@ def bdecode_exception_instance(s):
 
 
 # GZ 2011-04-15: Remove or deprecate these functions if they remain unused?
-def encode_unicode_escape(obj):
+def bittorrent_b_encode_unicode_escape(obj):
     if isinstance(obj, dict):
         result = {}
         for k,v in obj.items():
             result[k] = v.encode('unicode-escape')
         return result
     else:
-        raise TypeError('encode_unicode_escape: unsupported type: %r' % type(obj))
+        raise TypeError('bittorrent_b_encode_unicode_escape: unsupported type: %r' % type(obj))
 
-def decode_unicode_escape(obj):
+def bittorrent_b_decode_unicode_escape(obj):
     if isinstance(obj, dict):
         result = {}
         for k,v in obj.items():
             result[k] = v.decode('unicode-escape')
         return result
     else:
-        raise TypeError('decode_unicode_escape: unsupported type: %r' % type(obj))
+        raise TypeError('bittorrent_b_decode_unicode_escape: unsupported type: %r' % type(obj))

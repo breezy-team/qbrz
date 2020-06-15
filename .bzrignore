@@ -9,3 +9,9 @@ qbrz-0.23.2.tar.gz
 qbrz-0.23.2.tar.gz.asc
 qbzr-0.23.2.tar.gz.asc
 qbzr-.tar.gz.asc
+docs/literate/index.html
+docs/literate/__init__.html
+docs/literate/lib
+docs/literate/pycco.css
+docs/literate/setup.html
+docs/literate
