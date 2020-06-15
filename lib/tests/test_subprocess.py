@@ -37,8 +37,8 @@ from breezy.plugins.qbrz.lib.subprocess import (
     bittorrent_b_encode_unicode,
     bittorrent_b_encode_exception_instance,
     bittorrent_b_decode_exception_instance,
-    bittorrent_b_encode_unicode_escape,
-    bittorrent_b_decode_unicode_escape,
+    # bittorrent_b_encode_unicode_escape,
+    # bittorrent_b_decode_unicode_escape,
     SubprocessProgressView,
     SUB_PROGRESS,
     )
@@ -52,22 +52,22 @@ class TestBencode(TestCase):
         self.assertEqual("l3:add3:\u1234e", bittorrent_b_encode_unicode(["add", "\u1234"]))
 
     def test_bittorrent_b_encode_prompt(self):
-        self.assertEqual("4:spam", bittorrent_b_encode_prompt(utf_string='spam'))
-        self.assertEqual("10:spam\\neggs", bittorrent_b_encode_prompt('spam'+'\n'+'eggs'))
-        self.assertEqual("14:\\u0420\\n\\u0421", bittorrent_b_encode_prompt('\u0420\n\u0421'))
+        self.assertEqual(b"4:spam", bittorrent_b_encode_prompt(utf_string='spam'))
+        self.assertEqual(b"10:spam\\neggs", bittorrent_b_encode_prompt('spam'+'\n'+'eggs'))
+        self.assertEqual(b"14:\\u0420\\n\\u0421", bittorrent_b_encode_prompt('\u0420\n\u0421'))
 
     def test_bittorrent_b_decode_prompt(self):
         self.assertEqual('spam', bittorrent_b_decode_prompt(b"4:spam"))
         self.assertEqual('spam'+'\n'+'eggs', bittorrent_b_decode_prompt(b"10:spam\\neggs"))
         self.assertEqual('\u0420\n\u0421', bittorrent_b_decode_prompt(b"14:\\u0420\\n\\u0421"))
 
-    def test_bittorrent_b_encode_unicode_escape_dict(self):
-        self.assertEqual({'key': 'foo\\nbar', 'ukey': '\\u1234'},
-            bittorrent_b_encode_unicode_escape({'key': 'foo\nbar', 'ukey': '\u1234'}))
+    # def test_bittorrent_b_encode_unicode_escape_dict(self):
+    #     self.assertEqual({'key': 'foo\\nbar', 'ukey': '\\u1234'},
+    #         bittorrent_b_encode_unicode_escape({'key': 'foo\nbar', 'ukey': '\u1234'}))
 
-    def test_bittorrent_b_decode_unicode_escape_dict(self):
-        self.assertEqual({'key': 'foo\nbar', 'ukey': '\u1234'},
-            bittorrent_b_decode_unicode_escape({'key': 'foo\\nbar', 'ukey': '\\u1234'}))
+    # def test_bittorrent_b_decode_unicode_escape_dict(self):
+    #     self.assertEqual({'key': 'foo\nbar', 'ukey': '\u1234'},
+    #         bittorrent_b_decode_unicode_escape({'key': 'foo\\nbar', 'ukey': '\\u1234'}))
 
 
 class TestExceptionInstanceSerialisation(TestCase):

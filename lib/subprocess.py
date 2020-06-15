@@ -1128,13 +1128,14 @@ if MS_WINDOWS:
 #     is a dictionary where key ``test`` has value ``42`` and key ``zzz`` has value ``junk``.
 
 def bittorrent_b_encode_unicode(args):
-    """Bencode list of unicode strings as list of utf-8 strings and converting
+    """
+    Bencode list of unicode strings as list of utf-8 strings and converting
     resulting string to unicode.
     """
     args_utf8 = bencode.bencode([str(a).encode('utf-8') for a in args])
     return str(args_utf8, 'utf-8')
 
-def bittorrent_b_encode_prompt(utf_string: str) -> str:
+def bittorrent_b_encode_prompt(utf_string: str) -> bytes:
     # The brz.bencode returns bytes but can be passed
     # integer, list, bytes, and dictionaries
     # BUT only those (so NO strings, even in dictionaries)
@@ -1213,20 +1214,21 @@ def bittorrent_b_decode_exception_instance(s):
 
 
 # GZ 2011-04-15: Remove or deprecate these functions if they remain unused?
-def bittorrent_b_encode_unicode_escape(obj):
-    if isinstance(obj, dict):
-        result = {}
-        for k,v in obj.items():
-            result[k] = v.encode('unicode-escape')
-        return result
-    else:
-        raise TypeError('bittorrent_b_encode_unicode_escape: unsupported type: %r' % type(obj))
+# def bittorrent_b_encode_unicode_escape(obj):
+#     if isinstance(obj, dict):
+#         result = {}
+#         for k,v in obj.items():
+#             result[k] = v.encode('unicode-escape')
+#         return result
+#     else:
+#         raise TypeError('bittorrent_b_encode_unicode_escape: unsupported type: %r' % type(obj))
 
-def bittorrent_b_decode_unicode_escape(obj):
-    if isinstance(obj, dict):
-        result = {}
-        for k,v in obj.items():
-            result[k] = v.decode('unicode-escape')
-        return result
-    else:
-        raise TypeError('bittorrent_b_decode_unicode_escape: unsupported type: %r' % type(obj))
+# def bittorrent_b_decode_unicode_escape(a_dict:dict) -> dict:
+#     # Receives a dictionary that has been bittorrent encoded
+#     if isinstance(obj, dict):
+#         result = {}
+#         for k,v in obj.items():
+#             result[k] = v.decode('unicode-escape')
+#         return result
+#     else:
+#         raise TypeError('bittorrent_b_decode_unicode_escape: unsupported type: %r' % type(obj))
