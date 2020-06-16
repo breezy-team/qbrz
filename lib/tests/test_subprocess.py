@@ -111,22 +111,28 @@ class TestExceptionInstanceSerialisation(TestCase):
 class TestSubprocessProgressView(TestCase):
     """Check serialisation of progress updates"""
 
-    def decode_progress(self, bencoded_data):
+    def decode_progress(self, bencoded_data:bytes) -> list:
         """Decodes string of bencoded progress output to list of updates
 
         Duplicates logic decoding logic from `SubProcessWidget.readStdout` and
         `SubProcessWidget.setProgress` which would be good to factor out.
+
+        bdecode requires bencoded bytes and bencoded_data should BE bytes
+        but doesn't appear to be.
         """
         updates = []
         for line in bencoded_data.split("\n"):
             if line.startswith(SUB_PROGRESS):
-                n, transport_activity, task_info = bencode.bdecode(
-                    line[len(SUB_PROGRESS):])
+                # bdecode needs bytes, but we need to snip off the leading SUB_PROGRESS first
+                n, transport_activity, task_info = bencode.bdecode(line[len(SUB_PROGRESS):].encode('utf-8'))
                 if n == 1000000 and not task_info:
                     task_message = "Finished!"
                 else:
-                    task_message = " / ".join(task_info).decode("utf-8")
-                updates.append((n, transport_activity, task_message))
+                    # task_info will be a list of byte-strings, so join and then decode
+                    task_message = b" / ".join(task_info).decode("utf-8")
+                # transport_activity will be bytes too...
+                updates.append((n, transport_activity.decode('utf-8'), task_message))
+        # Now we'll return a list of lines like: (0, '', 'Finding revisions /  0/2')
         return updates
 
     def make_stream_and_task(self):
@@ -178,7 +184,6 @@ class TestSubprocessProgressView(TestCase):
         sio, task = self.make_stream_and_task()
         # Would be nice to use an actual translation
         task.update("\u1234", 0, 2)
-        self.assertEqual([(0, "", "\u1234 /  0/2")],
-            self.decode_progress(sio.getvalue()))
+        self.assertEqual([(0, "", "\u1234 /  0/2")], self.decode_progress(sio.getvalue()))
 
 

@@ -711,14 +711,14 @@ class SubProcessWidget(QtGui.QWidget):
             self.transportActivity.setText(transport_activity)
 
     def readStdout(self):
+        # TODO: This will almost certainly fail - see TestSubprocessProgressView in test_subprocess
         # ensure we read from subprocess plain string
         data = self.process.readAllStandardOutput().data().decode(self.encoding)
         # we need unicode for all strings except bencoded streams
         for line in data.splitlines():
             if line.startswith(SUB_PROGRESS):
                 try:
-                    progress, transport_activity, task_info = bencode.bdecode(
-                        line[len(SUB_PROGRESS):].encode(self.encoding))
+                    progress, transport_activity, task_info = bencode.bdecode(line[len(SUB_PROGRESS):].encode(self.encoding))
                     messages = [b.decode("utf-8") for b in task_info]
                 except ValueError as e:
                     # we got malformed data from qsubprocess (bencode failed to decode)
@@ -1246,7 +1246,7 @@ def bittorrent_b_encode_exception_instance(e: Exception) -> bytes:
     return bencode.bencode((ename, d))
 
 
-def bittorrent_b_decode_exception_instance(s: bytes) -> (str, list):
+def bittorrent_b_decode_exception_instance(bencoded_bytes: bytes) -> (str, list):
     """
     Deserialise information about an exception instance with bdecode
 
@@ -1261,7 +1261,7 @@ def bittorrent_b_decode_exception_instance(s: bytes) -> (str, list):
     #
     #  ``[b'PermissionError', {}]``
 
-    ename, d = bencode.bdecode(s)
+    ename, d = bencode.bdecode(bencoded_bytes)
 
     #
     # The returned list needs to have entries with strings, not bytes.
