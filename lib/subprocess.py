@@ -1203,6 +1203,8 @@ def bittorrent_b_encode_exception_instance(e: Exception) -> bytes:
       ``bencode.bencode((b'9:something', {b'7:somekey':b'4:fred'}))``
 
     """
+    if not isinstance(e, Exception):
+        raise TypeError('Passed {0} instead of exception'.format(type(e)))
     # GZ 2011-04-15: Could use breezy.trace._qualified_exception_name in 2.4
     # Convert to bytes...
     ename = e.__class__.__name__.encode('unicode-escape')
@@ -1229,25 +1231,53 @@ def bittorrent_b_encode_exception_instance(e: Exception) -> bytes:
             #
             # We only need to convert other things than bytes
             if not isinstance(val, bytes):
-                if not isinstance(str):
+                if not isinstance(val, str):
                     val = repr(val)
                 # Now convert to bytes...
                 val = val.encode('unicode-escape')
         except (KeyboardInterrupt, SystemExit):
             raise
+        except KeyError:
+            val = b'[Qbrz could not find the key [{0}] to serialize this attribute]'.format(key)
         except:
-            val = b"[QBzr could not serialize this attribute]"
+            val = b"[QBrz could not serialize this attribute]"
         # The key needs to be bytes too
         d[key.encode('unicode-escape')] = val
     return bencode.bencode((ename, d))
 
 
-def bittorrent_b_decode_exception_instance(s):
-    """Deserialise information about an exception instance with bdecode"""
+def bittorrent_b_decode_exception_instance(s: bytes) -> (str, list):
+    """
+    Deserialise information about an exception instance with bdecode
+
+    Returns a string and a list of strings
+    """
+    # We'll have something in b-encoded form, such as, for example:
+    #
+    #  ``b'l15:PermissionErrordee'``
+    #
+    # which is 'PermissionError' string and {} (an empty dictionary)
+    # b-decode will return bytes so, from the above example, we'd get:
+    #
+    #  ``[b'PermissionError', {}]``
+
     ename, d = bencode.bdecode(s)
+
+    #
+    # The returned list needs to have entries with strings, not bytes.
+    # **However**, the orignal code didn't try to convert the keys.
+    # Instead, we now create a new_d of the same type as d.
+    #
+    # Get the type via type(d) and then instantiate id via () - hence
+    # new_d = type(d)()
+    #
+    new_d = type(d)()
     for k in d:
-        d[k] = d[k].decode("unicode-escape")
-    return ename, d
+        # Convert the key and the value to a string from bytes
+        # and put the results into new_d
+        new_d[k.decode('unicode-escape')] = d[k].decode('unicode-escape')
+    # And convert the exception name to a string too
+    return ename.decode('unicode-escape'), new_d
 
 
 # GZ 2011-04-15: Remove or deprecate these functions if they remain unused?

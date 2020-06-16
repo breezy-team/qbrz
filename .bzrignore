@@ -15,3 +15,5 @@ docs/literate/lib
 docs/literate/pycco.css
 docs/literate/setup.html
 docs/literate
+.vscode/bookmarks.json
+.vscode
