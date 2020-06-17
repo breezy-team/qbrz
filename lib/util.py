@@ -985,7 +985,10 @@ def get_summary(rev):
 def get_message(rev):
     return rev.message or gettext('(no message)')
 
+# RJLRJL not needed for python3
 def ensure_unicode(s, encoding='ascii'):
+    # TODO: get rid of this
+    return s
     """Convert s to unicode if s is plain string.
     Using encoding for unicode decode.
 
