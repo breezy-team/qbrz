@@ -237,6 +237,10 @@ class ChangeDesc(tuple):
 
     NOTE: None value used for non-existing entry in corresponding
           tree, e.g. for added/deleted/ignored/unversioned
+
+    ALSO: 3.1 returns:
+    [8] copied           -> bool
+    [9] ?
     """
 
     # XXX We should may be try get this into breezy.
@@ -304,9 +308,14 @@ class ChangeDesc(tuple):
         else:
             return None
 
+
     def status(desc):
+        # Although _as_tuple is supposed to return 8 fields and apparently
+        # sometimes 9, Breezy gives us 10, and we don't know what the last one is
+        # Also, 'ignored' is called 'copied'
         if len(desc) == 8:
-            (file_id, (path_in_source, path_in_target),
+            (file_id,
+            (path_in_source, path_in_target),
              changed_content, versioned, parent, name, kind,
              executable) = desc
             is_ignored = None
@@ -314,6 +323,10 @@ class ChangeDesc(tuple):
             (file_id, (path_in_source, path_in_target),
              changed_content, versioned, parent, name, kind,
              executable, is_ignored) = desc
+        elif len(desc) == 10:
+            (file_id, (path_in_source, path_in_target),
+             changed_content, versioned, parent, name, kind,
+             executable, is_ignored, unknown) = desc
         else:
             raise RuntimeError("Unkown number of items to unpack.")
 
@@ -421,9 +434,10 @@ class TreeModel(QtCore.QAbstractItemModel):
                 basis_tree = self.tree.basis_tree()
                 basis_tree.lock_read()
                 try:
-                    for change in self.tree.iter_changes(basis_tree,
-                                            want_unversioned=want_unversioned):
-                        change = ChangeDesc(change)
+                    for change in self.tree.iter_changes(basis_tree, want_unversioned=want_unversioned):
+                        # iter_changes now seems to appear to return a TreeChange type See Jelmer's 7390.
+                        # Handily, it has an as_tuple() function, so we'll cheat for now
+                        change = ChangeDesc(change._as_tuple())
                         path = change.path()
                         fileid = change.fileid()
                         if fileid is None: # HOGEHOGE WORKAROUND
@@ -480,13 +494,18 @@ class TreeModel(QtCore.QAbstractItemModel):
                                         self.inventory_data_by_id[fileid] = item_data
 
                     def get_name(dir_fileid, dir_path, path, change):
+                        # print('\n --> get_name', dir_fileid, '#', dir_path, '#', path, '#', change, '\n-----\n')
+                        # If we've a name like 'somedir/thisname' then dirpath will be non-empty ('somedir')
+                        # remove it from the name
                         if dir_path:
                             name = path[len(dir_path)+1:]
                         else:
                             name = path
                         if change and change.is_renamed():
+                            # print('\n\tChange Detected:', change, '\n\tbasis', basis_tree, '\n\tchange_fileid', change.fileid(), '\n\tname:', name)
                             old_inventory_item = self._get_entry(basis_tree, change.fileid())
                             old_names = [old_inventory_item.name]
+                            # print('\n\t\t old_inv, old_name', old_inventory_item, old_names)
                             while old_inventory_item.parent_id:
                                 if old_inventory_item.parent_id == dir_fileid:
                                     break
