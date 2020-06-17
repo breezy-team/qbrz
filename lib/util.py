@@ -35,7 +35,7 @@ from breezy.revision import Revision
 #     config_filename,
 #     )
 
-# RJLRJL: config_dir and ensure_config_dire_exists are now in bedding..
+# RJLRJL: config_dir and ensure_config_dir_exists are now in bedding..
 from breezy.config import GlobalConfig
 
 from breezy import bedding
@@ -1082,6 +1082,8 @@ def launchpad_project_from_url(url):
     return None
 
 
+# RJLRJL: TODO: this lot needs serious updating
+
 def _shlex_split_unicode_linux(unicode_string):
     """Split unicode string to list of unicode arguments."""
     return [p for p in shlex.split(unicode_string)]
@@ -1090,7 +1092,7 @@ def _shlex_split_unicode_windows(unicode_string):
     """Split unicode string to list of unicode arguments.
     Take care about backslashes as valid path separators.
     """
-    utf8_string = unicode_string.replace('\\', '\\\\').encode('utf-8')
+    utf8_string = unicode_string.replace('\\', '\\\\')
     return [p for p in shlex.split(utf8_string)]
 
 if MS_WINDOWS:

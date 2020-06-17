@@ -17,8 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
-# import sip
-# sip.setapi('QVariant', 2)
 
 from breezy.tests import TestCase, TestCaseWithTransport
 from breezy import tests
@@ -74,7 +72,7 @@ class TestTreeWidget(qtests.QTestCase):
         self.tree, self.branch = self.make_tree(self)
 
     def make_working_tree(self):
-        #tree = WorkingTree()
+        # tree = WorkingTree()
         tree = self.make_branch_and_tree('trunk')
         self.build_tree_contents([('trunk/textconflict', b'base'),])
         tree.add(['textconflict'], [b'textconflict-id'])
@@ -227,27 +225,22 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
     def test_filters(self):
         tree = self.make_branch_and_tree('tree')
 
-        self.build_tree(['tree/dir-with-unversioned/',
-                         'tree/ignored-dir-with-child/',])
-        self.build_tree_contents([('tree/dir-with-unversioned/child', ''),
-                                  ('tree/ignored-dir-with-child/child', ''),
-                                  ('tree/unchanged', ''),
-                                  ('tree/changed', 'old'),
-                                  ('tree/unversioned', ''),
-                                  ('tree/ignored', ''),
+        self.build_tree(['tree/dir-with-unversioned/', 'tree/ignored-dir-with-child/',])
+        self.build_tree_contents([('tree/dir-with-unversioned/child', b''),
+                                  ('tree/ignored-dir-with-child/child', b''),
+                                  ('tree/unchanged', b''),
+                                  ('tree/changed', b'old'),
+                                  ('tree/unversioned', b''),
+                                  ('tree/ignored', b''),
                                   ])
-        tree.add(['dir-with-unversioned'], ['dir-with-unversioned-id'])
-        tree.add(['unchanged'], ['unchanged-id'])
-        tree.add(['changed'], ['changed-id'])
-        ignores.tree_ignores_add_patterns(tree,
-                                          ['ignored-dir-with-child',
-                                           'ignored'])
+        tree.add(['dir-with-unversioned'], [b'dir-with-unversioned-id'])
+        tree.add(['unchanged'], [b'unchanged-id'])
+        tree.add(['changed'], [b'changed-id'])
+        ignores.tree_ignores_add_patterns(tree, ['ignored-dir-with-child', 'ignored'])
 
-        tree.commit('a', rev_id='rev-a',
-                    committer="joe@foo.com",
-                    timestamp=1166046000.00, timezone=0)
+        tree.commit('a', rev_id=b'rev-a', committer="joe@foo.com", timestamp=1166046000.00, timezone=0)
 
-        self.build_tree_contents([('tree/changed', 'new')])
+        self.build_tree_contents([('tree/changed', b'bnew')])
 
         self.model = TreeModel()
         load_dirs=[PersistantItemReference(None, 'dir-with-unversioned'),
@@ -255,8 +248,6 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
         self.model.set_tree(tree, branch=tree.branch, load_dirs=load_dirs)
         self.filter_model = TreeFilterProxyModel()
         self.filter_model.setSourceModel(self.model)
-
-
         self.filter_model.setFilters(self.filter)
         self.expected_visible.sort()
         self.assertEqual(self.getVisiblePaths(), self.expected_visible)
@@ -268,8 +259,7 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
             parent_index = parent_indexes_to_visit.pop()
             for row in range(self.filter_model.rowCount(parent_index)):
                 index = self.filter_model.index(row, 0, parent_index)
-                visible_paths.append(
-                    str(self.filter_model.data(index, self.model.PATH).toString()))
+                visible_paths.append(self.filter_model.data(index, self.model.PATH))
                 if self.filter_model.hasChildren(index):
                     parent_indexes_to_visit.append(index)
         visible_paths.sort()
