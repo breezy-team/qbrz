@@ -872,15 +872,18 @@ def url_for_display(url):
     return urlutils.unescape_for_display(url, 'utf-8')
 
 
-def is_binary_content(lines):
-    """Check list of lines for binary content
+# RJL: this was has_any_binary_content, but what was meant was
+# has any binary content, so renamed.
+def has_any_binary_content(lines: list) -> bool:
+    """Check list of lines for any binary content at all
     (i.e. presence of 0x00 byte there).
-    @return: True if 0x00 byte found.
+    @return: True if 0x00 byte found. Actually, if bytes.
     """
-    for s in lines:
-        if b'\x00' in s:
-            return True
-    return False
+    return any(isinstance(val, bytes) for val in lines)
+    # for l in lines:
+    #     if b'\x00' in l:
+    #         return True
+    # return False
 
 
 class BackgroundJob(object):

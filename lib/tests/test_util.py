@@ -137,11 +137,11 @@ class TestUtil(qbrz_tests.QTestCase):
             self.assertEqual('/home/work/qbrz/',
                 util.url_for_display('file:///home/work/qbrz/'))
 
-    def test_is_binary_content(self):
-        self.assertEqual(False, util.is_binary_content([]))
-        self.assertEqual(False, util.is_binary_content(['foo\n', 'bar\r\n', 'spam\r']))
-        self.assertEqual(True, util.is_binary_content(['\x00']))
-        self.assertEqual(True, util.is_binary_content(['a'*2048 + '\x00']))
+    def test_has_any_binary_content(self):
+        self.assertEqual(False, util.has_any_binary_content([]))
+        self.assertEqual(False, util.has_any_binary_content(['foo\n', 'bar\r\n', 'spam\r']))
+        self.assertEqual(True, util.has_any_binary_content([b'\x00']))
+        self.assertEqual(True, util.has_any_binary_content([b'a'*2048 + b'\x00']))
 
     def test_get_summary(self):
         import breezy.revision

@@ -26,7 +26,7 @@ from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.subprocess import SimpleSubProcessDialog
 from breezy.plugins.qbrz.lib.util import (
     get_qbrz_config,
-    is_binary_content,
+    has_any_binary_content,
     )
 
 from breezy.lazy_import import lazy_import
@@ -303,7 +303,7 @@ class DiffItem(object):
                 if self.versioned[ix] and self.kind[ix] == 'file':
                     content = tree.get_file_lines(tree.id2path(self.file_id))
                 lines.append(content)
-                binary = binary or is_binary_content(content)
+                binary = binary or has_any_binary_content(content)
             self._lines = lines
             self._binary = binary
         else:

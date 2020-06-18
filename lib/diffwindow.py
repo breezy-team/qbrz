@@ -58,7 +58,7 @@ from breezy.plugins.qbrz.lib.util import (
     get_set_encoding,
     get_set_tab_width_chars,
     get_tab_width_pixels,
-    is_binary_content,
+    has_any_binary_content,
     run_in_loading_queue,
     runs_in_loading_queue,
     show_shortcut_hint,
