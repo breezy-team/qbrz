@@ -31,13 +31,16 @@ class WtDiffArgProvider(object):
             new_branch=self.tree.branch
         )
 
-CONTENT = \
-"""a b c d e f g h i j k l m n
-o p q r s t u v w x y z""".replace(" ", "\n")
+# CONTENT = \
+# b"""a b c d e f g h i j k l m n
+# o p q r s t u v w x y z""".replace(" ", "\n")
 
-NEW_CONTENT = \
-"""a b c d e ff g h i J-1 J-2 J-3 k l MN
-o p s t 1 2 3 u v w x y z""".replace(" ", "\n")
+CONTENT = b'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\n\n\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
+
+# NEW_CONTENT = \
+# b"""a b c d e ff g h i J-1 J-2 J-3 k l MN
+# o p s t 1 2 3 u v w x y z""".replace(" ", "\n")
+NEW_CONTENT = b'a\nb\nc\nd\ne\nff\ng\nh\ni\nJ-1\nJ-2\nJ-3\nk\nl\nMN\n\no\np\ns\nt\n1\n2\n3\nu\nv\nw\nx\ny\nz'
 
 DIFF = [
     (['f'], ['ff']),
@@ -54,6 +57,7 @@ DIFF_BY_TAGS = dict(
             )
 
 class TestGuideBarBase(QTestCase):
+
     def setUp(self):
         QTestCase.setUp(self)
         self.tree = self.make_branch_and_tree('tree')
@@ -238,12 +242,12 @@ class TestQAnnotate(TestGuideBarBase):
     def setUp(self):
         TestGuideBarBase.setUp(self)
         self.tree.commit(message='2')
-        self.win = AnnotateWindow(None, None, None, None, None,
-                                  loader=self.load, loader_args=[])
+        self.win = AnnotateWindow(None, None, None, None, None, loader=self.load, loader_args=[])
         self.addCleanup(self.win.close)
         self.win.show()
         QTest.qWait(50)
-        self.waitUntil(lambda:self.win.throbber.isVisible() == False, 500)
+        # self.waitUntil(lambda:self.win.throbber.isVisible() == False, 500)
+        self.waitUntil(lambda:self.win.throbber.isVisible() == False, 1500)
 
     def test_annotate(self):
         self.win.log_list.select_revid(self.tree.branch.get_rev_id(2))

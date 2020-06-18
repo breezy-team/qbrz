@@ -24,7 +24,7 @@ checkone: test
 
 # Test specific item
 checkspecific: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz class class TestExceptionInstanceSerialisation
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz class class test_guidebar
 
 test:
 	brz selftest -s bp.qbrz

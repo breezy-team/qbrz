@@ -35,7 +35,8 @@ from breezy.transform import _PreviewTree
 from breezy.workingtree import WorkingTree
 from breezy.bzr.workingtree_4 import DirStateRevisionTree
 from breezy import trace
-from breezy import cleanup
+# from breezy import cleanup
+from breezy.plugins.qbrz.lib import cleanup
 
 from breezy.plugins.qbrz.lib.diffview import (
     SidebySideDiffView,
@@ -367,6 +368,7 @@ class DiffWindow(QBzrWindow):
         op.add_cleanup(self.throbber.hide)
         op.run()
 
+
     def _initial_load(self, op):
         args = self.arg_provider.get_diff_window_args(self.processEvents, op.add_cleanup)
 
@@ -441,7 +443,8 @@ class DiffWindow(QBzrWindow):
                 ulines = di.get_unicode_lines(
                     (self.encoding_selector_left.encoding,
                      self.encoding_selector_right.encoding))
-                data = [''.join(l) for l in ulines]
+
+                data = [b''.join(l) for l in ulines]
 
                 for view in self.views:
                     view.append_diff(list(di.paths), di.file_id, di.kind, di.status,
