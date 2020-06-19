@@ -872,18 +872,18 @@ def url_for_display(url):
     return urlutils.unescape_for_display(url, 'utf-8')
 
 
-# RJL: this was has_any_binary_content, but what was meant was
-# has any binary content, so renamed.
-def has_any_binary_content(lines: list) -> bool:
-    """Check list of lines for any binary content at all
-    (i.e. presence of 0x00 byte there).
-    @return: True if 0x00 byte found. Actually, if bytes.
+# RJL: on further investigation, this appears to be an attempt to detect
+# some kind of binary content (one assumes a file). Naming is important.
+def content_seems_to_be_binary(lines: list) -> bool:
     """
-    return any(isinstance(val, bytes) for val in lines)
-    # for l in lines:
-    #     if b'\x00' in l:
-    #         return True
-    # return False
+    Check list of lines for any binary content at all (i.e. presence of 0x00 byte there).
+    @return: True if 0x00 byte found: we have to hope we haven't got binary data
+    that hasn't got a null-byte in it.
+    """
+    for l in lines:
+        if isinstance(l, bytes) and b'\x00' in l:
+            return True
+    return False
 
 
 class BackgroundJob(object):

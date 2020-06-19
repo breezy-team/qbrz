@@ -26,7 +26,6 @@ class WtDiffArgProvider(object):
 
     def get_diff_window_args(self, processEvents, add_cleanup):
         # This will be used by DiffWindow::_initial_load
-        print('\n\t~~~get_diff_window_args local to test_guidebar!')
         return dict(
             old_tree=self.tree.basis_tree(),
             new_tree=self.tree,
@@ -34,16 +33,20 @@ class WtDiffArgProvider(object):
             new_branch=self.tree.branch
         )
 
+# RJL: why this was done I have no idea at all, it just results in the lines below
+# even when posted in the interpreter, which frankly, could have been done at the time.
+# It's just a-z with newlines
 # CONTENT = \
-# b"""a b c d e f g h i j k l m n
+# """a b c d e f g h i j k l m n
 # o p q r s t u v w x y z""".replace(" ", "\n")
 
-CONTENT = 'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\n\n\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
+CONTENT = 'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
 
+# More nonsense: it's a-z with some replacements
 # NEW_CONTENT = \
-# b"""a b c d e ff g h i J-1 J-2 J-3 k l MN
+# """a b c d e ff g h i J-1 J-2 J-3 k l MN
 # o p s t 1 2 3 u v w x y z""".replace(" ", "\n")
-NEW_CONTENT = 'a\nb\nc\nd\ne\nff\ng\nh\ni\nJ-1\nJ-2\nJ-3\nk\nl\nMN\n\no\np\ns\nt\n1\n2\n3\nu\nv\nw\nx\ny\nz'
+NEW_CONTENT = 'a\nb\nc\nd\ne\nff\ng\nh\ni\nJ-1\nJ-2\nJ-3\nk\nl\nMN\no\np\ns\nt\n1\n2\n3\nu\nv\nw\nx\ny\nz'
 
 DIFF = [
     (['f'], ['ff']),
@@ -70,7 +73,6 @@ DIFF_BY_TAGS = dict(
 
 wait_delay_ms = 5500
 
-
 class TestGuideBarBase(QTestCase):
 
     def setUp(self):
@@ -94,15 +96,12 @@ class TestGuideBarBase(QTestCase):
 
             for tag, expected in DIFF_BY_TAGS.items():
                 data = bar.entries[tag].data
-
                 self.assertEqual(len(data), len(expected))
-
                 for texts, (block_no, block_num) in zip(expected, data):
                     self.assertEqual(len(texts[pos]), block_num)
                     for j in range(block_num):
                         text = str(doc.findBlockByNumber(block_no + j).text())
-                        self.assertEqual(texts[pos][j], text,
-                                         '%s, %s, %r' % (tag, "RL"[pos], data))
+                        self.assertEqual(texts[pos][j], text, '%s, %s, %r' % (tag, "RL"[pos], data))
 
     def assert_unidiff_view(self, panel):
         bar = panel.bar
@@ -288,4 +287,3 @@ class TestQAnnotate(TestGuideBarBase):
 if __name__=='__main__':
     import unittest
     unittest.main()
-
