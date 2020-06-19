@@ -412,10 +412,12 @@ class _ExtDiffer(DiffFromTool):
         self.old_prefix = self.get_prefix(self.old_tree)
         self.new_prefix = self.get_prefix(self.new_tree)
 
+    # RJL: not sure what this should return: a string?
     def get_prefix(self, tree):
+        print('\n*****get_prefix prefixes [{0}]:\n'.format(self.prefixes))
         def get_key(tree):
             if hasattr(tree, "get_revision_id"):
-                return tree.__class__.__name__ + ":" + tree.get_revision_id()
+                return tree.__class__.__name__ + ":" + tree.get_revision_id().decode('utf-8')
             elif hasattr(tree, "abspath"):
                 return tree.__class__.__name__ + ":" + tree.abspath("")
             else:
@@ -561,8 +563,7 @@ class ExtDiffContext(QtCore.QObject):
         Set or change diff command and diffed trees.
         """
         if self._differ is None:
-            self._differ = _ExtDiffer(command_string, old_tree, new_tree,
-                                      self.to_file, self.path_encoding)
+            self._differ = _ExtDiffer(command_string, old_tree, new_tree, self.to_file, self.path_encoding)
         else:
             self._differ.set_trees(old_tree, new_tree)
             self._differ.set_command_string(command_string)

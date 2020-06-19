@@ -17,7 +17,7 @@ class TestCommandString(QTestCase):
     def setUp(self):
         QTestCase.setUp(self)
         self.tree = self.make_branch_and_tree('tree')
-        self.build_tree_contents([('tree/a', "content")])
+        self.build_tree_contents([('tree/a', b"content")])
         self.tree.add(["a"])
         self.tree.commit(message='1')
         self.differ = diff._ExtDiffer("test", self.tree.basis_tree(), self.tree)
@@ -25,22 +25,20 @@ class TestCommandString(QTestCase):
 
     def test_no_arguments(self):
         self.differ.set_command_string("test")
-        self.assertEqual(self.differ.command_template,
-                         ["test", "@old_path", "@new_path"])
+        self.assertEqual(self.differ.command_template, ["test", "@old_path", "@new_path"])
 
     def test_has_arguments(self):
         self.differ.set_command_string("test --old @old_path --new @new_path")
-        self.assertEqual(self.differ.command_template,
-                         ["test", "--old", "@old_path", "--new", "@new_path"])
+        self.assertEqual(self.differ.command_template, ["test", "--old", "@old_path", "--new", "@new_path"])
 
 class TestPrefix(QTestCase):
     def setUp(self):
         QTestCase.setUp(self)
         self.tree = self.make_branch_and_tree('tree')
-        self.build_tree_contents([('tree/a', "content")])
+        self.build_tree_contents([('tree/a', b"content")])
         self.tree.add(["a"])
         self.tree.commit(message='1')
-        self.build_tree_contents([('tree/a', "new content")])
+        self.build_tree_contents([('tree/a', b"new content")])
         self.tree.commit(message='2')
         self.differ = diff._ExtDiffer("test", self.tree.basis_tree(), self.tree)
         self.addCleanup(self.differ.finish)
@@ -107,10 +105,10 @@ class TestExtDiffBase(QTestCase):
 class TestCleanup(TestExtDiffBase):
     def setUp(self):
         TestExtDiffBase.setUp(self)
-        self.build_tree_contents([('tree/a', "a")])
+        self.build_tree_contents([('tree/a', b"a")])
         self.tree.add(['a'])
         self.tree.commit(message='1')
-        self.build_tree_contents([('tree/a', "aa")])
+        self.build_tree_contents([('tree/a', b"aa")])
 
     def test_remove_root(self):
         self.ctx.setup("diff.txt", self.tree.basis_tree(), self.tree)
@@ -130,10 +128,11 @@ class TestCleanup(TestExtDiffBase):
         self.ctx.finish()
         self.assertTrue(self.ctx.rootdir is None)
         self.assertTrue(os.path.exists(ctx2.rootdir))
-    
+
     @contextmanager
     def invalidate_rmtree(self):
         rmtree = diff.osutils.rmtree
+
         def rmtree_mock(path):
             raise IOError("osutils.rmtree is now invalidated.")
         try:
@@ -202,22 +201,20 @@ class TestWorkingTreeDiff(TestExtDiffBase):
 
         self.build_tree(['tree/dir1/', 'tree/dir2/'])
         self.build_tree_contents([
-            ('tree/a', "a"),
-            ('tree/dir1/b', "b"),
-            ('tree/dir1/c', "c"),
-            ('tree/dir1/d', "d"),
-            ('tree/dir2/e', "e"),
-            ('tree/dir2/f', "f"),
+            ('tree/a', b"a"),
+            ('tree/dir1/b', b"b"),
+            ('tree/dir1/c', b"c"),
+            ('tree/dir1/d', b"d"),
+            ('tree/dir2/e', b"e"),
+            ('tree/dir2/f', b"f"),
         ])
-        self.tree.add(["a", "dir1", "dir2",
-                       "dir1/b", "dir1/c", "dir1/d",
-                       "dir2/e", "dir2/f"])
+        self.tree.add(["a", "dir1", "dir2", "dir1/b", "dir1/c", "dir1/d", "dir2/e", "dir2/f"])
         self.tree.commit(message='1')
         self.build_tree_contents([
-            ('tree/a', "A"),
-            ('tree/dir1/b', "B"),
-            ('tree/dir1/c', "C"),
-            ('tree/dir2/e', "E"),
+            ('tree/a', b"A"),
+            ('tree/dir1/b', b"B"),
+            ('tree/dir1/c', b"C"),
+            ('tree/dir2/e', b"E"),
         ])
         self.ctx.setup("diff.exe", self.tree.basis_tree(), self.tree)
 
