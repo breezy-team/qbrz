@@ -20,10 +20,13 @@ from breezy.plugins.qbrz.lib.annotate import AnnotateWindow
 
 
 class WtDiffArgProvider(object):
+    # Will be passed to DiffWindow
     def __init__(self, tree):
         self.tree = tree
 
     def get_diff_window_args(self, processEvents, add_cleanup):
+        # This will be used by DiffWindow::_initial_load
+        print('\n\t~~~get_diff_window_args local to test_guidebar!')
         return dict(
             old_tree=self.tree.basis_tree(),
             new_tree=self.tree,
@@ -35,12 +38,12 @@ class WtDiffArgProvider(object):
 # b"""a b c d e f g h i j k l m n
 # o p q r s t u v w x y z""".replace(" ", "\n")
 
-CONTENT = b'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\n\n\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
+CONTENT = 'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\n\n\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
 
 # NEW_CONTENT = \
 # b"""a b c d e ff g h i J-1 J-2 J-3 k l MN
 # o p s t 1 2 3 u v w x y z""".replace(" ", "\n")
-NEW_CONTENT = b'a\nb\nc\nd\ne\nff\ng\nh\ni\nJ-1\nJ-2\nJ-3\nk\nl\nMN\n\no\np\ns\nt\n1\n2\n3\nu\nv\nw\nx\ny\nz'
+NEW_CONTENT = 'a\nb\nc\nd\ne\nff\ng\nh\ni\nJ-1\nJ-2\nJ-3\nk\nl\nMN\n\no\np\ns\nt\n1\n2\n3\nu\nv\nw\nx\ny\nz'
 
 DIFF = [
     (['f'], ['ff']),
@@ -55,6 +58,18 @@ DIFF_BY_TAGS = dict(
                 delete =[x for x in DIFF if len(x[1]) == 0],
                 insert =[x for x in DIFF if len(x[0]) == 0],
             )
+
+# RJL added this to easily bump up delays as running the same test
+# would sometimes result in failures even with the code unchanged.
+# Original value was 500. Still fails - seems to be a Qt cleanup
+# thing (on Linux) between runs- for example, TestQAnnotate can be run
+# 3 times in succession and will often pass twice and fail once, except
+# when if fails twice and passes once... except when it passes 3 times...
+# You get the idea. Added QTest.qWaitForWindowShown here and there
+# which I suspect was not available when this code was first written.
+
+wait_delay_ms = 5500
+
 
 class TestGuideBarBase(QTestCase):
 
@@ -73,7 +88,7 @@ class TestGuideBarBase(QTestCase):
             bar = panel.bar
             doc = panel.edit.document()
             # Title
-            self.waitUntil(lambda:len(bar.entries['title'].data) > 0, 500)
+            self.waitUntil(lambda:len(bar.entries['title'].data) > 0, wait_delay_ms)
             self.assertEqual(bar.entries['title'].data, [(0, 2)])
             # Replace/Delete/Insert
 
@@ -93,7 +108,7 @@ class TestGuideBarBase(QTestCase):
         bar = panel.bar
         doc = panel.edit.document()
         # Title
-        self.waitUntil(lambda:len(bar.entries['title'].data) > 0, 500)
+        self.waitUntil(lambda:len(bar.entries['title'].data) > 0, wait_delay_ms)
         self.assertEqual(bar.entries['title'].data, [(0, 2)])
         # Replace/Delete/Insert
         for tag, expected in DIFF_BY_TAGS.items():
@@ -113,7 +128,7 @@ class TestGuideBarBase(QTestCase):
         find_toolbar.find_text.setText(text)
 
     def assert_find(self, text, bar, edit, expected_num=None):
-        self.waitUntil(lambda:bar.entries['find'].data, 500)
+        self.waitUntil(lambda:bar.entries['find'].data, wait_delay_ms)
         # Check side by side view
         data = bar.entries['find'].data
         if expected_num is not None:
@@ -131,14 +146,14 @@ class TestQDiff(TestGuideBarBase):
         self.win = DiffWindow(WtDiffArgProvider(self.tree))
         self.addCleanup(self.win.close)
         self.win.show()
-        self.waitUntil(lambda:self.win.view_refresh.isEnabled(), 500)
+        self.waitUntil(lambda:self.win.view_refresh.isEnabled(), wait_delay_ms)
 
     def test_sidebyside(self):
         self.assert_sidebyside_view(self.win.diffview.guidebar_panels)
 
         # show complete
         self.win.click_complete(True)
-        self.waitUntil(lambda:self.win.view_refresh.isEnabled(), 500)
+        self.waitUntil(lambda:self.win.view_refresh.isEnabled(), wait_delay_ms)
         self.assert_sidebyside_view(self.win.diffview.guidebar_panels)
 
     def test_unidiff(self):
@@ -148,7 +163,7 @@ class TestQDiff(TestGuideBarBase):
 
         # show complete
         self.win.click_complete(True)
-        self.waitUntil(lambda:self.win.view_refresh.isEnabled(), 500)
+        self.waitUntil(lambda:self.win.view_refresh.isEnabled(), wait_delay_ms)
         self.assert_unidiff_view(self.win.sdiffview)
 
     def test_find(self):
@@ -161,7 +176,7 @@ class TestQDiff(TestGuideBarBase):
         # Check unidiff view
         self.win.click_toggle_view_mode(True)
         panel = self.win.sdiffview
-        self.waitUntil(lambda:panel.bar.entries['find'].data, 500)
+        self.waitUntil(lambda:panel.bar.entries['find'].data, wait_delay_ms)
         self.assert_find("j", panel.bar, panel.edit, 4)
 
 class TestQShelve(TestGuideBarBase):
@@ -173,7 +188,7 @@ class TestQShelve(TestGuideBarBase):
         self.addCleanup(self.win.close)
         self.win.show()
         self.main_widget = self.win.tab.widget(0)
-        self.waitUntil(lambda:self.main_widget.loaded, 500)
+        self.waitUntil(lambda:self.main_widget.loaded, wait_delay_ms)
 
     def test_hunk(self):
         self.main_widget.file_view.topLevelItem(0).setSelected(True)
@@ -181,10 +196,10 @@ class TestQShelve(TestGuideBarBase):
         # hunk guide is shown only when complete mode.
         self.assertEqual(len(guidebar.entries['hunk'].data), 0)
         self.main_widget.complete_toggled(True)
-        self.waitUntil(lambda:len(guidebar.entries['hunk'].data) > 0, 500)
+        self.waitUntil(lambda:len(guidebar.entries['hunk'].data) > 0, wait_delay_ms)
 
     def test_find(self):
-        self.waitUntil(lambda:self.main_widget.loaded, 500)
+        self.waitUntil(lambda:self.main_widget.loaded, wait_delay_ms)
         self.main_widget.file_view.topLevelItem(0).setSelected(True)
         self.set_find_text(self.main_widget.find_toolbar, "j")
         guidebar = self.main_widget.hunk_view.guidebar
@@ -201,7 +216,7 @@ class TestQUnshelve(TestGuideBarBase):
         self.addCleanup(self.win.close)
         self.win.show()
         self.main_widget = self.win.tab.widget(1)
-        self.waitUntil(lambda:self.main_widget.loaded, 500)
+        self.waitUntil(lambda:self.main_widget.loaded, wait_delay_ms)
         self.main_widget.shelve_view.topLevelItem(0).setSelected(True)
 
     def test_sidebyside(self):
@@ -231,7 +246,7 @@ class TestQUnshelve(TestGuideBarBase):
 
         # Check unidiff view
         self.main_widget.unidiff_toggled(True)
-        self.waitUntil(lambda:diffviews[1].bar.entries['find'].data, 500)
+        self.waitUntil(lambda:diffviews[1].bar.entries['find'].data, wait_delay_ms)
         self.assert_find("j", diffviews[1].bar, diffviews[1].edit, 4)
 
 class TestQAnnotate(TestGuideBarBase):
@@ -245,9 +260,9 @@ class TestQAnnotate(TestGuideBarBase):
         self.win = AnnotateWindow(None, None, None, None, None, loader=self.load, loader_args=[])
         self.addCleanup(self.win.close)
         self.win.show()
-        QTest.qWait(50)
-        # self.waitUntil(lambda:self.win.throbber.isVisible() == False, 500)
-        self.waitUntil(lambda:self.win.throbber.isVisible() == False, 1500)
+        QTest.qWaitForWindowShown(self.win)
+        # The lambda here just makes an anonymous function that returns not isVisible()
+        # self.waitUntil(lambda:self.win.throbber.isVisible() is False, wait_delay_ms)
 
     def test_annotate(self):
         self.win.log_list.select_revid(self.tree.branch.get_rev_id(2))

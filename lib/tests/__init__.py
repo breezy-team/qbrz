@@ -91,9 +91,11 @@ class QTestCase(tests.TestCaseWithTransport):
         erapsed = 0
         while (True):
             if break_condition():
+                # RJL: Give ourselves a little bit more time. Tests
+                # are less flaky (but still flaky)
+                QtTest.QTest.qWait(200)
                 return
             if timeout < erapsed:
                 self.fail(timeout_msg or 'Timeout!')
             QtTest.QTest.qWait(200)
             erapsed += 200
-

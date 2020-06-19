@@ -183,6 +183,7 @@ class DiffItem(object):
         """
         RJLRJL: updated to call .iter_changes directly
         """
+        print('\n*** iter_items')
         try:
             cleanup = []
             if lock_trees:
@@ -193,7 +194,6 @@ class DiffItem(object):
 
             # def changes_key(change):
             #     return change[1][1] or change[1][0]
-
             for change in trees[1].iter_changes(trees[0], specific_files=specific_files, require_versioned=True):
                 # file_id         -> ascii string
                 # paths           -> 2-tuple (old, new) fullpaths unicode/None

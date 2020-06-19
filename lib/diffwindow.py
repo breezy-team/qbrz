@@ -370,6 +370,7 @@ class DiffWindow(QBzrWindow):
 
 
     def _initial_load(self, op):
+        print('\n\n===_initial_load')
         args = self.arg_provider.get_diff_window_args(self.processEvents, op.add_cleanup)
 
         self.trees = (args["old_tree"], args["new_tree"])
@@ -429,28 +430,33 @@ class DiffWindow(QBzrWindow):
     def load_diff(self):
         self.view_refresh.setEnabled(False)
         self.processEvents()
-
+        print('\n*** load_diff')
         try:
             no_changes = True   # if there is no changes found we need to inform the user
             for di in DiffItem.iter_items(self.trees,
                                           specific_files=self.specific_files,
                                           filter=self.filter_options.check,
                                           lock_trees=True):
+                print('\n\t di', di, type(di))
                 lines = di.lines
+                print('\n\t\t--> lines', lines)
                 self.processEvents()
                 groups = di.groups(self.complete, self.ignore_whitespace)
                 self.processEvents()
                 ulines = di.get_unicode_lines(
                     (self.encoding_selector_left.encoding,
                      self.encoding_selector_right.encoding))
-
-                data = [b''.join(l) for l in ulines]
-
+                byte_data = [b''.join(l) for l in ulines]
+                data = [ll.decode('utf-8') for ll in byte_data]
+                print('\tdata', data, type(data))
                 for view in self.views:
                     view.append_diff(list(di.paths), di.file_id, di.kind, di.status,
                                      di.dates, di.versioned, di.binary, ulines, groups,
                                      data, di.properties_changed)
                     self.processEvents()
+                    print('\n\t\t\tAppended', list(di.paths), di.file_id, di.kind, di.status,
+                                     di.dates, di.versioned, di.binary, ulines, groups,
+                                     data, di.properties_changed)
                 no_changes = False
         except PathsNotVersionedError as e:
                 QtGui.QMessageBox.critical(self, gettext('Diff'),
