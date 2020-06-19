@@ -476,16 +476,16 @@ class _ExtDiffer(DiffFromTool):
         return DiffFromTool._write_file(self, relpath, tree, prefix,
                                         force_temp, allow_write, file_id)
 
-    def _prepare_files(self, old_path, new_path, force_temp=False,
-                       file_id=None, allow_write_new=False):
-        old_disk_path = self._write_file(old_path, self.old_tree,
-                                         self.old_prefix, force_temp,
-                                         file_id=file_id)
-        new_disk_path = self._write_file(new_path, self.new_tree,
-                                         self.new_prefix, force_temp,
-                                         allow_write=allow_write_new,
-                                         file_id=file_id)
-        return old_disk_path, new_disk_path
+    # def _prepare_files(self, old_path, new_path, force_temp=False,
+    #                    file_id=None, allow_write_new=False):
+    #     old_disk_path = self._write_file(old_path, self.old_tree,
+    #                                      self.old_prefix, force_temp,
+    #                                      file_id=file_id)
+    #     new_disk_path = self._write_file(new_path, self.new_tree,
+    #                                      self.new_prefix, force_temp,
+    #                                      allow_write=allow_write_new,
+    #                                      file_id=file_id)
+    #     return old_disk_path, new_disk_path
 
     def _execute(self, old_path, new_path):
         command = self._get_command(old_path, new_path)
@@ -501,12 +501,17 @@ class _ExtDiffer(DiffFromTool):
     def diff(self, file_id):
         try:
             new_path = self.new_tree.id2path(file_id)
-            new_kind = self.new_tree.kind(new_path, file_id)
+            # new_kind = self.new_tree.kind(new_path, file_id)
+            new_kind = self.new_tree.kind(new_path)
             old_path = self.old_tree.id2path(file_id)
-            old_kind = self.old_tree.kind(old_path, file_id)
+            # old_kind = self.old_tree.kind(old_path, file_id)
+            old_kind = self.old_tree.kind(old_path)
         except NoSuchId:
             return DiffPath.CANNOT_DIFF
-        return DiffFromTool.diff(self, file_id, old_path, new_path, old_kind, new_kind)
+        # return DiffFromTool.diff(self, file_id, old_path, new_path, old_kind, new_kind)
+        result = DiffFromTool.diff(self, old_path, new_path, old_kind, new_kind)
+        print('\n\t ---> result ', result)
+        return DiffFromTool.diff(self, old_path, new_path, old_kind, new_kind)
 
 class ExtDiffContext(QtCore.QObject):
     """
