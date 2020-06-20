@@ -395,7 +395,7 @@ class _ExtDiffer(DiffFromTool):
         parent = osutils.joinpath([osutils.tempfile.gettempdir(), 'qbrz'])
         if not os.path.isdir(parent):
             os.mkdir(parent)
-        self._root = osutils.mkdtemp(prefix='qbrz/bzr-diff-')
+        self._root = osutils.mkdtemp(prefix='qbrz/brz-diff-')
         self.prefixes = {}
         self._set_prefix()
 
@@ -412,9 +412,8 @@ class _ExtDiffer(DiffFromTool):
         self.old_prefix = self.get_prefix(self.old_tree)
         self.new_prefix = self.get_prefix(self.new_tree)
 
-    # RJL: not sure what this should return: a string?
     def get_prefix(self, tree):
-        print('\n*****get_prefix prefixes [{0}]:\n'.format(self.prefixes))
+
         def get_key(tree):
             if hasattr(tree, "get_revision_id"):
                 return tree.__class__.__name__ + ":" + tree.get_revision_id().decode('utf-8')
@@ -467,14 +466,13 @@ class _ExtDiffer(DiffFromTool):
             if os.path.isdir(path):
                 open(os.path.join(path, ".delete"), "w").close()
 
-    def _write_file(self, relpath, tree, prefix, force_temp=False,
-                    allow_write=False, file_id=None):
+    def _write_file(self, relpath, tree, prefix, force_temp=False, allow_write=False, file_id=None):
         if force_temp or not isinstance(tree, WorkingTree):
             full_path = self._safe_filename(prefix, relpath)
             if os.path.isfile(full_path):
                 return full_path
-        return DiffFromTool._write_file(self, relpath, tree, prefix,
-                                        force_temp, allow_write, file_id)
+        # return DiffFromTool._write_file(self, relpath, tree, prefix, force_temp, allow_write, file_id)
+        return DiffFromTool._write_file(self, relpath, tree, prefix, force_temp, allow_write)
 
     # def _prepare_files(self, old_path, new_path, force_temp=False,
     #                    file_id=None, allow_write_new=False):
@@ -509,8 +507,6 @@ class _ExtDiffer(DiffFromTool):
         except NoSuchId:
             return DiffPath.CANNOT_DIFF
         # return DiffFromTool.diff(self, file_id, old_path, new_path, old_kind, new_kind)
-        result = DiffFromTool.diff(self, old_path, new_path, old_kind, new_kind)
-        print('\n\t ---> result ', result)
         return DiffFromTool.diff(self, old_path, new_path, old_kind, new_kind)
 
 class ExtDiffContext(QtCore.QObject):

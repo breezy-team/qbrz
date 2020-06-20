@@ -221,8 +221,7 @@ class TestWorkingTreeDiff(TestExtDiffBase):
     def assertPopen(self, paths, old_contents):
         self.assertEqual(self.popen_mock.count, len(paths))
 
-        for args, path, old_content in zip(self.popen_mock.args,
-                                           paths, old_contents):
+        for args, path, old_content in zip(self.popen_mock.args, paths, old_contents):
             tool, old_path, new_path = args[0][0]
             self.assertEqual(tool, "diff.exe")
             self.assertFileContent(old_path, old_content)
@@ -245,7 +244,7 @@ class TestWorkingTreeDiff(TestExtDiffBase):
 
     def test_diff_tree(self):
         paths = ['a', 'dir1/b', 'dir1/c', 'dir2/e']
-        old_contents = ['a', 'b', 'c', 'e']
+        old_contents = [b'a', b'b', b'c', b'e']
         self.ctx.diff_tree()
         self.assertPopen(paths, old_contents)
 
@@ -261,13 +260,10 @@ class TestWorkingTreeDiff(TestExtDiffBase):
         self.assertPopen(paths, ["a"])
 
     def test_skip_added_file(self):
-        self.build_tree_contents([
-            ('tree/a2', "a"),
-        ])
+        self.build_tree_contents([('tree/a2', b"a"),])
         self.tree.add(['a2'])
         self.ctx.diff_paths(['a2'])
         self.assertPopen([], [])
-
 
     def test_skip_removed_file_1(self):
         self.tree.remove(['a'], keep_files=True)
