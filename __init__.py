@@ -71,6 +71,9 @@ Additional commands:
 Miscellaneous:
 
  * bug-url - print full URL to a specific bug, or open it in your browser.
+
+RJL 2020:
+This is the updated version for QBrz
 """
 
 # RJL to speed development, retain Qt4 for now: use ``sip.setapi`` to request
@@ -78,14 +81,15 @@ Miscellaneous:
 import sip
 sip.setapi('QVariant', 2)
 
-version_info = (0,23,2,'final',0)
+# RJL: set to 0,3,1 to match br
+# version_info = (0,23,2,'final',0)
+version_info = (0,3,1,'devel',0)
 __version__ = '.'.join(map(str, version_info))
 
 
 import breezy
 
 from breezy.commands import plugin_cmds
-
 
 # merge --qpreview disabled for 0.14 because it makes qbrz incompatible with bzr-pipeline plugin
 # see bug https://bugs.launchpad.net/bugs/395817

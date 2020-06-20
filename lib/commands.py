@@ -108,8 +108,7 @@ def check_encoding(encoding):
 
 class PyQt4NotInstalled(errors.BzrError):
 
-    _fmt = ('QBzr require at least PyQt 4.4 and '
-            'Qt 4.4 to run. Please check your install')
+    _fmt = ('QBrz requires at least PyQt 4.4 and Qt 4.4 to run. Please check your install')
 
 
 def report_missing_pyqt(unbound):
@@ -163,10 +162,10 @@ class QBzrCommand(Command):
         std_ui_factory = ui.ui_factory
         try:
             ui.ui_factory = QUIFactory()
-            
+
             # Handle interupt signal correctly.
             signal.signal(signal.SIGINT, signal.SIG_DFL)
-            
+
             # Set up global exception handling.
             from breezy.plugins.qbrz.lib.trace import excepthook
             sys.excepthook = excepthook
@@ -195,11 +194,9 @@ class QBzrCommand(Command):
             ui.ui_factory = std_ui_factory
 
 
-ui_mode_option = Option("ui-mode",
-    help="Causes dialogs to wait after the operation is complete.")
+ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")
 execute_option = Option("execute", short_name='e',
-    help="Causes dialogs to start the underlying action immediately without "
-         "waiting for user input.")
+    help="Causes dialogs to start the underlying action immediately without waiting for user input.")
 
 # A special option so 'revision' can be passed as a simple string, when we do
 # *not* want breezy's feature of parsing the revision string before passing it.
@@ -213,13 +210,13 @@ simple_revision_option = Option("revision",
                              help='See "help revisionspec" for details.')
 
 
-def bzr_option(cmd_name, opt_name):
-    """Helper so we can 'borrow' options from bzr itself without needing to
+def brz_option(cmd_name, opt_name):
+    """Helper so we can 'borrow' options from brz itself without needing to
     duplicate the help text etc.  Pass the builtin bzr command name and an
     option name.
 
     eg:
-      takes_options = [bzr_option("push", "create-prefix")]
+      takes_options = [brz_option("push", "create-prefix")]
 
     would give a command the exact same '--create-prefix' option as bzr's
     push command has, including help text, parsing, etc.
@@ -233,13 +230,10 @@ class cmd_qannotate(QBzrCommand):
     """Show the origin of each line in a file."""
     takes_args = ['filename']
     takes_options = ['revision',
-                     Option('encoding', type=check_encoding,
-                         help='Encoding of files content (default: utf-8).'),
+                     Option('encoding', type=check_encoding, help='Encoding of files content (default: utf-8).'),
                      ui_mode_option,
                      Option('no-graph', help="Shows the log with no graph."),
-                     Option('line', short_name='L', type=int, argname='N',
-                        param_name='activate_line',
-                        help='Activate line N on start.'),
+                     Option('line', short_name='L', type=int, argname='N', param_name='activate_line', help='Activate line N on start.'),
                     ]
     aliases = ['qann', 'qblame']
 
@@ -259,23 +253,18 @@ class cmd_qannotate(QBzrCommand):
                 if wt is not None:
                     tree = wt
                 else:
-                    tree = branch.repository.revision_tree(
-                                                    branch.last_revision())
+                    tree = branch.repository.revision_tree(branch.last_revision())
             elif len(revision) != 1:
-                raise errors.BzrCommandError(
-                    'bzr qannotate --revision takes exactly 1 argument')
+                raise errors.BzrCommandError('bzr qannotate --revision takes exactly 1 argument')
             else:
-                tree = branch.repository.revision_tree(
-                        revision_id = revision[0].in_history(branch).rev_id)
+                tree = branch.repository.revision_tree(revision_id = revision[0].in_history(branch).rev_id)
 
             file_id = tree.path2id(relpath)
             if file_id is None:
                 raise errors.NotVersionedError(filename)
-            [(path, entry)] = list(tree.iter_entries_by_dir(
-                specific_files=[filename]))
+            [(path, entry)] = list(tree.iter_entries_by_dir(specific_files=[filename]))
             if entry.kind != 'file':
-                raise errors.BzrCommandError(
-                        'bzr qannotate only works for files (got %r)' % entry.kind)
+                raise errors.BzrCommandError('bzr qannotate only works for files (got %r)' % entry.kind)
             #repo = branch.repository
             #w = repo.weave_store.get_weave(file_id, repo.get_transaction())
             #content = list(w.annotate_iter(entry.revision))
@@ -318,7 +307,7 @@ class cmd_qadd(QBzrCommand):
 class cmd_qrevert(QBzrCommand):
     """Revert changes files."""
     takes_args = ['selected*']
-    takes_options = [ui_mode_option, bzr_option('revert', 'no-backup')]
+    takes_options = [ui_mode_option, brz_option('revert', 'no-backup')]
 
     def _qbrz_run(self, selected_list=None, ui_mode=False, no_backup=False):
         tree, selected_list = WorkingTree.open_containing_paths(selected_list)
@@ -364,9 +353,9 @@ class cmd_qcommit(QBzrCommand):
     """GUI for committing revisions."""
     takes_args = ['selected*']
     takes_options = [
-            bzr_option('commit', 'message'),
-            bzr_option('commit', 'local'),
-            bzr_option('commit', 'file'),
+            brz_option('commit', 'message'),
+            brz_option('commit', 'local'),
+            brz_option('commit', 'file'),
             Option('file-encoding', type=check_encoding,
                help='Encoding of commit message file content.'),
             ui_mode_option,
@@ -407,8 +396,8 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
         Option('renamed', short_name='R', help='Show diff for renamed files.'),
         Option('ignore-whitespace', short_name='w',
                help="Ignore whitespace when finding differences"),
-        bzr_option('diff', 'old'),
-        bzr_option('diff', 'new'),
+        brz_option('diff', 'old'),
+        brz_option('diff', 'new'),
         ]
     if 'change' in Option.OPTIONS:
         takes_options.append('change')
@@ -576,7 +565,7 @@ class cmd_qpull(QBzrCommand):
     takes_options = [
         'remember', 'overwrite',
         simple_revision_option,
-        bzr_option('pull', 'directory'),
+        brz_option('pull', 'directory'),
         ui_mode_option,
         ]
     takes_args = ['location?']
@@ -605,9 +594,9 @@ class cmd_qmerge(QBzrCommand):
 
     takes_options = [ui_mode_option,
                      simple_revision_option,
-                     bzr_option('merge', 'directory'),
-                     bzr_option('merge', 'force'),
-                     bzr_option('merge', 'uncommitted'),
+                     brz_option('merge', 'directory'),
+                     brz_option('merge', 'force'),
+                     brz_option('merge', 'uncommitted'),
                      'remember']
     takes_args = ['location?']
 
@@ -632,9 +621,9 @@ class cmd_qpush(QBzrCommand):
     """Update a mirror of this branch."""
 
     takes_options = ['remember', 'overwrite',
-                     bzr_option("push", "create-prefix"),
-                     bzr_option("push", "use-existing-dir"),
-                     bzr_option("push", "directory"),
+                     brz_option("push", "create-prefix"),
+                     brz_option("push", "use-existing-dir"),
+                     brz_option("push", "directory"),
                      ui_mode_option]
     takes_args = ['location?']
 
@@ -669,7 +658,7 @@ class cmd_qbranch(QBzrCommand):
     takes_options = [simple_revision_option,
                      ui_mode_option]
     try:
-        takes_options.append(bzr_option("branch", "bind"))
+        takes_options.append(brz_option("branch", "bind"))
     except KeyError:
         # older version of bzr that doesn't support the option
         pass
@@ -704,7 +693,7 @@ class cmd_qverify_signatures(QBzrCommand):
                         ' acceptable for verification.',
                    short_name='k',
                    type=str,),
-            'revision', 
+            'revision',
           ]
     takes_args = ['location?']
 
@@ -715,7 +704,7 @@ class cmd_qverify_signatures(QBzrCommand):
             window.show()
             self._application.exec_()
         else:
-            raise errors.DependencyNotPresent("python-gpgme", 
+            raise errors.DependencyNotPresent("python-gpgme",
                                         "python-gpgme not installed")
 
 class cmd_qinit(QBzrCommand):
@@ -885,9 +874,9 @@ class cmd_qtag(QBzrCommand):
     takes_args = ['tag_name?']
     takes_options = [
         ui_mode_option,
-        bzr_option('tag', 'delete'),
-        bzr_option('tag', 'directory'),
-        bzr_option('tag', 'force'),
+        brz_option('tag', 'delete'),
+        brz_option('tag', 'directory'),
+        brz_option('tag', 'force'),
         'revision',
         ]
 
@@ -1106,15 +1095,15 @@ class cmd_qrun(QBzrCommand):
             execute=execute)
         window.show()
         self._application.exec_()
-        
+
 class cmd_qshelve(QBzrCommand):
     """Shelve selected changes away."""
     takes_args = ['file*']
     takes_options = [
         ui_mode_option,
-        bzr_option('shelve', 'list'),
-        bzr_option('shelve', 'directory'),
-        bzr_option('shelve', 'message'),
+        brz_option('shelve', 'list'),
+        brz_option('shelve', 'directory'),
+        brz_option('shelve', 'message'),
         Option('all', help='Select all changes.'),
         Option('complete', help='Show complete files.'),
         Option('ignore-whitespace', short_name='w',
@@ -1123,7 +1112,7 @@ class cmd_qshelve(QBzrCommand):
                help='Encoding of files content (default: utf-8).'),
         ]
 
-    def _qbrz_run(self, file_list=None, list=False, directory=None, ui_mode=False, 
+    def _qbrz_run(self, file_list=None, list=False, directory=None, ui_mode=False,
                             complete=False, ignore_whitespace=False, encoding=None,
                             all=False, message=None):
         if list:
@@ -1131,7 +1120,7 @@ class cmd_qshelve(QBzrCommand):
         else:
             initial_tab = 0
         self.main_window = ShelveWindow(file_list=file_list, directory=directory, ui_mode=ui_mode,
-                                initial_tab=initial_tab, complete=complete, 
+                                initial_tab=initial_tab, complete=complete,
                                 ignore_whitespace=ignore_whitespace, encoding=encoding,
                                 select_all=all, message=message)
         self.main_window.show()
@@ -1141,7 +1130,7 @@ class cmd_qunshelve(QBzrCommand):
     """Restore shalved changes."""
     takes_options = [
         ui_mode_option,
-        bzr_option('unshelve', 'directory'),
+        brz_option('unshelve', 'directory'),
         Option('complete', help='Show complete files.'),
         Option('ignore-whitespace', short_name='w',
                help="Ignore whitespace when finding differences.(Only work when --list specified)"),
@@ -1149,10 +1138,10 @@ class cmd_qunshelve(QBzrCommand):
                help='Encoding of files content (default: utf-8).'),
         ]
 
-    def _qbrz_run(self, directory=None, ui_mode=False, 
+    def _qbrz_run(self, directory=None, ui_mode=False,
                         complete=False, ignore_whitespace=False, encoding=None):
         self.main_window = ShelveWindow(directory=directory, ui_mode=ui_mode,
-                                initial_tab=1, complete=complete, 
+                                initial_tab=1, complete=complete,
                                 ignore_whitespace=ignore_whitespace, encoding=encoding)
         self.main_window.show()
         self._application.exec_()
@@ -1163,7 +1152,7 @@ class cmd_qignore(QBzrCommand):
     takes_args = []
     takes_options = [
         ui_mode_option,
-        bzr_option('ignore', 'directory'),
+        brz_option('ignore', 'directory'),
         ]
     aliases = []
 

@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-"""Tests for QBzr plugin."""
+"""Tests for QBrz plugin."""
 
 from breezy.tests import TestCase
 from breezy.plugins.qbrz.lib.diffview import insert_intraline_changes

@@ -34,6 +34,7 @@ from breezy.plugins.qbrz.lib import (
 from breezy.plugins.qbrz.lib.fake_branch import FakeBranch
 from breezy.plugins.qbrz.lib.tests import mock
 
+# RJLRJL some bzr... file-names might need changing
 
 class TestUtil(qbrz_tests.QTestCase):
 
@@ -180,6 +181,7 @@ class TestUtil(qbrz_tests.QTestCase):
     def test__shlex_split_unicode_windows(self):
         self.assertEqual(['C:\\foo\\bar', '\u1234'], util._shlex_split_unicode_windows("C:\\foo\\bar \u1234"))
 
+    # RJLRJL bypassed for now
     # def test_launchpad_project_from_url(self):
     #     fut = util.launchpad_project_from_url  # fut = function under test
     #     # classic

@@ -14,11 +14,11 @@ all:
 
 .PHONY: test pot mo clean tags docs ui
 
-# For now, ignore internationalization
+# Ignore internationalization for now
 check: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s bp.qbrz -x TestI18n
 
-# Stop on first error, ignore internationalization
+# Stop on first error, ignore internationalization for now
 checkone: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x TestI18n
 
@@ -39,6 +39,7 @@ tarball:
 	brz export --root=qbrz qbrz-$(RELEASE).tar.gz
 	gpg2 -ab qbrz-$(RELEASE).tar.gz
 
+# RJL needs to come back in
 # inno: mo
 # 	./iscc installer/qbrz-setup.iss
 # 	gpg -ab qbrz-setup-$(RELEASE).exe

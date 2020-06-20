@@ -24,12 +24,12 @@ from extras import cmdclass
 ext_modules = []
 
 setup(name='qbrz',
-      description='Qt4 frontend for Bazaar',
+      description='Qt4 frontend for Breezy',
       keywords='plugin brz qt qbrz',
-      version='0.23.2',
-      url='http://wiki.bazaar.canonical.com/QBzr',
+      version='0.3.1',
+      url='https://www.breezy-vcs.org/',
       license='GPL',
-      author='QBzr Developers',
+      author='QBrz Developers',
       author_email='qbrz@googlegroups.com',
       package_dir={'breezy.plugins.qbrz': '.'},
       package_data={'breezy.plugins.qbrz': ['locale/*/LC_MESSAGES/qbrz.mo',

@@ -17,6 +17,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+# The QBrz makefile
+#
+
 import os
 import sys
 from breezy import (
@@ -65,7 +68,7 @@ def load_tests(loader, basic_tests, pattern):
             basic_tests.addTests(loader.loadTestsFromModuleName(m))
         except ImportError as e:
             if str(e).endswith('PyQt4'):
-                trace.note('QBzr: skip module %s because PyQt4 is not installed' % m)
+                trace.note('QBrz: skip module %s because PyQt4 is not installed' % m)
             else:
                 raise
     return basic_tests

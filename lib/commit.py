@@ -141,7 +141,7 @@ class TextEdit(QtGui.QTextEdit):
 
     def contextMenuEvent(self, event):
         menu = self.createStandardContextMenu(event.globalPos())
-        
+
         self.context_tc = self.cursorForPosition(event.pos())
         self.context_tc.movePosition(QtGui.QTextCursor.StartOfWord)
         self.context_tc.movePosition(QtGui.QTextCursor.EndOfWord,
@@ -157,10 +157,10 @@ class TextEdit(QtGui.QTextEdit):
                 menu.insertAction(first_action, action)
             if suggestions:
                 menu.insertSeparator(first_action)
-        
+
         menu.exec_(event.globalPos())
         event.accept()
-    
+
     def suggestion_selected(self, text):
         def _suggestion_selected(b):
             self.context_tc.insertText(text);
@@ -175,12 +175,12 @@ class PendingMergesList(LogList):
         # that is going to make this much slower.
         self.header().hideSection(0)
         self.log_model.last_rev_is_placeholder = True
-    
+
     def load_tree(self, tree):
         bi = BranchInfo('', tree, tree.branch)
         self.log_model.load(
             (bi,), bi, None, False, logmodel.PendingMergesGraphVizLoader)
-    
+
     def create_context_menu(self, file_ids):
         super(PendingMergesList, self).create_context_menu(file_ids)
         showinfo = QtGui.QAction("Show &information...", self)
@@ -196,19 +196,19 @@ class PendingMergesList(LogList):
 
     def default_action(self, index=None):
         """Show information of a single revision from a index."""
-        
+
         if index is None:
             index = self.currentIndex()
-        
+
         # XXX We should make this show all selected revisions...
-        
+
         revid = index.data(logmodel.RevIdRole)
         branch = self.log_model.graph_viz.get_revid_branch(revid)
         parent_window = self.window()
         window = RevisionView(revid, branch, parent=parent_window)
         window.show()
         parent_window.windows.append(window)
-    
+
 
 class CommitWindow(SubProcessDialog):
 
@@ -230,10 +230,10 @@ class CommitWindow(SubProcessDialog):
 
         self.is_bound = bool(tree.branch.get_bound_location())
         self.has_pending_merges = len(tree.get_parent_ids())>1
-        
+
         if self.has_pending_merges and selected_list:
             raise errors.CannotCommitSelectedFileMerge(selected_list)
-        
+
         self.windows = []
         self.initial_selected_list = selected_list
 
@@ -274,7 +274,7 @@ class CommitWindow(SubProcessDialog):
             if local:
                 self.local_checkbox.setChecked(True)
             self.update_branch_groupbox()
-        
+
         self.not_uptodate_errors = {
             'BoundBranchOutOfDate': gettext(
                 'Local branch is out of date with master branch.\n'
@@ -285,25 +285,25 @@ class CommitWindow(SubProcessDialog):
             }
         self.not_uptodate_info = InfoWidget(branch_groupbox)
         not_uptodate_layout = QtGui.QHBoxLayout(self.not_uptodate_info)
-        
+
         # XXX this is to big. Resize
         not_uptodate_icon = QtGui.QLabel()
         not_uptodate_icon.setPixmap(self.style().standardPixmap(
             QtGui.QStyle.SP_MessageBoxWarning))
         not_uptodate_layout.addWidget(not_uptodate_icon)
-        
+
         self.not_uptodate_label = QtGui.QLabel('error message goes here')
         not_uptodate_layout.addWidget(self.not_uptodate_label, 2)
-        
+
         update_button = QtGui.QPushButton(gettext('Update'))
         self.connect(update_button, QtCore.SIGNAL("clicked(bool)"),
                      self.open_update_win)
 
         not_uptodate_layout.addWidget(update_button)
-        
+
         self.not_uptodate_info.hide()
         branch_layout.addWidget(self.not_uptodate_info, 3, 0, 1, 2)
-        
+
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
 
         message_groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
@@ -329,18 +329,18 @@ class CommitWindow(SubProcessDialog):
             self.filelist.tree_model.set_select_all_kind('all')
         else:
             self.filelist.tree_model.set_select_all_kind('versioned')
-        
+
         self.file_words = {}
         self.connect(self.filelist.tree_model,
                      QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                      self.on_filelist_data_changed)
-        
+
         self.selectall_checkbox = SelectAllCheckBox(self.filelist, self)
         self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
 
         language = get_global_config().get_user_option('spellcheck_language') or 'en'
         spell_checker = SpellChecker(language)
-        
+
         # Equivalent for 'bzr commit --message'
         self.message = TextEdit(spell_checker, message_groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the commit message"))
@@ -396,7 +396,7 @@ class CommitWindow(SubProcessDialog):
         vbox.addWidget(self.filelist)
         self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
         vbox.addWidget(self.show_nonversioned_checkbox)
-    
+
         vbox.addWidget(self.selectall_checkbox)
 
         # Display a list of pending merges
@@ -405,11 +405,11 @@ class CommitWindow(SubProcessDialog):
             self.selectall_checkbox.setEnabled(False)
             self.pending_merges_list = PendingMergesList(
                 self.processEvents, self.throbber, self)
-            
+
             self.tabWidget.addTab(self.pending_merges_list,
                                   gettext("Pending Merges"))
             self.tabWidget.setCurrentWidget(self.pending_merges_list)
-            
+
             # Pending-merge widget gets disabled as we are executing.
             QtCore.QObject.connect(self,
                                    QtCore.SIGNAL("disableUi(bool)"),
@@ -490,7 +490,7 @@ class CommitWindow(SubProcessDialog):
                     # loading the file list.
                     self.pending_merges_list._load_visible_revisions()
                     self.processEvents()
-                
+
                 self.filelist.tree_model.checkable = not self.pending_merges_list
                 self.is_loading = True
                 # XXX Would be nice if we could only load the files when the
@@ -498,7 +498,7 @@ class CommitWindow(SubProcessDialog):
                 # we can't load the words list.
                 if not refresh:
                     fmodel = self.filelist.tree_filter_model
-                    
+
                     want_unversioned = self.show_nonversioned_checkbox.isChecked()
                     fmodel.setFilter(fmodel.UNVERSIONED, want_unversioned)
                     if not want_unversioned and self.initial_selected_list:
@@ -508,7 +508,7 @@ class CommitWindow(SubProcessDialog):
                             if not self.tree.path2id(path):
                                 want_unversioned = True
                                 break
-                    
+
                     self.filelist.set_tree(
                         self.tree,
                         branch=self.tree.branch,
@@ -526,19 +526,19 @@ class CommitWindow(SubProcessDialog):
         finally:
             self.throbber.hide()
             self.refresh_button.setDisabled(False)
-    
+
     def refresh(self):
         self.load(True)
 
     def on_filelist_data_changed(self, start_index, end_index):
         self.update_compleater_words()
-    
+
     def update_compleater_words(self):
         if self.is_loading:
             return
-        
+
         num_files_loaded = 0
-        
+
         words = set()
         for ref in self.filelist.tree_model.iter_checked():
             path = ref.path
@@ -571,7 +571,7 @@ class CommitWindow(SubProcessDialog):
         words = list(words)
         words.sort(key=lambda x: x.lower())
         self.completer_model.setStringList(words)
-    
+
     def enableBugs(self, state):
         if state == QtCore.Qt.Checked:
             self.bugs.setEnabled(True)
@@ -681,13 +681,13 @@ class CommitWindow(SubProcessDialog):
         if self.bugsCheckBox.isChecked():
             for s in str(self.bugs.text()).split():
                 args.append(("--fixes=%s" % s))
-        
+
         if self.authorCheckBox.isChecked():
             args.append(("--author=%s" % str(self.author.text())))
-        
+
         if self.is_bound and self.local_checkbox.isChecked():
             args.append("--local")
-        
+
         dir = self.tree.basedir
         commands = []
         if files_to_add:
@@ -705,12 +705,12 @@ class CommitWindow(SubProcessDialog):
                 self.tree, changes_mode=True, want_unversioned=True,
                 change_load_filter=lambda c:not c.is_ignored())
             self.filelist.restore_state(state)
-        
+
         if state:
             self.filelist.tree_model.set_select_all_kind('all')
         else:
             self.filelist.tree_model.set_select_all_kind('versioned')
-        
+
         fmodel = self.filelist.tree_filter_model
         fmodel.setFilter(fmodel.UNVERSIONED, state)
 
@@ -764,39 +764,35 @@ class CommitWindow(SubProcessDialog):
                     checked.append(ref.path)
                 else:
                     unversioned.append(ref.path)
-    
+
             if checked:
                 arg_provider = InternalWTDiffArgProvider(
                     self.tree.basis_tree().get_revision_id(), self.tree,
                     self.tree.branch, self.tree.branch,
                     specific_files=checked)
-                
-                show_diff(arg_provider, ext_diff=ext_diff, parent_window=self,
-                          context=self.filelist.diff_context)
+
+                show_diff(arg_provider, ext_diff=ext_diff, parent_window=self, context=self.filelist.diff_context)
             else:
                 msg = "No changes selected to " + dialog_action
-                QtGui.QMessageBox.warning(self,
-                    "QBzr - " + gettext("Diff"),
-                    gettext(msg),
-                    QtGui.QMessageBox.Ok)
-    
+                QtGui.QMessageBox.warning(self, "QBrz - " + gettext("Diff"), gettext(msg), QtGui.QMessageBox.Ok)
+
             if unversioned:
                 # XXX show infobox with message that not all files shown in diff
                 pass
         else:
             arg_provider = InternalWTDiffArgProvider(
                 self.tree.basis_tree().get_revision_id(), self.tree,
-                self.tree.branch, self.tree.branch)            
+                self.tree.branch, self.tree.branch)
             show_diff(arg_provider, ext_diff=ext_diff, parent_window=self,
                       context=self.filelist.diff_context)
-    
+
     def on_failed(self, error):
         SubProcessDialog.on_failed(self, error)
         error = str(error)
         if error in self.not_uptodate_errors:
             self.not_uptodate_label.setText(self.not_uptodate_errors[error])
             self.not_uptodate_info.show()
-    
+
     def open_update_win(self, b):
         update_window = QBzrUpdateWindow(self.tree)
         self.windows.append(update_window)
@@ -804,4 +800,4 @@ class CommitWindow(SubProcessDialog):
         QtCore.QObject.connect(update_window,
                                QtCore.SIGNAL("subprocessFinished(bool)"),
                                self.not_uptodate_info,
-                               QtCore.SLOT("setHidden(bool)"))        
+                               QtCore.SLOT("setHidden(bool)"))

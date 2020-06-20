@@ -60,7 +60,7 @@ _mail_clients = [
 _bug_tracker_re = re.compile('bugtracker_(.+?)_url')
 
 class QRadioCheckItemDelegate(QtGui.QItemDelegate):
-    
+
     def drawCheck (self, painter, option, rect, state):
         style = self.parent().style()
         radioOption = QtGui.QStyleOptionButton()
@@ -173,11 +173,11 @@ class QBzrConfigWindow(QBzrDialog):
         bugTrackersVBox = QtGui.QVBoxLayout(bugTrackersWidget)
         bugTrackersVBox.addWidget(self.bugTrackersList)
         bugTrackersVBox.addLayout(bugTrackersHBox)
-        
+
         diffWidget = QtGui.QWidget()
 
         self.diffShowIntergroupColors = QtGui.QCheckBox(gettext("Show inter-group inserts and deletes in green and red"), diffWidget)
-        
+
         label = QtGui.QLabel(gettext("External Diff Apps:"))
         self.extDiffList = QtGui.QTreeWidget(diffWidget)
         self.extDiffList.setRootIsDecorated(False)
@@ -186,7 +186,7 @@ class QBzrConfigWindow(QBzrDialog):
         self.extDiffList.setItemDelegateForColumn(0,
             QRadioCheckItemDelegate(self.extDiffList))
         self.connect(self.extDiffList, QtCore.SIGNAL("itemChanged (QTreeWidgetItem *,int)"),
-                     self.extDiffListItemChanged)        
+                     self.extDiffListItemChanged)
 
         addExtDiffButton = QtGui.QPushButton(gettext("Add"), diffWidget)
         self.connect(addExtDiffButton, QtCore.SIGNAL("clicked()"),
@@ -205,7 +205,7 @@ class QBzrConfigWindow(QBzrDialog):
         diffLayout.addWidget(label)
         diffLayout.addWidget(self.extDiffList)
         diffLayout.addLayout(extDiffButtonsLayout)
-        
+
         if mergetools is not None:
             mergeWidget = QtGui.QWidget()
             self.merge_ui = ui_merge_config.Ui_MergeConfig()
@@ -213,18 +213,18 @@ class QBzrConfigWindow(QBzrDialog):
             self.merge_ui.tools.sortByColumn(0, QtCore.Qt.AscendingOrder)
             self.merge_ui.remove.setEnabled(False)
             self.merge_ui.set_default.setEnabled(False)
-            
+
             self.merge_tools_model = MergeToolsTableModel()
             self.merge_ui.tools.setModel(self.merge_tools_model)
-            
+
             self.connect(self.merge_tools_model,
                          QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                          self.merge_tools_data_changed)
-    
+
             self.connect(self.merge_ui.tools.selectionModel(),
                          QtCore.SIGNAL("selectionChanged(QItemSelection,QItemSelection)"),
                          self.merge_tools_selectionChanged)
-            
+
             self.connect(self.merge_ui.add,
                          QtCore.SIGNAL("clicked()"),
                          self.merge_tools_add_clicked)
@@ -237,7 +237,7 @@ class QBzrConfigWindow(QBzrDialog):
         else:
             mergeWidget = QtGui.QLabel(gettext("Bazaar 2.4 or newer is required to configure mergetools."))
             mergeWidget.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        
+
         self.tabwidget.addTab(generalWidget, gettext("General"))
         self.tabwidget.addTab(aliasesWidget, gettext("Aliases"))
         self.tabwidget.addTab(bugTrackersWidget, gettext("Bug Trackers"))
@@ -287,7 +287,7 @@ class QBzrConfigWindow(QBzrDialog):
         label.setBuddy(self.branchsourceBasedirEdit)
         grid.addWidget(label, 1, 0)
         grid.addLayout(branchsourceBasedirHBox, 1, 1)
-        
+
         self.checkoutBasedirEdit = QtGui.QLineEdit()
         self.checkoutBasedirEdit.setToolTip(gettext("This directory will be automatically filled in your checkout destination input field"))
         btnCheckoutBasedirBrowse = QtGui.QPushButton(gettext('Browse...'))
@@ -308,7 +308,7 @@ class QBzrConfigWindow(QBzrDialog):
         """Load the configuration."""
         config = get_global_config()
         parser = config._get_parser()
-        
+
         qconfig = get_qbrz_config()
 
         # Name & e-mail
@@ -325,7 +325,7 @@ class QBzrConfigWindow(QBzrDialog):
         except Exception as e:
             trace.mutter("qconfig: load name/email error: %s", str(e))
             name, email = '', ''
-        
+
         self.nameEdit.setText(name)
         self.emailEdit.setText(email)
 
@@ -384,7 +384,7 @@ class QBzrConfigWindow(QBzrDialog):
                           QtCore.Qt.ItemIsEnabled)
             item.setText(0, abbreviation)
             item.setText(1, value)
-        
+
         # Diff
         self.diffShowIntergroupColors.setChecked(qconfig.get_option("diff_show_intergroup_colors") in ("True", "1"))
         defaultDiff = qconfig.get_option("default_diff")
@@ -402,16 +402,16 @@ class QBzrConfigWindow(QBzrDialog):
                 item.setCheckState(0, QtCore.Qt.Checked)
             else:
                 item.setCheckState(0, QtCore.Qt.Unchecked)
-            
+
             item.setText(0, name)
             item.setText(1, command)
             return item
-            
+
         builtin = create_ext_diff_item(gettext("Builtin Diff"),"")
         builtin.setFlags(QtCore.Qt.ItemIsSelectable |
                       QtCore.Qt.ItemIsEnabled |
-                      QtCore.Qt.ItemIsUserCheckable)        
-        
+                      QtCore.Qt.ItemIsUserCheckable)
+
         extDiffs = qconfig.get_section('EXTDIFF')
         for name, command in list(extDiffs.items()):
             create_ext_diff_item(name, command)
@@ -420,13 +420,14 @@ class QBzrConfigWindow(QBzrDialog):
         # Merge
         if mergetools is not None:
             user_merge_tools = config.get_merge_tools()
+            # RJLRJL: check this - might need to be 'brz.default_mergetoo'
             default_merge_tool = config.get_user_option('bzr.default_mergetool')
             if len(user_merge_tools) == 0:
                 self.import_external_merge(user_merge_tools, config, qconfig)
             self.merge_tools_model.set_merge_tools(user_merge_tools,
                 mergetools.known_merge_tools, default_merge_tool)
             self.merge_tools_model.sort(0, QtCore.Qt.AscendingOrder)
-    
+
     def import_external_merge(self, user_merge_tools, config, qconfig):
         # don't ask to import if we already asked before
         if qconfig.get_option_as_bool('imported_external_merge'):
@@ -451,7 +452,7 @@ class QBzrConfigWindow(QBzrDialog):
             user_merge_tools[name] = new_cmdline
         # set a flag to indicate that we've already asked about this
         qconfig.set_option('imported_external_merge', True)
-    
+
     def convert_external_merge(self, external_merge):
         args = cmdline.split(external_merge)
         # %b %t %o -o %r
@@ -541,7 +542,7 @@ class QBzrConfigWindow(QBzrDialog):
         # Diff
         qconfig.set_option('diff_show_intergroup_colors',
                            self.diffShowIntergroupColors.isChecked())
-        
+
         defaultDiff = None
         ext_diffs = {}
         for index in range(1, self.extDiffList.topLevelItemCount()):
@@ -555,8 +556,8 @@ class QBzrConfigWindow(QBzrDialog):
         qconfig.set_section('EXTDIFF', ext_diffs)
         qconfig.set_option('default_diff',
                            defaultDiff)
-        
-        
+
+
         if hasattr(config, 'file_name'):
             file_name = config.file_name
         else:
@@ -565,7 +566,7 @@ class QBzrConfigWindow(QBzrDialog):
         f = open(file_name, 'wb')
         parser.write(f)
         f.close()
-        
+
         qconfig.save()
 
         # Merge
@@ -654,7 +655,7 @@ class QBzrConfigWindow(QBzrDialog):
             index = self.extDiffList.indexOfTopLevelItem(item)
             if index >= 1: # You can't remove the builtin diff
                 self.extDiffList.takeTopLevelItem(index)
-    
+
     def extDiffListItemChanged(self, changed_item, col):
         if col == 0 and not self.extDiffListIgnore:
             checked_count = 0
@@ -662,7 +663,7 @@ class QBzrConfigWindow(QBzrDialog):
                 item = self.extDiffList.topLevelItem(index)
                 if item.checkState(0) == QtCore.Qt.Checked:
                     checked_count += 1
-            
+
             if checked_count == 0:
                 self.extDiffListIgnore = True
                 changed_item.setCheckState(0, QtCore.Qt.Checked)
@@ -675,24 +676,24 @@ class QBzrConfigWindow(QBzrDialog):
                         item.setCheckState(0, QtCore.Qt.Unchecked)
                 changed_item.setCheckState(0, QtCore.Qt.Checked)
                 self.extDiffListIgnore = False
-    
+
     def get_selected_merge_tool(self):
         sel_model = self.merge_ui.tools.selectionModel()
         if len(sel_model.selectedRows()) == 0:
             return None
         row = sel_model.selectedRows()[0].row()
         return self.merge_tools_model.get_merge_tool_name(row)
-        
+
     def update_buttons(self):
         selected = self.get_selected_merge_tool()
         self.merge_ui.remove.setEnabled(selected is not None and
             self.merge_tools_model.is_user_merge_tool(selected))
         self.merge_ui.set_default.setEnabled(selected is not None and
             self.merge_tools_model.get_default() != selected)
-        
+
     def merge_tools_data_changed(self, top_left, bottom_right):
         self.update_buttons()
-        
+
     def merge_tools_selectionChanged(self, selected, deselected):
         self.update_buttons()
 
@@ -701,31 +702,31 @@ class QBzrConfigWindow(QBzrDialog):
         sel_model = self.merge_ui.tools.selectionModel()
         sel_model.select(index, QtGui.QItemSelectionModel.ClearAndSelect)
         self.merge_ui.tools.edit(index)
-        
+
     def merge_tools_remove_clicked(self):
         sel_model = self.merge_ui.tools.selectionModel()
         assert len(sel_model.selectedRows()) > 0
         for index in sel_model.selectedRows():
             self.merge_tools_model.remove_merge_tool(index.row())
-    
+
     def merge_tools_set_default_clicked(self):
         sel_model = self.merge_ui.tools.selectionModel()
         self.merge_tools_model.set_default(self.get_selected_merge_tool())
-        
+
     def browseEditor(self):
         filename = QtGui.QFileDialog.getOpenFileName(self,
             gettext('Select editor executable'),
             '/')
         if filename:
             self.editorEdit.setText(filename)
-            
+
     def browseCheckoutBasedir(self):
         filename = QtGui.QFileDialog.getExistingDirectory(self,
             gettext('Select base directory for checkouts'),
             '/')
         if filename:
             self.checkoutBasedirEdit.setText(filename)
-            
+
     def browseBranchsourceBasedir(self):
         filename = QtGui.QFileDialog.getExistingDirectory(self,
             gettext('Select default directory for branch sources'),
@@ -745,10 +746,10 @@ def get_user_id_from_os():
     be very slow on machines where DNS is broken.  So now we simply
     use the hostname.
     """
-    
+
     # This use to live in breezy.config._auto_user_id, but got removed, so
     # we have a copy.
-    
+
     import sys
     if sys.platform == 'win32':
         from breezy import win32utils
@@ -756,7 +757,7 @@ def get_user_id_from_os():
         if name is None:
             raise errors.BzrError("Cannot autodetect user name.\n"
                                   "Please, set your name with command like:\n"
-                                  'bzr whoami "Your Name <name@domain.com>"')
+                                  'brz whoami "Your Name <name@domain.com>"')
         host = win32utils.get_host_name_unicode()
         if host is None:
             host = socket.gethostname()
@@ -768,8 +769,7 @@ def get_user_id_from_os():
         try:
             w = pwd.getpwuid(uid)
         except KeyError:
-            raise errors.BzrCommandError('Unable to determine your name.  '
-                'Please use "bzr whoami" to set it.')
+            raise errors.BzrCommandError('Unable to determine your name.  Please use "brz whoami" to set it.')
 
         # we try utf-8 first, because on many variants (like Linux),
         # /etc/passwd "should" be in utf-8, and because it's unlikely to give
@@ -783,13 +783,11 @@ def get_user_id_from_os():
                 encoding = osutils.get_user_encoding()
                 gecos = w.pw_gecos.decode(encoding)
             except UnicodeError:
-                raise errors.BzrCommandError('Unable to determine your name.  '
-                   'Use "bzr whoami" to set it.')
+                raise errors.BzrCommandError('Unable to determine your name. Use brz whoami" to set it.')
         try:
             username = w.pw_name.decode(encoding)
         except UnicodeError:
-            raise errors.BzrCommandError('Unable to determine your name.  '
-                'Use "bzr whoami" to set it.')
+            raise errors.BzrCommandError('Unable to determine your name. Use "brz whoami" to set it.')
 
         comma = gecos.find(',')
         if comma == -1:
@@ -805,8 +803,7 @@ def get_user_id_from_os():
             user_encoding = osutils.get_user_encoding()
             realname = username = getpass.getuser().decode(user_encoding)
         except UnicodeDecodeError:
-            raise errors.BzrError("Can't decode username as %s." % \
-                    user_encoding)
+            raise errors.BzrError("Can't decode username as %s." % user_encoding)
 
     import socket
     return realname, (username + '@' + socket.gethostname())
@@ -816,7 +813,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
     COL_NAME = 0
     COL_COMMANDLINE = 1
     COL_COUNT = 2
-    
+
     def __init__(self):
         super(MergeToolsTableModel, self).__init__()
         self._order = []
@@ -824,10 +821,10 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         self._known = {}
         self._default = None
         self._removed = []
-        
+
     def get_user_merge_tools(self):
         return self._user
-    
+
     def set_merge_tools(self, user, known, default):
         self.beginResetModel()
         self._user = user
@@ -838,7 +835,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
 
     def get_default(self):
         return self._default
-        
+
     def set_default(self, new_default):
         old_row = None
         if self._default is not None:
@@ -857,20 +854,20 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                       self.index(new_row, self.COL_NAME),
                       self.index(new_row, self.COL_NAME))
-    
+
     def get_removed_merge_tools(self):
         return self._removed
-    
+
     def get_merge_tool_name(self, row):
         return self._order[row]
-        
+
     def get_merge_tool_command_line(self, row):
         name = self._order[row]
         return self._user.get(name, self._known.get(name, None))
-        
+
     def is_user_merge_tool(self, name):
         return name in self._user
-        
+
     def new_merge_tool(self):
         index = self.createIndex(len(self._order), 0)
         self.beginInsertRows(QtCore.QModelIndex(), index.row(), index.row())
@@ -878,7 +875,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         self._user[''] = ''
         self.endInsertRows()
         return index
-        
+
     def remove_merge_tool(self, row):
         name = self._order[row]
         if name not in self._user:
@@ -890,13 +887,13 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         del self._order[row]
         del self._user[name]
         self.endRemoveRows()
-        
+
     def rowCount(self, parent):
         return len(self._order)
-        
+
     def columnCount(self, parent):
         return self.COL_COUNT
-    
+
     def data(self, index, role):
         name = self._order[index.row()]
         cmdline = self.get_merge_tool_command_line(index.row())
@@ -918,7 +915,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                 palette = QtGui.QApplication.palette()
                 return palette.alternateBase()
         return None
-        
+
     def setData(self, index, value, role):
         name = self._order[index.row()]
         if role == QtCore.Qt.EditRole:
@@ -952,7 +949,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                       self._default == name):
                     self.set_default(None)
         return False
-        
+
     def flags(self, index):
         f = super().flags(index)
         name = self._order[index.row()]
@@ -961,7 +958,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         if index.column() == self.COL_NAME:
             f = f | QtCore.Qt.ItemIsUserCheckable
         return f
-    
+
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal:
             if section == self.COL_NAME:
