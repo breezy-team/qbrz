@@ -1147,7 +1147,7 @@ def bittorrent_b_encode_prompt(utf_string: str) -> bytes:
     # What we *can* do is insist we only get strings sent to us
     if not isinstance(utf_string, str):
         raise TypeError('bittorrent_b_encode_prompt accepts only strings')
-    return bencode.bencode(utf_string.encode('unicode-escape'))
+    return bencode.bencode(utf_string.encode('utf-8'))
 
 
 def bittorrent_b_decode_prompt(bencoded_bytes: bytes) -> str:
@@ -1158,21 +1158,21 @@ def bittorrent_b_decode_prompt(bencoded_bytes: bytes) -> str:
         raise TypeError('bittorrent_b_decode_prompt accepts only bytes')
     # However, it can return bytes, integer, list or dictionary, but here we assume
     # bytes... and we convert them to a string
-    return bencode.bdecode(bencoded_bytes).decode('unicode-escape')
+    return bencode.bdecode(bencoded_bytes).decode('utf-8')
 
 def bittorrent_b_encode_choose_args(msg, choices, default):
     if default is None:
         default = -1
     return bencode.bencode([
-        msg.encode('unicode-escape'),
-        choices.encode('unicode-escape'),
+        msg.encode('utf-8'),
+        choices.encode('utf-8'),
         default
     ])
 
 def bittorrent_b_decode_choose_args(s):
     msg, choices, default = bencode.bdecode(s)
-    msg = msg.decode('unicode-escape')
-    choices = choices.decode('unicode-escape')
+    msg = msg.decode('utf-8')
+    choices = choices.decode('utf-8')
     return msg, choices, default
 
 def bittorrent_b_encode_exception_instance(e: Exception) -> bytes:
@@ -1207,7 +1207,7 @@ def bittorrent_b_encode_exception_instance(e: Exception) -> bytes:
         raise TypeError('Passed {0} instead of exception'.format(type(e)))
     # GZ 2011-04-15: Could use breezy.trace._qualified_exception_name in 2.4
     # Convert to bytes...
-    ename = e.__class__.__name__.encode('unicode-escape')
+    ename = e.__class__.__name__.encode('utf-8')
     d = {}
     # For now be conservative and only serialise attributes that will get used
     # RJL: in 2020 nothing has yet been added! However, we'll keep the same code
@@ -1234,7 +1234,7 @@ def bittorrent_b_encode_exception_instance(e: Exception) -> bytes:
                 if not isinstance(val, str):
                     val = repr(val)
                 # Now convert to bytes...
-                val = val.encode('unicode-escape')
+                val = val.encode('utf-8')
         except (KeyboardInterrupt, SystemExit):
             raise
         except KeyError:
@@ -1242,7 +1242,7 @@ def bittorrent_b_encode_exception_instance(e: Exception) -> bytes:
         except:
             val = b"[QBrz could not serialize this attribute]"
         # The key needs to be bytes too
-        d[key.encode('unicode-escape')] = val
+        d[key.encode('utf-8')] = val
     return bencode.bencode((ename, d))
 
 
@@ -1275,9 +1275,9 @@ def bittorrent_b_decode_exception_instance(bencoded_bytes: bytes) -> (str, list)
     for k in d:
         # Convert the key and the value to a string from bytes
         # and put the results into new_d
-        new_d[k.decode('unicode-escape')] = d[k].decode('unicode-escape')
+        new_d[k.decode('utf-8')] = d[k].decode('utf-8')
     # And convert the exception name to a string too
-    return ename.decode('unicode-escape'), new_d
+    return ename.decode('utf-8'), new_d
 
 
 # GZ 2011-04-15: Remove or deprecate these functions if they remain unused?

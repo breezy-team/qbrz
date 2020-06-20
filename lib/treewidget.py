@@ -368,7 +368,15 @@ class TreeModel(QtCore.QAbstractItemModel):
                      gettext("Message"),
                      gettext("Author"),
                      gettext("Status")]
-    NAME, DATE, REVNO, MESSAGE, AUTHOR, STATUS = list(range(len(HEADER_LABELS)))
+    # Once again, this bizarre construct. Just... why?
+    # NAME, DATE, REVNO, MESSAGE, AUTHOR, STATUS = list(range(len(HEADER_LABELS)))
+    # These are the 'columns' (sic)
+    NAME = 0
+    DATE = 1
+    REVNO = 2
+    MESSAGE = 3
+    AUTHOR = 4
+    STATUS = 5
 
     def __init__(self, parent=None):
         # XXX parent object: instance of what class it supposed to be?

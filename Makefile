@@ -24,7 +24,10 @@ checkone: test
 
 # Test specific item
 checkspecific: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestWorkingTreeDiff
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz test_logmodel
+
+qlogtest:
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
 
 test:
 	brz selftest -s bp.qbrz

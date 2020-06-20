@@ -53,13 +53,18 @@ class TestBencode(TestCase):
 
     def test_bittorrent_b_encode_prompt(self):
         self.assertEqual(b"4:spam", bittorrent_b_encode_prompt(utf_string='spam'))
-        self.assertEqual(b"10:spam\\neggs", bittorrent_b_encode_prompt('spam'+'\n'+'eggs'))
-        self.assertEqual(b"14:\\u0420\\n\\u0421", bittorrent_b_encode_prompt('\u0420\n\u0421'))
+        self.assertEqual(b"9:spam\neggs", bittorrent_b_encode_prompt('spam'+'\n'+'eggs'))
+        # "Р\nС" is NOT "P\nC" it's b'\xd0\xa0\n\xd0\xa1'
+        # CYRILLIC CAPITAL LETTER ER, \n and CYRILLIC CAPITAL LETTER ES
+        self.assertEqual(b'5:\xd0\xa0\n\xd0\xa1', bittorrent_b_encode_prompt("Р\nС"))
 
     def test_bittorrent_b_decode_prompt(self):
         self.assertEqual('spam', bittorrent_b_decode_prompt(b"4:spam"))
-        self.assertEqual('spam'+'\n'+'eggs', bittorrent_b_decode_prompt(b"10:spam\\neggs"))
-        self.assertEqual('\u0420\n\u0421', bittorrent_b_decode_prompt(b"14:\\u0420\\n\\u0421"))
+        self.assertEqual('spam'+'\n'+'eggs', bittorrent_b_decode_prompt(b"9:spam\neggs"))
+        # "Р\nС" is NOT "P\nC" it's b'\xd0\xa0\n\xd0\xa1'
+        # CYRILLIC CAPITAL LETTER ER, \n and CYRILLIC CAPITAL LETTER ES
+        self.assertEqual("Р\nС", bittorrent_b_decode_prompt(b'5:\xd0\xa0\n\xd0\xa1'))
+
 
     # def test_bittorrent_b_encode_unicode_escape_dict(self):
     #     self.assertEqual({'key': 'foo\\nbar', 'ukey': '\\u1234'},

@@ -1164,7 +1164,7 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
     """
 
     def tree_revid(self, tree):
-        return CURRENT_REVISION + tree.basedir.encode('unicode-escape')
+        return CURRENT_REVISION + tree.basedir.encode('utf-8')
 
     def load(self):
         self.working_trees = {}

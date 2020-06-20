@@ -619,8 +619,7 @@ class FileListContainer(QtGui.QWidget):
     @runs_in_loading_queue
     @ui_current_widget
     def load_delta(self):
-        revids, count = \
-            self.log_list.get_selection_top_and_parent_revids_and_count()
+        revids, count = self.log_list.get_selection_top_and_parent_revids_and_count()
         if revids == self.current_revids:
             return
 
@@ -637,8 +636,7 @@ class FileListContainer(QtGui.QWidget):
         if revids not in self.delta_cache:
             self.throbber.show()
             try:
-                repos = [gv.get_revid_branch(revid).repository for revid in
-                                                                        revids]
+                repos = [gv.get_revid_branch(revid).repository for revid in revids]
             except GhostRevisionError:
                 delta = None
             else:
@@ -660,19 +658,16 @@ class FileListContainer(QtGui.QWidget):
                         #together.
                         repos_revids = [(repos[0], revids)]
                     else:
-                        repos_revids = [(repo, [revid])
-                                for revid, repo in zip(revids, repos)]
+                        repos_revids = [(repo, [revid]) for revid, repo in zip(revids, repos)]
 
                     for repo, repo_revids in repos_revids:
-                        repo_revids = [revid for revid in repo_revids
-                                    if revid not in self.tree_cache]
+                        repo_revids = [revid for revid in repo_revids if revid not in self.tree_cache]
                         if repo_revids:
                             repo.lock_read()
                             self.processEvents()
                             try:
                                 for revid in repo_revids:
-                                    if (revid.startswith(CURRENT_REVISION) and
-                                        gv_is_wtgv):
+                                    if (revid.startswith(CURRENT_REVISION) and gv_is_wtgv):
                                         tree = gv.working_trees[revid]
                                     else:
                                         tree = repo.revision_tree(revid)
@@ -682,8 +677,7 @@ class FileListContainer(QtGui.QWidget):
                                 repo.unlock()
                         self.processEvents()
 
-                    delta = self.tree_cache[revids[0]].changes_from(
-                                                    self.tree_cache[revids[1]])
+                    delta = self.tree_cache[revids[0]].changes_from(self.tree_cache[revids[1]])
                 self.delta_cache[revids] = delta
             finally:
                 self.throbber.hide()
@@ -698,7 +692,7 @@ class FileListContainer(QtGui.QWidget):
             return
 
         if delta:
-            items = [] # each item is 6-tuple: (id, path, is_not_specific_file_id, display, color, is_alive)
+            items = []  # each item is 6-tuple: (id, path, is_not_specific_file_id, display, color, is_alive)
             for path, id, kind in delta.added:
                 items.append((id,
                               path,
