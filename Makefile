@@ -20,11 +20,11 @@ check: test
 
 # Stop on first error, ignore internationalization for now
 checkone: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x TestI18n
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x TestI18n -x TestTreeFilterProxyModel
 
 # Test specific item
 checkspecific: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz test_logmodel
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidgetSelectAll
 
 qlogtest:
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog

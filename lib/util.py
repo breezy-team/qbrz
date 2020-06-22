@@ -944,6 +944,7 @@ def runs_in_loading_queue(f):
 
 def run_in_loading_queue(cur_f, *cur_args, **cur_kargs):
     global loading_queue
+    # print('\n...run_in_loading_queue', loading_queue, cur_f, *cur_args, **cur_kargs)
     if loading_queue is None:
         loading_queue = []
         try:

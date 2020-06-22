@@ -457,6 +457,8 @@ class LogWindow(QBzrWindow):
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
         gv = self.log_list.log_model.graph_viz
+        # print('old role', self.searchType.itemData(self.searchType.currentIndex()).toInt()[0],
+        #     'new', self.searchType.itemData(self.searchType.currentIndex()).toInt())
         role = self.searchType.itemData(self.searchType.currentIndex())
         search_text = str(self.search_edit.text())
         if search_text == "":
@@ -555,41 +557,24 @@ class FileListContainer(QtGui.QWidget):
         self.throbber.hide()
 
         self.file_list = QtGui.QListWidget()
-        self.connect(self.file_list,
-                     QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                     self.show_diff_files)
+        self.connect(self.file_list, QtCore.SIGNAL("doubleClicked(QModelIndex)"), self.show_diff_files)
         self.file_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.file_list_context_menu = QtGui.QMenu(self)
         if has_ext_diff():
             diff_menu = ExtDiffMenu(self)
             self.file_list_context_menu.addMenu(diff_menu)
-            self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                         self.show_diff_files_ext)
+            self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"), self.show_diff_files_ext)
         else:
-            show_diff_action = self.file_list_context_menu.addAction(
-                                        gettext("Show &differences..."),
-                                        self.show_diff_files)
+            show_diff_action = self.file_list_context_menu.addAction(gettext("Show &differences..."), self.show_diff_files)
             self.file_list_context_menu.setDefaultAction(show_diff_action)
 
-        self.file_list_context_menu_annotate = \
-            self.file_list_context_menu.addAction(gettext("Annotate"),
-                                                  self.show_file_annotate)
-        self.file_list_context_menu_cat = \
-            self.file_list_context_menu.addAction(gettext("View file"),
-                                                  self.show_file_content)
-        self.file_list_context_menu_save_old_file = \
-            self.file_list_context_menu.addAction(
-                            gettext("Save file on this revision as..."),
-                            self.save_old_revision_of_file)
-        self.file_list_context_menu_revert_file = \
-                self.file_list_context_menu.addAction(
-                                        gettext("Revert to this revision"),
-                                        self.revert_file)
+        self.file_list_context_menu_annotate = self.file_list_context_menu.addAction(gettext("Annotate"), self.show_file_annotate)
+        self.file_list_context_menu_cat = self.file_list_context_menu.addAction(gettext("View file"), self.show_file_content)
+        self.file_list_context_menu_save_old_file = self.file_list_context_menu.addAction(
+            gettext("Save file on this revision as..."), self.save_old_revision_of_file)
+        self.file_list_context_menu_revert_file = self.file_list_context_menu.addAction(gettext("Revert to this revision"), self.revert_file)
 
-        self.file_list.connect(
-            self.file_list,
-            QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
-            self.show_file_list_context_menu)
+        self.file_list.connect(self.file_list, QtCore.SIGNAL("customContextMenuRequested(QPoint)"), self.show_file_list_context_menu)
 
         vbox = QtGui.QVBoxLayout(self)
         vbox.setContentsMargins(0, 0, 0, 0)
@@ -598,8 +583,7 @@ class FileListContainer(QtGui.QWidget):
 
         self.delta_load_timer = QtCore.QTimer(self)
         self.delta_load_timer.setSingleShot(True)
-        self.connect(self.delta_load_timer, QtCore.SIGNAL("timeout()"),
-                     self.load_delta)
+        self.connect(self.delta_load_timer, QtCore.SIGNAL("timeout()"), self.load_delta)
         self.current_revids = None
 
         self.tree_cache = {}
@@ -609,8 +593,7 @@ class FileListContainer(QtGui.QWidget):
         self.window().processEvents()
 
     def revision_selection_changed(self, selected, deselected):
-        revids, count = \
-            self.log_list.get_selection_top_and_parent_revids_and_count()
+        revids, count = self.log_list.get_selection_top_and_parent_revids_and_count()
         if revids != self.current_revids:
             self.file_list.clear()
             self.current_revids = None
@@ -620,6 +603,7 @@ class FileListContainer(QtGui.QWidget):
     @ui_current_widget
     def load_delta(self):
         revids, count = self.log_list.get_selection_top_and_parent_revids_and_count()
+        print('\nload_delta got revids, count', revids, count, self.current_revids)
         if revids == self.current_revids:
             return
 
@@ -633,15 +617,16 @@ class FileListContainer(QtGui.QWidget):
         if not revids or revids == (None, None):
             return
 
+        print('\nself.delta_cache [{0}]\n'.format(self.delta_cache))
         if revids not in self.delta_cache:
             self.throbber.show()
             try:
                 repos = [gv.get_revid_branch(revid).repository for revid in revids]
+                print('\nTRY worked\n', repos)
             except GhostRevisionError:
                 delta = None
             else:
-                if (repos[0].__class__.__name__ == 'SvnRepository' or
-                    repos[1].__class__.__name__ == 'SvnRepository'):
+                if (repos[0].__class__.__name__ == 'SvnRepository' or repos[1].__class__.__name__ == 'SvnRepository'):
                     # Loading trees from a remote svn repo is unusably slow.
                     # See https://bugs.launchpad.net/qbrz/+bug/450225
                     # If only 1 revision is selected, use a optimized svn method
@@ -652,13 +637,13 @@ class FileListContainer(QtGui.QWidget):
                     else:
                         delta = None
                 else:
-                    if (len(repos)==2 and
-                        repos[0].base == repos[1].base):
-                        # Both revids are from the same repository. Load
-                        #together.
+                    if (len(repos)==2 and repos[0].base == repos[1].base):
+                        # Both revids are from the same repository. Load together.
                         repos_revids = [(repos[0], revids)]
+                        print('\nBOTH FROM SAME', repos_revids)
                     else:
                         repos_revids = [(repo, [revid]) for revid, repo in zip(revids, repos)]
+                        print('\nBoth different\n'. repos_revids)
 
                     for repo, repo_revids in repos_revids:
                         repo_revids = [revid for revid in repo_revids if revid not in self.tree_cache]
@@ -678,6 +663,7 @@ class FileListContainer(QtGui.QWidget):
                         self.processEvents()
 
                     delta = self.tree_cache[revids[0]].changes_from(self.tree_cache[revids[1]])
+                    print('\n delta calculated as\n', delta, type(delta))
                 self.delta_cache[revids] = delta
             finally:
                 self.throbber.hide()
@@ -685,50 +671,82 @@ class FileListContainer(QtGui.QWidget):
         else:
             delta = self.delta_cache[revids]
 
-        new_revids, count = \
-            self.log_list.get_selection_top_and_parent_revids_and_count()
+        new_revids, count = self.log_list.get_selection_top_and_parent_revids_and_count()
 
         if new_revids != revids:
             return
 
+        # Jelmer's commit 7389 states: TreeDelta holds TreeChange objects rather than tuples of various sizes
+        #
+        # It used to be:--
+        #
+        # added
+        #     (path, id, kind)
+        # removed
+        #     (path, id, kind)
+        # renamed
+        #     (oldpath, newpath, id, kind, text_modified, meta_modified)
+        # kind_changed
+        #     (path, id, old_kind, new_kind)
+        # modified
+        #     (path, id, kind, text_modified, meta_modified)
+        # unchanged
+        #     (path, id, kind)
+        # unversioned
+        #     (path, None, kind)
+        #
+        # Now they are TreeChange objects in added[[, removed[] renamed[], copied[] and modified[]
+        #
+        # self.file_id = file_id
+        # self.path = path
+        # self.changed_content = changed_content
+        # self.versioned = versioned
+        # self.parent_id = parent_id
+        # self.name = name
+        # self.kind = kind
+        # self.executable = executable
+        #
         if delta:
+            print('\n*** delta is\n', delta, type(delta))
+            print('\nadded', delta.added, 'modified', delta.modified)
             items = []  # each item is 6-tuple: (id, path, is_not_specific_file_id, display, color, is_alive)
-            for path, id, kind in delta.added:
-                items.append((id,
-                              path,
-                              id not in specific_file_ids,
-                              path,
-                              "blue",
-                              True))
+            if delta.added:
+                for path, id, kind in delta.added:
+                    items.append((id,
+                                path,
+                                id not in specific_file_ids,
+                                path,
+                                "blue",
+                                True))
+            if delta.modified:
+                print(len(delta.modified))
+                for path, id, kind, text_modified, meta_modified in delta.modified:
+                    items.append((id,
+                                path,
+                                id not in specific_file_ids,
+                                path,
+                                None,
+                                True))
 
-            for path, id, kind, text_modified, meta_modified in delta.modified:
-                items.append((id,
-                              path,
-                              id not in specific_file_ids,
-                              path,
-                              None,
-                              True))
+            if delta.removed:
+                for path, id, kind in delta.removed:
+                    items.append((id,
+                                path,
+                                id not in specific_file_ids,
+                                path,
+                                "red",
+                                False))
 
-            for path, id, kind in delta.removed:
-                items.append((id,
-                              path,
-                              id not in specific_file_ids,
-                              path,
-                              "red",
-                              False))
+            if delta.renamed:
+                for (oldpath, newpath, id, kind, text_modified, meta_modified) in delta.renamed:
+                    items.append((id,
+                                newpath,
+                                id not in specific_file_ids,
+                                "%s => %s" % (oldpath, newpath),
+                                "purple",
+                                True))
 
-            for (oldpath, newpath, id, kind,
-                text_modified, meta_modified) in delta.renamed:
-                items.append((id,
-                              newpath,
-                              id not in specific_file_ids,
-                              "%s => %s" % (oldpath, newpath),
-                              "purple",
-                              True))
-
-            for (id, path,
-                 is_not_specific_file_id,
-                 display, color, is_alive) in sorted(items, key = lambda x: (x[2],x[1])):
+            for (id, path, is_not_specific_file_id, display, color, is_alive) in sorted(items, key = lambda x: (x[2],x[1])):
                 item = QtGui.QListWidgetItem(display, self.file_list)
                 item.setData(PathRole, path)
                 item.setData(file_idRole, id)

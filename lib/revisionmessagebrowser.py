@@ -108,7 +108,7 @@ def format_signature_validity(rev_id, repository, gpg_strategy):
 
 class RevisionMessageBrowser(QtGui.QTextBrowser):
     """Widget to display revision metadata and messages."""
-    
+
     def __init__(self, parent=None):
         super(RevisionMessageBrowser, self).__init__(parent)
 
@@ -121,7 +121,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         dotsize = 0.7
         dot_rect =  QtCore.QRectF(center - (boxsize * dotsize * 0.5 ),
                                   center - (boxsize * dotsize * 0.5 ),
-                                  boxsize * dotsize, 
+                                  boxsize * dotsize,
                                   boxsize * dotsize)
         self.imagesize = boxsize
         self.images = []
@@ -129,7 +129,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             image = QtGui.QImage(boxsize, boxsize, QtGui.QImage.Format_ARGB32)
             image.fill(0)
             painter = QtGui.QPainter(image)
-            painter.setRenderHint(QtGui.QPainter.Antialiasing)            
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)
             pen = QtGui.QPen()
             pen.setWidth(1)
             pen.setColor(self.get_act_color(color,False))
@@ -137,14 +137,11 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             painter.setBrush(QtGui.QBrush(self.get_act_color(color,True)))
             painter.drawEllipse(dot_rect)
             painter.end()
-            self.document().addResource(QtGui.QTextDocument.ImageResource,
-                                        QtCore.QUrl("dot%d" % color),
-                                        image)
+            self.document().addResource(QtGui.QTextDocument.ImageResource, QtCore.QUrl("dot%d" % color), image)
             self.images.append(image)
-        
-        self.props_back_color_str = ("#%02X%02X%02X" % 
-            self.palette().background().color().getRgb()[:3])
-    
+
+        self.props_back_color_str = ("#%02X%02X%02X" % self.palette().background().color().getRgb()[:3])
+
     def get_act_color(self, color, back):
         qcolor = QtGui.QColor()
         if color == 0:
@@ -158,27 +155,27 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                 qcolor.setHsvF(h,0.4,1)
             else:
                 qcolor.setHsvF(h,1,0.7)
-        
+
         return qcolor
-    
+
     def set_display_revids(self, revids, repo):
         self._display_revids = revids
         self._all_loaded_revs = {}
-        
+
         revids_to_load = set(revids)
         for revid in revids:
             revids_to_load.update(set(self.get_parents(revid)))
             revids_to_load.update(set(self.get_children(revid)))
-        
-        load_revisions(list(revids_to_load), repo, 
+
+        load_revisions(list(revids_to_load), repo,
                        revisions_loaded=self.revisions_loaded,
                        pass_prev_loaded_rev=True)
-    
+
     def revisions_loaded(self, revs_loaded, last_call):
         self._all_loaded_revs.update(revs_loaded)
-        
+
         rev_html = []
-        min_merge_depth = min([self.get_merge_depth(revid) 
+        min_merge_depth = min([self.get_merge_depth(revid)
                                for revid in self._display_revids])
         for revid in self._display_revids:
             props = []
@@ -186,16 +183,16 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             props.append((gettext("Revision:"),
                           "%s revid:%s" % (self.get_revno(revid),
                                            revid.decode('ascii'))))
-            
+
             parents = self.get_parents(revid)
             children = self.get_children(revid)
-            
+
             def short_text(summary, length):
                 if len(summary) > length:
                     return summary[:length-1] + "\u2026"
                 else:
                     return summary
-        
+
             def revision_list_html(revids):
                 revs = []
                 for revid in revids:
@@ -217,12 +214,12 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                             '<a href="qlog-revid:%s">%s%srevid: %s</a>' %
                             (revid.decode('ascii'), color, revno, revid))
                 return '<br>'.join(revs)
-            
+
             if parents:
-                props.append((gettext("Parents:"), 
+                props.append((gettext("Parents:"),
                               revision_list_html(parents)))
             if children:
-                props.append((gettext("Children:"), 
+                props.append((gettext("Children:"),
                               revision_list_html(children)))
 
             if gpg_verify_available_func():
@@ -242,20 +239,20 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                     rev = self._all_loaded_revs[revid]
                     props.extend(self.loaded_revision_props(rev))
                     message = htmlize(get_message(rev))
-                    
+
                     search_replace = self.get_search_replace(revid)
                     if search_replace:
                         for search, replace in search_replace:
                             message = re.sub(search, replace, message)
             else:
                 message = gettext("Uncommited Working Tree Changes")
-            
+
             margin_left = (self.get_merge_depth(revid)-min_merge_depth)*20
             text = []
-            text.append('<table style="background:%s; margin-left:%dpx;">' 
+            text.append('<table style="background:%s; margin-left:%dpx;">'
                         % (self.props_back_color_str, margin_left))
             for prop in props:
-                # white-space: pre is needed because in some languaged, some 
+                # white-space: pre is needed because in some languaged, some
                 # prop labels have more than 1 word. white-space: nowrap
                 # does not work for Japanese, but pre does.
                 text.append(('<tr>'
@@ -266,27 +263,27 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                                '<td width="100%%">%s</td>'
                              '</tr>') % prop)
             text.append('</table>')
-            
+
             text.append('<div style="margin-top:0.5em; '
-                                    'margin-left:%spx;">%s</div>' 
+                                    'margin-left:%spx;">%s</div>'
                         % (margin_left + 2 , message))
             rev_html.append("".join(text))
-    
+
         self.setHtml("<br>".join(rev_html))
-        
+
         # setHtml creates a new document, so we have to re add the images.
         for color, image in enumerate(self.images):
             self.document().addResource(QtGui.QTextDocument.ImageResource,
                                         QtCore.QUrl("dot%d" % color),
-                                        image)            
-    
+                                        image)
+
     def loaded_revision_props(self, rev):
         props = []
         if rev.timestamp is not None:
             props.append((gettext("Date:"), format_timestamp(rev.timestamp)))
         if rev.committer:
             props.append((gettext("Committer:"), htmlize(rev.committer)))
-        
+
         authors = rev.properties.get('authors')
         if not authors:
             authors = rev.properties.get('author')
@@ -323,27 +320,27 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                 foreign_revid, mapping = \
                     foreign.foreign_vcs_registry.parse_revision_id(
                         rev.revision_id)
-                
+
                 foreign_attribs = \
                     mapping.vcs.show_foreign_revid(foreign_revid)
             except errors.InvalidRevisionId:
                 pass
-        
+
         if foreign_attribs:
             keys = list(foreign_attribs.keys())
             keys.sort()
             for key in keys:
                 props.append((key + ":", foreign_attribs[key]))
         return props
-    
+
     def get_parents(self, revid):
         # Normally, we don't know how to do this.
         return []
-    
+
     def get_children(self, revid):
         # Normally, we don't know how to do this.
         return []
-    
+
     def get_revno(self, revid):
         # Normally, we don't know how to do this.
         return ""
@@ -351,11 +348,11 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
     def get_search_replace(self, revid):
         # Normally, we don't know how to do this.
         return None
-    
+
     def get_merge_depth(self, revid):
         # Normally, we don't know how to do this.
         return 0
-    
+
     def get_color(self, revid):
         # Normally, we don't know how to do this.
         return None
@@ -393,7 +390,7 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
                       for index in indexes]
             self.set_display_revids(
                 revids, self.log_list.log_model.graph_viz.get_repo_revids)
-    
+
     def link_clicked(self, url):
         scheme = str(url.scheme())
         if scheme == 'qlog-revid':
@@ -404,7 +401,7 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
 
     def get_parents(self, revid):
         return self.log_list.log_model.graph_viz.known_graph.get_parent_keys(revid)
-    
+
     def get_children(self, revid):
         return [child for child in
                 self.log_list.log_model.graph_viz.known_graph.get_child_keys(revid)
@@ -412,7 +409,7 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
 
     def get_revno(self, revid):
         return self.log_list.log_model.graph_viz.revid_rev[revid].revno_str
-    
+
     def get_merge_depth(self, revid):
         return self.log_list.log_model.graph_viz.revid_rev[revid].merge_depth
 
