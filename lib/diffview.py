@@ -873,8 +873,7 @@ class _SimpleDiffView(QtGui.QTextBrowser):
     def set_complete(self, complete):
         self.clear()
 
-    def append_diff(self, paths, file_id, kind, status, dates,
-                    present, binary, lines, groups, data, properties_changed):
+    def append_diff(self, paths, file_id, kind, status, dates, present, binary, lines, groups, data, properties_changed):
         guidebar_data = self.guidebar_data
         guidebar_data['title'].append((self.cursor.block().blockNumber(), 2))
         self.cursor.beginEditBlock()
@@ -906,10 +905,8 @@ class _SimpleDiffView(QtGui.QTextBrowser):
                 dates[i] = EPOCH_DATE
 
         if not binary:
-            self.cursor.insertText('--- %s\t%s\n' % (paths[0], dates[0]),
-                                      self.monospacedBoldInsertFormat)
-            self.cursor.insertText('+++ %s\t%s\n' % (paths[1], dates[1]),
-                                   self.monospacedBoldDeleteFormat)
+            self.cursor.insertText('--- %s\t%s\n' % (paths[0], dates[0]), self.monospacedBoldInsertFormat)
+            self.cursor.insertText('+++ %s\t%s\n' % (paths[1], dates[1]), self.monospacedBoldDeleteFormat)
 
             def fix_last_line(lines):
                 """Fix last line if there is no new line.
@@ -921,9 +918,7 @@ class _SimpleDiffView(QtGui.QTextBrowser):
                 if lines:
                     last = lines[-1]
                     if last and last[-1] not in ('\r', '\n'):
-                        last += ('\n' +
-                                 gettext('\\ No newline at end of file') +
-                                 '\n')
+                        last += ('\n' + gettext('\\ No newline at end of file') + '\n')
                         lines = lines[:-1] + [last]
                 return lines
 
@@ -935,8 +930,7 @@ class _SimpleDiffView(QtGui.QTextBrowser):
                     i0, i1, j0, j1 = \
                             group[0][1], group[-1][2], group[0][3], group[-1][4]
                     self.cursor.insertText(
-                        "@@ -%d,%d +%d,%d @@\n" % (i0+1, i1-i0, j0+1, j1-j0),
-                        self.monospacedHunkFormat)
+                        "@@ -%d,%d +%d,%d @@\n" % (i0+1, i1-i0, j0+1, j1-j0), self.monospacedHunkFormat)
                 for tag, i0, i1, j0, j1 in group:
                     if tag == "equal":
                         text = "".join(" " + l for l in a[i0:i1])
@@ -950,8 +944,7 @@ class _SimpleDiffView(QtGui.QTextBrowser):
                         end = self.cursor.block().blockNumber()
                         guidebar_data[tag].append((start, end - start))
         else:
-            self.cursor.insertText("Binary files %s %s and %s %s differ\n" % \
-                                   (paths[0], dates[0], paths[1], dates[1]))
+            self.cursor.insertText("Binary files %s %s and %s %s differ\n" % (paths[0], dates[0], paths[1], dates[1]))
         self.cursor.insertText("\n")
         self.cursor.endEditBlock()
         self.update()

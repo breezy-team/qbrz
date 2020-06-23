@@ -442,7 +442,11 @@ class DiffWindow(QBzrWindow):
                 ulines = di.get_unicode_lines(
                     (self.encoding_selector_left.encoding,
                      self.encoding_selector_right.encoding))
-                data = [''.join(l) for l in ulines]
+                # If we've got binary, it'll be bytes (probably)...
+                if di.binary:
+                    data = [b''.join(l) for l in ulines]
+                else:
+                    data = [''.join(l) for l in ulines]
                 for view in self.views:
                     view.append_diff(list(di.paths), di.file_id, di.kind, di.status,
                                      di.dates, di.versioned, di.binary, ulines, groups,

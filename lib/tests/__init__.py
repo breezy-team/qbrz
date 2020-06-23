@@ -42,7 +42,7 @@ def load_tests(loader, basic_tests, pattern):
         'test_cat',
         'test_commit',
         'test_commit_data',
-        # 'test_diffview', - broken by API changes
+        # 'test_diffview',  # - broken by API changes
         'test_extra_isignored',
         'test_extra_isversioned',
         'test_i18n',

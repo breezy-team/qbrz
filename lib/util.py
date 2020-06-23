@@ -881,7 +881,7 @@ def content_seems_to_be_binary(lines: list) -> bool:
     that hasn't got a null-byte in it.
     """
     for l in lines:
-        if isinstance(l, bytes) and b'\x00' in l:
+        if (isinstance(l, bytes) and b'\x00' in l):
             return True
     return False
 

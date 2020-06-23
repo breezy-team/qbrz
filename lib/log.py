@@ -603,7 +603,7 @@ class FileListContainer(QtGui.QWidget):
     @ui_current_widget
     def load_delta(self):
         revids, count = self.log_list.get_selection_top_and_parent_revids_and_count()
-        print('\nload_delta got revids, count', revids, count, self.current_revids)
+        # print('\nload_delta got revids, count', revids, count, self.current_revids)
         if revids == self.current_revids:
             return
 
@@ -622,7 +622,7 @@ class FileListContainer(QtGui.QWidget):
             self.throbber.show()
             try:
                 repos = [gv.get_revid_branch(revid).repository for revid in revids]
-                print('\nTRY worked\n', repos)
+                # print('\nTRY worked\n', repos)
             except GhostRevisionError:
                 delta = None
             else:
@@ -640,10 +640,10 @@ class FileListContainer(QtGui.QWidget):
                     if (len(repos)==2 and repos[0].base == repos[1].base):
                         # Both revids are from the same repository. Load together.
                         repos_revids = [(repos[0], revids)]
-                        print('\nBOTH FROM SAME', repos_revids)
+                        # print('\nBOTH FROM SAME', repos_revids)
                     else:
                         repos_revids = [(repo, [revid]) for revid, repo in zip(revids, repos)]
-                        print('\nBoth different\n'. repos_revids)
+                        # print('\nBoth different\n'. repos_revids)
 
                     for repo, repo_revids in repos_revids:
                         repo_revids = [revid for revid in repo_revids if revid not in self.tree_cache]
@@ -707,10 +707,8 @@ class FileListContainer(QtGui.QWidget):
         # self.executable = executable
         #
         if delta:
-            print('\n*** file list is ', self.file_list)
             items = []  # each item is 6-tuple: (id, path, is_not_specific_file_id, display, color, is_alive)
             if delta.added:
-                print('*** added ***')
                 for tree_change in delta.added:
                     items.append(
                         (tree_change.file_id, tree_change.path[1],
@@ -718,7 +716,6 @@ class FileListContainer(QtGui.QWidget):
                         tree_change.path[1], 'blue', True))
 
             if delta.modified:
-                print('*** Modified ***')
                 for tree_change in delta.modified:
                     items.append(
                         (tree_change.file_id, tree_change.path[0],
@@ -726,7 +723,6 @@ class FileListContainer(QtGui.QWidget):
                         tree_change.path[0], None, True))
 
             if delta.removed:
-                print('*** removed ***')
                 for tree_change in delta.removed:
                     items.append(
                         (tree_change.file_id, tree_change.path[0],
@@ -734,7 +730,6 @@ class FileListContainer(QtGui.QWidget):
                         tree_change.path[0], 'red', False))
 
             if delta.renamed:
-                print('*** renamed ***')
                 for tree_change in delta.renamed:
                     items.append(
                         (tree_change.file_id, tree_change.path[0],

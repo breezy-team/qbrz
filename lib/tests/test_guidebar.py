@@ -40,13 +40,13 @@ class WtDiffArgProvider(object):
 # """a b c d e f g h i j k l m n
 # o p q r s t u v w x y z""".replace(" ", "\n")
 
-CONTENT = 'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
+CONTENT = b'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
 
 # More nonsense: it's a-z with some replacements
 # NEW_CONTENT = \
 # """a b c d e ff g h i J-1 J-2 J-3 k l MN
 # o p s t 1 2 3 u v w x y z""".replace(" ", "\n")
-NEW_CONTENT = 'a\nb\nc\nd\ne\nff\ng\nh\ni\nJ-1\nJ-2\nJ-3\nk\nl\nMN\no\np\ns\nt\n1\n2\n3\nu\nv\nw\nx\ny\nz'
+NEW_CONTENT = b'a\nb\nc\nd\ne\nff\ng\nh\ni\nJ-1\nJ-2\nJ-3\nk\nl\nMN\no\np\ns\nt\n1\n2\n3\nu\nv\nw\nx\ny\nz'
 
 DIFF = [
     (['f'], ['ff']),
@@ -70,6 +70,8 @@ DIFF_BY_TAGS = dict(
 # when if fails twice and passes once... except when it passes 3 times...
 # You get the idea. Added QTest.qWaitForWindowShown here and there
 # which I suspect was not available when this code was first written.
+#
+# N.B. this appears to be missing a binary file test
 
 wait_delay_ms = 5500
 
@@ -119,8 +121,7 @@ class TestGuideBarBase(QTestCase):
                 self.assertEqual(len(unidiff_texts), block_num)
                 for j in range(block_num):
                     text = str(doc.findBlockByNumber(block_no + j).text())
-                    self.assertEqual(unidiff_texts[j], text,
-                                     '%s, %s, %r' % (tag, "U", data))
+                    self.assertEqual(unidiff_texts[j], text, '%s, %s, %r' % (tag, "U", data))
 
     def set_find_text(self, find_toolbar, text):
         find_toolbar.show_action_toggle(True)

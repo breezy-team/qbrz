@@ -24,7 +24,7 @@ checkone: test
 
 # Test specific item
 checkspecific: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidgetSelectAll
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz test_guidebar
 
 qlogtest:
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog

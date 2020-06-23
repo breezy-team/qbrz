@@ -293,14 +293,15 @@ class DiffItem(object):
             self._load_lines()
 
     def _load_lines(self):
-        if ((self.versioned[0] != self.versioned[1] or self.changed_content)
-            and (self.kind[0] == 'file' or self.kind[1] == 'file')):
+        if ((self.versioned[0] != self.versioned[1] or self.changed_content) and (self.kind[0] == 'file' or self.kind[1] == 'file')):
             lines = []
             binary = False
+            # print('\n_load_lines', self.file_id)
             for ix, tree in enumerate(self.trees):
                 content = ()
                 if self.versioned[ix] and self.kind[ix] == 'file':
                     content = tree.get_file_lines(tree.id2path(self.file_id))
+                    # print('\n\tcontent loaded for ', tree.id2path(self.file_id), self.file_id)
                 lines.append(content)
                 binary = binary or content_seems_to_be_binary(content)
             self._lines = lines
@@ -357,9 +358,9 @@ class DiffItem(object):
         return groups
 
     def get_unicode_lines(self, encodings):
-        """Return pair of unicode lines for each side of diff.
-        Parameter encodings is 2-list or 2-tuple with encoding names (str)
-        for each side of diff.
+        """
+        Return pair of unicode lines for each side of diff.
+        Parameter encodings is 2-list or 2-tuple with encoding names (str) for each side of diff.
         """
         lines = self.lines
         ulines = self._ulines
