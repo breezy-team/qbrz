@@ -310,7 +310,8 @@ class ModelTest(QtCore.QObject):
         # Check that the alignment is one we know about
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.TextAlignmentRole)
         if variant:
-            alignment = variant.toInt()[0]
+            # alignment = variant.toInt()[0]
+            alignment = int(variant)
             assert( alignment == QtCore.Qt.AlignLeft or
                 alignment == QtCore.Qt.AlignRight or
                 alignment == QtCore.Qt.AlignHCenter or
@@ -319,15 +320,16 @@ class ModelTest(QtCore.QObject):
         # General Purpose roles that should return a QColor
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.BackgroundColorRole)
         if variant:
-            assert( variant.canConvert( QtCore.QVariant.Color ) )
+            assert(variant.canConvert( QtCore.QVariant.Color ))
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.TextColorRole)
         if variant:
-            assert( variant.canConvert( QtCore.QVariant.Color ) )
+            assert(variant.canConvert( QtCore.QVariant.Color ))
 
         # Check that the "check state" is one we know about.
         variant = self.model.data(self.model.index(0,0,QtCore.QModelIndex()), QtCore.Qt.CheckStateRole)
         if variant:
-            state = variant.toInt()[0]
+            # state = variant.toInt()[0]
+            state = int(variant)
             assert( state == QtCore.Qt.Unchecked or
                 state == QtCore.Qt.PartiallyChecked or
                 state == QtCore.Qt.Checked )

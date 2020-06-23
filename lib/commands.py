@@ -96,8 +96,7 @@ class InvalidEncodingOption(errors.BzrError):
         errors.BzrError.__init__(self)
         self.encoding = encoding
         import encodings
-        self.valid = ', '.join(sorted(list(
-            set(encodings.aliases.aliases.values())))).replace('_','-')
+        self.valid = ', '.join(sorted(list(set(encodings.aliases.aliases.values())))).replace('_','-')
 
 
 def check_encoding(encoding):
@@ -222,7 +221,7 @@ def brz_option(cmd_name, opt_name):
     push command has, including help text, parsing, etc.
     """
     from breezy.commands import get_cmd_object
-    cmd=get_cmd_object(cmd_name, False)
+    cmd = get_cmd_object(cmd_name, False)
     return cmd.options()[opt_name]
 
 
@@ -296,7 +295,10 @@ class cmd_qadd(QBzrCommand):
     takes_options = [ui_mode_option]
 
     def _qbrz_run(self, selected_list=None, ui_mode=False):
+        print('\n:: cmd_add was passed ', selected_list)
         tree, selected_list = WorkingTree.open_containing_paths(selected_list)
+        print('\n::: cmd_add started', tree, selected_list)
+
         if selected_list == ['']:
             selected_list = None
         self.main_window = AddWindow(tree, selected_list, dialog=False, ui_mode=ui_mode)
@@ -501,10 +503,8 @@ class cmd_qlog(QBzrCommand):
                                   "as nodes in the graph"),
         ]
 
-    def _qbrz_run(self, locations_list=None, ui_mode=False, no_graph=False,
-                  show_trees=False):
-        window = LogWindow(locations_list, None, None, ui_mode=ui_mode,
-                           no_graph=no_graph, show_trees=show_trees)
+    def _qbrz_run(self, locations_list=None, ui_mode=False, no_graph=False, show_trees=False):
+        window = LogWindow(locations_list, None, None, ui_mode=ui_mode, no_graph=no_graph, show_trees=show_trees)
         window.show()
         self._application.exec_()
 

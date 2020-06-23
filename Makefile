@@ -27,7 +27,29 @@ checkspecific: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz test_guidebar
 
 qlogtest:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
+	# cd ~/pythonstuff/bzr_test_dir
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qcommit
+	# cd ~/pythonstuff/fix-python-etc
+
+# Apparently working:-
+# qlog, qblame, qannotate, qblame, qbind, qbranch, qbrowse, qcat,
+# qcommit, qcmd, qconflicts, qgetn, qignore, qinfo, qinit, qmerge
+# qplugins, qresolve, qrevert, qsend, qshelve, qtag, quncommit
+# qunshelve, qupdate, qviewer
+
+# Fails in action: qcommit, on editing message
+
+# NOT working
+# qcheckout-ala-explorer NOT working (unknown)
+# qinit-workspace also unknown
+# qconfig, qdiff (although OK when embedded), qhelp
+# qadd, although qignore shows files, qadd disnae
+# qmain, qpush, qsubprocess, qswitch, qverify-signatures,
+# qversion
+
+# Not tested
+# qunbind,
+
 
 test:
 	brz selftest -s bp.qbrz

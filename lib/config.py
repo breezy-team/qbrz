@@ -943,11 +943,15 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                 return True
         elif role == QtCore.Qt.CheckStateRole:
             if index.column() == self.COL_NAME:
-                if value.toInt() == (QtCore.Qt.Checked, True):
+                if int(value) == (QtCore.Qt.Checked, True):
                     self.set_default(name)
-                elif (value.toInt() == (QtCore.Qt.Unchecked, True) and
-                      self._default == name):
+                elif (int(value) == (QtCore.Qt.Unchecked, True) and self._default == name):
                     self.set_default(None)
+
+                # if value.toInt() == (QtCore.Qt.Checked, True):
+                #     self.set_default(name)
+                # elif (value.toInt() == (QtCore.Qt.Unchecked, True) and self._default == name):
+                #     self.set_default(None)
         return False
 
     def flags(self, index):

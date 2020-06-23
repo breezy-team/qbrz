@@ -282,8 +282,7 @@ class LogWindow(QBzrWindow):
             primary_branch_names = ('trunk', 'bzr.dev')
 
             for location in locations:
-                tree, br, repo, fp = \
-                    ControlDir.open_containing_tree_branch_or_repository(location)
+                tree, br, repo, fp = ControlDir.open_containing_tree_branch_or_repository(location)
                 self.processEvents()
 
                 if br is None:
@@ -327,19 +326,17 @@ class LogWindow(QBzrWindow):
                 if fp != '' and self.locations is None:
                     fp = ''
 
-                if fp != '' :
-                    # TODO: Have away to specify a revision to find to file
+                if fp != '':
+                    # TODO: Have a way to specify a revision to find to file
                     # path in, so that one can show deleted files.
                     if tree is None:
                         tree = br.basis_tree()
 
                     file_id = tree.path2id(fp)
                     if file_id is None:
-                        raise errors.BzrCommandError(
-                            "Path does not have any revision history: %s" %
-                            location)
+                        raise errors.BzrCommandError("Path does not have any revision history: %s" % location)
                     file_ids.append(file_id)
-            if file_ids and len(branches)>1:
+            if file_ids and len(branches) > 1:
                 raise errors.BzrCommandError(gettext(
                     'It is not possible to specify different file paths and '
                     'different branches at the same time.'))

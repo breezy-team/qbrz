@@ -1360,7 +1360,8 @@ class TreeFilterMenu(QtGui.QMenu):
                      self.triggered)
 
     def triggered(self, action):
-        filter = action.data().toInt()[0]
+        # filter = action.data().toInt()[0]
+        filter = int(action.data())
         checked = action.isChecked()
         self.emit(QtCore.SIGNAL("triggered(int, bool)"), filter, checked)
 

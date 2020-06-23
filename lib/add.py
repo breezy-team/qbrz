@@ -40,17 +40,17 @@ class AddWindow(SubProcessDialog):
     def __init__(self, tree, selected_list, dialog=True, ui_mode=True, parent=None, local=None, message=None):
         self.tree = tree
         self.initial_selected_list = selected_list
-        
+
         super(AddWindow, self).__init__(
-                                  gettext("Add"),
-                                  name = "add",
-                                  default_size = (400, 400),
-                                  ui_mode = ui_mode,
-                                  dialog = dialog,
-                                  parent = parent,
-                                  hide_progress=True,
-                                  )
-    
+            gettext("Add"),
+            name = "add",
+            default_size = (400, 400),
+            ui_mode = ui_mode,
+            dialog = dialog,
+            parent = parent,
+            hide_progress=True,
+            )
+
         self.throbber = ThrobberWidget(self)
 
         # Display the list of unversioned files
@@ -59,24 +59,20 @@ class AddWindow(SubProcessDialog):
 
         self.filelist = TreeWidget(groupbox)
         self.filelist.throbber = self.throbber
+
         self.filelist.tree_model.is_item_in_select_all = lambda item: (
             # Is in select all. - Not versioned, and not Ignored
-            item.change is not None and
-            item.change.is_ignored() is None and
-            not item.change.is_versioned(), 
-            
+            item.change is not None and item.change.is_ignored() is None and not item.change.is_versioned(),
             # look at children. - Not ignored
-            item.change is not None and item.change.is_ignored() is None or
-            item.change is None
+            item.change is not None and item.change.is_ignored() is None or item.change is None
             )
-        
+
         def filter_context_menu():
             items = self.filelist.get_selection_items()
             selection_len = len(items)
             single_file = (selection_len == 1 and items[0].item.kind == "file")
-            single_item_in_tree = (selection_len == 1 and
-                (items[0].change is None or items[0].change[6][1] is not None))
-            
+            single_item_in_tree = (selection_len == 1 and (items[0].change is None or items[0].change[6][1] is not None))
+
             self.filelist.action_open_file.setEnabled(True)
             self.filelist.action_open_file.setVisible(True)
             self.filelist.action_show_file.setEnabled(single_file)
@@ -92,27 +88,22 @@ class AddWindow(SubProcessDialog):
             self.filelist.action_rename.setEnabled(single_item_in_tree)
             self.filelist.action_remove.setVisible(False)
             self.filelist.action_mark_move.setVisible(False)
-        
+
         self.filelist.filter_context_menu = filter_context_menu
-        
+
         vbox.addWidget(self.filelist)
-        
+
         selectall_checkbox = SelectAllCheckBox(self.filelist, groupbox)
         vbox.addWidget(selectall_checkbox)
         selectall_checkbox.setCheckState(QtCore.Qt.Checked)
         selectall_checkbox.setEnabled(True)
 
-        self.show_ignored_checkbox = QtGui.QCheckBox(
-            gettext("Show ignored files"),
-            groupbox)
+        self.show_ignored_checkbox = QtGui.QCheckBox(gettext("Show ignored files"), groupbox)
         vbox.addWidget(self.show_ignored_checkbox)
         self.connect(self.show_ignored_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_ignored)
-        
+
         # groupbox gets disabled as we are executing.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("disableUi(bool)"),
-                               groupbox,
-                               QtCore.SLOT("setDisabled(bool)"))
+        QtCore.QObject.connect(self, QtCore.SIGNAL("disableUi(bool)"), groupbox, QtCore.SLOT("setDisabled(bool)"))
 
         self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
         self.splitter.addWidget(groupbox)
@@ -144,6 +135,7 @@ class AddWindow(SubProcessDialog):
         self.throbber.hide()
 
     def _get_files_to_add(self):
+        print('\n== getting files')
         return [ref.path for ref in self.filelist.tree_model.iter_checked()]
 
     def validate(self):
@@ -155,14 +147,13 @@ class AddWindow(SubProcessDialog):
     def do_start(self):
         """Add the files."""
         files = self._get_files_to_add()
-        self.process_widget.do_start(self.tree.basedir, "add", "--no-recurse",
-            *files)
+        self.process_widget.do_start(self.tree.basedir, "add", "--no-recurse", *files)
 
     def show_ignored(self, state):
         """Show/hide ignored files."""
         fmodel = self.filelist.tree_filter_model
         fmodel.setFilter(fmodel.IGNORED, state)
-        #self.filelist.update_selectall_state(None, None)
+        # self.filelist.update_selectall_state(None, None)
 
     def _saveSize(self, config):
         SubProcessDialog._saveSize(self, config)
