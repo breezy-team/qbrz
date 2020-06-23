@@ -617,7 +617,7 @@ class FileListContainer(QtGui.QWidget):
         if not revids or revids == (None, None):
             return
 
-        print('\nself.delta_cache [{0}]\n'.format(self.delta_cache))
+        # print('\nself.delta_cache [{0}]\n'.format(self.delta_cache))
         if revids not in self.delta_cache:
             self.throbber.show()
             try:
@@ -663,7 +663,7 @@ class FileListContainer(QtGui.QWidget):
                         self.processEvents()
 
                     delta = self.tree_cache[revids[0]].changes_from(self.tree_cache[revids[1]])
-                    print('\n delta calculated as\n', delta, type(delta))
+                    # print('\n delta calculated as\n', delta, type(delta))
                 self.delta_cache[revids] = delta
             finally:
                 self.throbber.hide()
@@ -707,44 +707,54 @@ class FileListContainer(QtGui.QWidget):
         # self.executable = executable
         #
         if delta:
-            print('\n*** delta is\n', delta, type(delta))
-            print('\nadded', delta.added, 'modified', delta.modified)
+            print('\n*** file list is ', self.file_list)
             items = []  # each item is 6-tuple: (id, path, is_not_specific_file_id, display, color, is_alive)
             if delta.added:
-                for path, id, kind in delta.added:
-                    items.append((id,
-                                path,
-                                id not in specific_file_ids,
-                                path,
-                                "blue",
-                                True))
+                print('*** added ***')
+                for tree_change in delta.added:
+                    items.append(
+                        (tree_change.file_id, tree_change.path[1],
+                        tree_change.file_id not in specific_file_ids,
+                        tree_change.path[1], 'blue', True))
+
             if delta.modified:
-                print(len(delta.modified))
-                for path, id, kind, text_modified, meta_modified in delta.modified:
-                    items.append((id,
-                                path,
-                                id not in specific_file_ids,
-                                path,
-                                None,
-                                True))
+                print('*** Modified ***')
+                for tree_change in delta.modified:
+                    items.append(
+                        (tree_change.file_id, tree_change.path[0],
+                        tree_change.file_id not in specific_file_ids,
+                        tree_change.path[0], None, True))
 
             if delta.removed:
-                for path, id, kind in delta.removed:
-                    items.append((id,
-                                path,
-                                id not in specific_file_ids,
-                                path,
-                                "red",
-                                False))
+                print('*** removed ***')
+                for tree_change in delta.removed:
+                    items.append(
+                        (tree_change.file_id, tree_change.path[0],
+                        tree_change.file_id not in specific_file_ids,
+                        tree_change.path[0], 'red', False))
 
             if delta.renamed:
-                for (oldpath, newpath, id, kind, text_modified, meta_modified) in delta.renamed:
-                    items.append((id,
-                                newpath,
-                                id not in specific_file_ids,
-                                "%s => %s" % (oldpath, newpath),
-                                "purple",
-                                True))
+                print('*** renamed ***')
+                for tree_change in delta.renamed:
+                    items.append(
+                        (tree_change.file_id, tree_change.path[0],
+                        tree_change.file_id not in specific_file_ids,
+                        tree_change.path[1], None, True))
+
+
+                # for (oldpath, newpath, id, kind, text_modified, meta_modified) in delta.renamed:
+                # for tree_change in delta.renamed:
+                #     items.append(
+                #         (tree_change.file_id, tree_change.path,
+                #         tree_change.file_id not in specific_file_ids,
+                #         tree_change.path, 'purple', True))
+
+                    # items.append((id,
+                    #             newpath,
+                    #             id not in specific_file_ids,
+                    #             "%s => %s" % (oldpath, newpath),
+                    #             "purple",
+                    #             True))
 
             for (id, path, is_not_specific_file_id, display, color, is_alive) in sorted(items, key = lambda x: (x[2],x[1])):
                 item = QtGui.QListWidgetItem(display, self.file_list)

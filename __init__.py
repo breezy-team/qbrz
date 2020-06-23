@@ -83,7 +83,7 @@ sip.setapi('QVariant', 2)
 
 # RJL: set to 0,3,1 to match br
 # version_info = (0,23,2,'final',0)
-version_info = (0,3,1,'devel',0)
+version_info = (0,3,1,'dev',0)
 __version__ = '.'.join(map(str, version_info))
 
 
