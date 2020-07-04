@@ -40,6 +40,7 @@ class AddWindow(SubProcessDialog):
     def __init__(self, tree, selected_list, dialog=True, ui_mode=True, parent=None, local=None, message=None):
         self.tree = tree
         self.initial_selected_list = selected_list
+        print('*^*^*^^ tree is', self.tree, 'initial_selected', selected_list)
 
         super(AddWindow, self).__init__(
             gettext("Add"),
@@ -57,10 +58,10 @@ class AddWindow(SubProcessDialog):
         groupbox = QtGui.QGroupBox(gettext("Unversioned Files"), self)
         vbox = QtGui.QVBoxLayout(groupbox)
 
-        self.filelist = TreeWidget(groupbox)
-        self.filelist.throbber = self.throbber
+        self.filelist_widget = TreeWidget(groupbox)
+        self.filelist_widget.throbber = self.throbber
 
-        self.filelist.tree_model.is_item_in_select_all = lambda item: (
+        self.filelist_widget.tree_model.is_item_in_select_all = lambda item: (
             # Is in select all. - Not versioned, and not Ignored
             item.change is not None and item.change.is_ignored() is None and not item.change.is_versioned(),
             # look at children. - Not ignored
@@ -68,32 +69,32 @@ class AddWindow(SubProcessDialog):
             )
 
         def filter_context_menu():
-            items = self.filelist.get_selection_items()
+            items = self.filelist_widget.get_selection_items()
             selection_len = len(items)
             single_file = (selection_len == 1 and items[0].item.kind == "file")
             single_item_in_tree = (selection_len == 1 and (items[0].change is None or items[0].change[6][1] is not None))
 
-            self.filelist.action_open_file.setEnabled(True)
-            self.filelist.action_open_file.setVisible(True)
-            self.filelist.action_show_file.setEnabled(single_file)
-            self.filelist.action_show_file.setVisible(True)
-            self.filelist.action_show_annotate.setVisible(False)
-            self.filelist.action_show_log.setVisible(False)
-            self.filelist.action_show_diff.setVisible(False)
-            self.filelist.action_add.setVisible(False)
-            self.filelist.action_revert.setVisible(False)
-            self.filelist.action_merge.setVisible(False)
-            self.filelist.action_resolve.setVisible(False)
-            self.filelist.action_rename.setVisible(True)
-            self.filelist.action_rename.setEnabled(single_item_in_tree)
-            self.filelist.action_remove.setVisible(False)
-            self.filelist.action_mark_move.setVisible(False)
+            self.filelist_widget.action_open_file.setEnabled(True)
+            self.filelist_widget.action_open_file.setVisible(True)
+            self.filelist_widget.action_show_file.setEnabled(single_file)
+            self.filelist_widget.action_show_file.setVisible(True)
+            self.filelist_widget.action_show_annotate.setVisible(False)
+            self.filelist_widget.action_show_log.setVisible(False)
+            self.filelist_widget.action_show_diff.setVisible(False)
+            self.filelist_widget.action_add.setVisible(False)
+            self.filelist_widget.action_revert.setVisible(False)
+            self.filelist_widget.action_merge.setVisible(False)
+            self.filelist_widget.action_resolve.setVisible(False)
+            self.filelist_widget.action_rename.setVisible(True)
+            self.filelist_widget.action_rename.setEnabled(single_item_in_tree)
+            self.filelist_widget.action_remove.setVisible(False)
+            self.filelist_widget.action_mark_move.setVisible(False)
 
-        self.filelist.filter_context_menu = filter_context_menu
+        self.filelist_widget.filter_context_menu = filter_context_menu
 
-        vbox.addWidget(self.filelist)
+        vbox.addWidget(self.filelist_widget)
 
-        selectall_checkbox = SelectAllCheckBox(self.filelist, groupbox)
+        selectall_checkbox = SelectAllCheckBox(self.filelist_widget, groupbox)
         vbox.addWidget(selectall_checkbox)
         selectall_checkbox.setCheckState(QtCore.Qt.Checked)
         selectall_checkbox.setEnabled(True)
@@ -125,18 +126,21 @@ class AddWindow(SubProcessDialog):
     @ui_current_widget
     @reports_exception()
     def initial_load(self):
-        self.filelist.tree_model.checkable = True
-        fmodel = self.filelist.tree_filter_model
+        print('*** initial_load called')
+        self.filelist_widget.tree_model.checkable = True
+        fmodel = self.filelist_widget.tree_filter_model
         fmodel.setFilter(fmodel.CHANGED, False)
         fmodel.setFilter(fmodel.UNCHANGED, False)
-        self.filelist.set_tree(self.tree, changes_mode = True,
+        self.filelist_widget.set_tree(self.tree, changes_mode = True,
             initial_checked_paths=self.initial_selected_list,
             change_load_filter=lambda c:not c.is_versioned())
         self.throbber.hide()
+        print('leaving initial_load ***')
 
     def _get_files_to_add(self):
-        print('\n== getting files')
-        return [ref.path for ref in self.filelist.tree_model.iter_checked()]
+        print('==== getting files ====')
+        # OK pressed
+        return [ref.path for ref in self.filelist_widget.tree_model.iter_checked()]
 
     def validate(self):
         if not self._get_files_to_add():
@@ -146,14 +150,16 @@ class AddWindow(SubProcessDialog):
 
     def do_start(self):
         """Add the files."""
+        print('\tdo_start entry')
         files = self._get_files_to_add()
         self.process_widget.do_start(self.tree.basedir, "add", "--no-recurse", *files)
+        print('\tdo_start EXIT')
 
     def show_ignored(self, state):
         """Show/hide ignored files."""
-        fmodel = self.filelist.tree_filter_model
+        fmodel = self.filelist_widget.tree_filter_model
         fmodel.setFilter(fmodel.IGNORED, state)
-        # self.filelist.update_selectall_state(None, None)
+        # self.filelist_widget.update_selectall_state(None, None)
 
     def _saveSize(self, config):
         SubProcessDialog._saveSize(self, config)
