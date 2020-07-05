@@ -260,10 +260,10 @@ class ChangeDesc:
     # XXX We should may be try get this into breezy.
     # XXX We should use this in qdiff.
 
-    def __init__(self, tree_change_object):
+    def __init__(self, tree_change_object, ignored_flag=None):
         self.change = tree_change_object
-        self.is_ignored = None
-
+        # self.is_ignored = None
+        self._is_ignored = ignored_flag
 
     def fileid(self):
         return self.change.file_id
@@ -504,7 +504,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                             continue
                         is_ignored = self.tree.is_ignored(path)
                         # change = ChangeDesc(change + (is_ignored,))
-                        change.is_ignored = is_ignored
+                        change._is_ignored = is_ignored
 
                         if (self.change_load_filter is not None and not self.change_load_filter(change)):
                             continue
@@ -639,9 +639,12 @@ class TreeModel(QtCore.QAbstractItemModel):
                 (kind, executable, stat_value) = self.tree._comparison_data(None, path)
                 child = InternalItem(name, kind, None)
                 is_ignored = self.tree.is_ignored(path)
-                change = ChangeDesc((None,(None, path), False, (False, False), (None, None), (None, name), (None, kind),
-                                     (None, executable),
-                                     is_ignored))
+                t = TreeChange(None,(None, path), False, (False, False), (None, None), (None, name), (None, kind), (None, executable))
+                change = ChangeDesc(t, is_ignored)
+
+                # change = ChangeDesc((None,(None, path), False, (False, False), (None, None), (None, name), (None, kind),
+                #                      (None, executable),
+                #                      is_ignored))
 
                 if (self.change_load_filter is not None and not self.change_load_filter(change)):
                     continue
@@ -1362,6 +1365,7 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
 
         (unchanged, changed, unversioned, ignored) = self.filters
         print('$$$ filter_id', unchanged, changed, unversioned, ignored)
+        print('$$$ item_data is ', type(item_data), item_data)
         is_changed = item_data.change is not None
         is_versioned = item_data.item.file_id is not None
 

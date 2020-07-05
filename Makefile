@@ -29,7 +29,7 @@ checkspecific: test
 qlogtest:
 	# cd ~/pythonstuff/bzr_test_dir
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qadd
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qadd
 	# cd ~/pythonstuff/fix-python-etc
 
 # Apparently working:-
