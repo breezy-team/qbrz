@@ -50,17 +50,15 @@ def load_tests(loader, basic_tests, pattern):
         'test_loggraphviz',
         'test_logmodel',
         'test_revisionmessagebrowser',
-        #  RJLEJL ignore spellcheck for now
-        # 'test_spellcheck',
+        #  RJLRJL ignore spellcheck for now
+        'test_spellcheck',
         'test_subprocess',
         'test_tree_branch',
-        # RJLRJL ignored for now - problems with filters
-        # 'test_treewidget',
+        'test_treewidget',
         'test_util',
         'test_decorator',
         'test_guidebar',
-        # RJLRJL ignored for now - problems with newer diff and osutils
-        # 'test_extdiff',
+        'test_extdiff',
     ]
     for name in testmod_names:
         m = "%s.%s" % (__name__, name)

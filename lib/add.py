@@ -40,7 +40,7 @@ class AddWindow(SubProcessDialog):
     def __init__(self, tree, selected_list, dialog=True, ui_mode=True, parent=None, local=None, message=None):
         self.tree = tree
         self.initial_selected_list = selected_list
-        print('*^*^*^^ tree is', self.tree, 'initial_selected', selected_list)
+        # print('*^*^*^^ tree is', self.tree, 'initial_selected', selected_list)
 
         super(AddWindow, self).__init__(
             gettext("Add"),
@@ -126,7 +126,7 @@ class AddWindow(SubProcessDialog):
     @ui_current_widget
     @reports_exception()
     def initial_load(self):
-        print('*** initial_load called')
+        # print('*** initial_load called')
         self.filelist_widget.tree_model.checkable = True
         fmodel = self.filelist_widget.tree_filter_model
         fmodel.setFilter(fmodel.CHANGED, False)
@@ -135,10 +135,10 @@ class AddWindow(SubProcessDialog):
             initial_checked_paths=self.initial_selected_list,
             change_load_filter=lambda c:not c.is_versioned())
         self.throbber.hide()
-        print('leaving initial_load ***')
+        # print('leaving initial_load ***')
 
     def _get_files_to_add(self):
-        print('==== getting files ====')
+        # print('==== getting files ====')
         # OK pressed
         return [ref.path for ref in self.filelist_widget.tree_model.iter_checked()]
 
@@ -150,10 +150,10 @@ class AddWindow(SubProcessDialog):
 
     def do_start(self):
         """Add the files."""
-        print('\tdo_start entry')
+        # print('\tdo_start entry')
         files = self._get_files_to_add()
         self.process_widget.do_start(self.tree.basedir, "add", "--no-recurse", *files)
-        print('\tdo_start EXIT')
+        # print('\tdo_start EXIT')
 
     def show_ignored(self, state):
         """Show/hide ignored files."""

@@ -323,19 +323,19 @@ class CommitWindow(SubProcessDialog):
         else:
             self.show_nonversioned_checkbox.setChecked(QtCore.Qt.Unchecked)
 
-        self.filelist = TreeWidget(self)
-        self.filelist.throbber = self.throbber
+        self.filelist_widget = TreeWidget(self)
+        self.filelist_widget.throbber = self.throbber
         if show_nonversioned:
-            self.filelist.tree_model.set_select_all_kind('all')
+            self.filelist_widget.tree_model.set_select_all_kind('all')
         else:
-            self.filelist.tree_model.set_select_all_kind('versioned')
+            self.filelist_widget.tree_model.set_select_all_kind('versioned')
 
         self.file_words = {}
-        self.connect(self.filelist.tree_model,
+        self.connect(self.filelist_widget.tree_model,
                      QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                      self.on_filelist_data_changed)
 
-        self.selectall_checkbox = SelectAllCheckBox(self.filelist, self)
+        self.selectall_checkbox = SelectAllCheckBox(self.filelist_widget, self)
         self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
 
         language = get_global_config().get_user_option('spellcheck_language') or 'en'
@@ -393,7 +393,7 @@ class CommitWindow(SubProcessDialog):
         self.tabWidget.addTab(files_tab, gettext("Changes"))
 
         vbox = QtGui.QVBoxLayout(files_tab)
-        vbox.addWidget(self.filelist)
+        vbox.addWidget(self.filelist_widget)
         self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
         vbox.addWidget(self.show_nonversioned_checkbox)
 
@@ -491,13 +491,13 @@ class CommitWindow(SubProcessDialog):
                     self.pending_merges_list._load_visible_revisions()
                     self.processEvents()
 
-                self.filelist.tree_model.checkable = not self.pending_merges_list
+                self.filelist_widget.tree_model.checkable = not self.pending_merges_list
                 self.is_loading = True
                 # XXX Would be nice if we could only load the files when the
                 # user clicks on the changes tab, but that would mean that
                 # we can't load the words list.
                 if not refresh:
-                    fmodel = self.filelist.tree_filter_model
+                    fmodel = self.filelist_widget.tree_filter_model
 
                     want_unversioned = self.show_nonversioned_checkbox.isChecked()
                     fmodel.setFilter(fmodel.UNVERSIONED, want_unversioned)
@@ -509,7 +509,7 @@ class CommitWindow(SubProcessDialog):
                                 want_unversioned = True
                                 break
 
-                    self.filelist.set_tree(
+                    self.filelist_widget.set_tree(
                         self.tree,
                         branch=self.tree.branch,
                         changes_mode=True,
@@ -517,7 +517,7 @@ class CommitWindow(SubProcessDialog):
                         initial_checked_paths=self.initial_selected_list,
                         change_load_filter=lambda c:not c.is_ignored())
                 else:
-                    self.filelist.refresh()
+                    self.filelist_widget.refresh()
                 self.is_loading = False
                 self.processEvents()
                 self.update_compleater_words()
@@ -540,14 +540,14 @@ class CommitWindow(SubProcessDialog):
         num_files_loaded = 0
 
         words = set()
-        for ref in self.filelist.tree_model.iter_checked():
+        for ref in self.filelist_widget.tree_model.iter_checked():
             path = ref.path
             if path not in self.file_words:
                 file_words = set()
                 if num_files_loaded < MAX_AUTOCOMPLETE_FILES:
                     file_words.add(path)
                     file_words.add(os.path.split(path)[-1])
-                    change = self.filelist.tree_model.inventory_data_by_path[
+                    change = self.filelist_widget.tree_model.inventory_data_by_path[
                                                                ref.path].change
                     if change and change.is_renamed():
                         file_words.add(change.oldpath())
@@ -639,7 +639,7 @@ class CommitWindow(SubProcessDialog):
 
         files_to_commit = []
         files_to_add = []
-        for ref in self.filelist.tree_model.iter_checked():
+        for ref in self.filelist_widget.tree_model.iter_checked():
             if ref.file_id is None:
                 files_to_add.append(ref.path)
             files_to_commit.append(ref.path)
@@ -699,19 +699,19 @@ class CommitWindow(SubProcessDialog):
 
     def show_nonversioned(self, state):
         """Show/hide non-versioned files."""
-        if state and not self.filelist.want_unversioned:
-            state = self.filelist.get_state()
-            self.filelist.set_tree(
+        if state and not self.filelist_widget.want_unversioned:
+            state = self.filelist_widget.get_state()
+            self.filelist_widget.set_tree(
                 self.tree, changes_mode=True, want_unversioned=True,
                 change_load_filter=lambda c:not c.is_ignored())
-            self.filelist.restore_state(state)
+            self.filelist_widget.restore_state(state)
 
         if state:
-            self.filelist.tree_model.set_select_all_kind('all')
+            self.filelist_widget.tree_model.set_select_all_kind('all')
         else:
-            self.filelist.tree_model.set_select_all_kind('versioned')
+            self.filelist_widget.tree_model.set_select_all_kind('versioned')
 
-        fmodel = self.filelist.tree_filter_model
+        fmodel = self.filelist_widget.tree_filter_model
         fmodel.setFilter(fmodel.UNVERSIONED, state)
 
     def _save_or_wipe_commit_data(self):
@@ -756,10 +756,10 @@ class CommitWindow(SubProcessDialog):
         @param  dialog_action:  purpose of parent window (main action)
         """
         # XXX make this function universal for both qcommit and qrevert (?)
-        if self.filelist.tree_model.checkable:
+        if self.filelist_widget.tree_model.checkable:
             checked = []        # checked versioned
             unversioned = []    # checked unversioned (supposed to be added)
-            for ref in self.filelist.tree_model.iter_checked():
+            for ref in self.filelist_widget.tree_model.iter_checked():
                 if ref.file_id:
                     checked.append(ref.path)
                 else:
@@ -771,7 +771,7 @@ class CommitWindow(SubProcessDialog):
                     self.tree.branch, self.tree.branch,
                     specific_files=checked)
 
-                show_diff(arg_provider, ext_diff=ext_diff, parent_window=self, context=self.filelist.diff_context)
+                show_diff(arg_provider, ext_diff=ext_diff, parent_window=self, context=self.filelist_widget.diff_context)
             else:
                 msg = "No changes selected to " + dialog_action
                 QtGui.QMessageBox.warning(self, "QBrz - " + gettext("Diff"), gettext(msg), QtGui.QMessageBox.Ok)
@@ -784,7 +784,7 @@ class CommitWindow(SubProcessDialog):
                 self.tree.basis_tree().get_revision_id(), self.tree,
                 self.tree.branch, self.tree.branch)
             show_diff(arg_provider, ext_diff=ext_diff, parent_window=self,
-                      context=self.filelist.diff_context)
+                      context=self.filelist_widget.diff_context)
 
     def on_failed(self, error):
         SubProcessDialog.on_failed(self, error)

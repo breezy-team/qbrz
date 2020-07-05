@@ -461,9 +461,9 @@ class TreeModel(QtCore.QAbstractItemModel):
 
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
 
-        print('::: TreeMODEL.set_tree called :::', tree, 'branch', branch, 'initial', initial_checked_paths, 'change',
-            change_load_filter, 'isinstance', isinstance(tree, WorkingTree), 'changes mode', changes_mode,
-            'want unversioned?', want_unversioned)
+        # print('::: TreeMODEL.set_tree called :::', tree, 'branch', branch, 'initial', initial_checked_paths, 'change',
+        #     change_load_filter, 'isinstance', isinstance(tree, WorkingTree), 'changes mode', changes_mode,
+        #     'want unversioned?', want_unversioned)
         is_refresh = len(self.inventory_data) > 0
         if is_refresh:
             self.beginRemoveRows(QtCore.QModelIndex(), 0, len(self.inventory_data[0].children_ids) - 1)
@@ -476,7 +476,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             self.endRemoveRows()
 
         if isinstance(self.tree, WorkingTree):
-            print(':::-> tree.lock_read (try) about to execute')
+            # print(':::-> tree.lock_read (try) about to execute')
             tree.lock_read()
             try:
                 # RJL Breezy release notes state that:
@@ -487,18 +487,18 @@ class TreeModel(QtCore.QAbstractItemModel):
                 basis_tree = self.tree.basis_tree()
                 basis_tree.lock_read()
                 try:
-                    print(':::->>second try block')
+                    # print(':::->>second try block')
                     for the_change in self.tree.iter_changes(basis_tree, want_unversioned=want_unversioned):
                         # iter_changes now seems to appear to return a TreeChange type See Jelmer's 7390.
                         # Handily, it has an as_tuple() function, so we'll cheat for now
                         change = ChangeDesc(the_change)
-                        print(change.dump())
+                        # print(change.dump())
                         path = change.old_or_new_path()
                         fileid = change.fileid()
 
                         # print('::::change was', change, 'with path and file id of', path, fileid)
-                        if change.old_or_new_path() == 'wibble.txt':
-                            print("*** found wibble.txt ***")
+                        # if change.old_or_new_path() == 'wibble.txt':
+                        #     print("*** found wibble.txt ***")
                         # RJLRJL Removed
                         # if fileid is None: # HOGEHOGE WORKAROUND
                         #     continue       # HOGEHOGE
@@ -609,12 +609,12 @@ class TreeModel(QtCore.QAbstractItemModel):
                             item_data.item.name = get_name(dir_fileid, dir_path, item_data.path, item_data.change)
                 finally:
                     basis_tree.unlock()
-                print('\n\t\t FIRST process_tree...', initial_checked_paths, load_dirs)
+                # print('\n\t\t FIRST process_tree...', initial_checked_paths, load_dirs)
                 self.process_tree(self.working_tree_get_children, initial_checked_paths, load_dirs)
             finally:
                 tree.unlock()
         else:
-            print('\n\t\t SECOND process_tree...', initial_checked_paths, load_dirs)
+            # print('\n\t\t SECOND process_tree...', initial_checked_paths, load_dirs)
             self.process_tree(self.revision_tree_get_children, initial_checked_paths, load_dirs)
 
         self.emit(QtCore.SIGNAL("layoutChanged()"))
@@ -629,12 +629,12 @@ class TreeModel(QtCore.QAbstractItemModel):
             yield ModelItemData(path, item=child)
 
     def working_tree_get_children(self, item_data):
-        print('\n\t!! working_tree_get_children, item_data', item_data, 'file_id', item_data.item.file_id)
+        # print('\n\t!! working_tree_get_children, item_data', item_data, 'file_id', item_data.item.file_id)
         item = item_data.item
         # RJLRJL temp bypass
         if item.file_id is None:
             abspath = self.tree.abspath(item_data.path)
-            print('\n\t!!abspath is ', abspath)
+            # print('\n\t!!abspath is ', abspath)
 
             for name in os.listdir(abspath):
                 path = item_data.path + "/" + name
@@ -653,7 +653,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
                 yield ModelItemData(path, item=child, change=change)
 
-        print('\n\t!!type(item)', type(item), '[instance?]',isinstance(item, InternalItem), 'kind', item.kind, 'changes_mode', self.changes_mode)
+        # print('\n\t!!type(item)', type(item), '[instance?]',isinstance(item, InternalItem), 'kind', item.kind, 'changes_mode', self.changes_mode)
         if (not isinstance(item, InternalItem) and item.kind == 'directory' and not self.changes_mode):
             # Because we create copies, we have to get the real item.
             item = self._get_entry(self.tree, item.file_id)
@@ -671,7 +671,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 child_item_data.item = child
                 yield child_item_data
 
-        print('\t\t\t AT third if...[{0}] [{1}]'.format(item_data.path, self.unver_by_parent))
+        # print('\t\t\t AT third if...[{0}] [{1}]'.format(item_data.path, self.unver_by_parent))
         if item_data.path in self.unver_by_parent:
             for path in self.unver_by_parent[item_data.path]:
                 yield self.inventory_data_by_path[path]
@@ -690,14 +690,14 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def load_dir(self, dir_id):
         if dir_id >= len(self.inventory_data):
-            print('\n\tLOAD_DIR RETURNING EARLY: dir_id >= len(self.inventory_data)')
+            # print('\n\tLOAD_DIR RETURNING EARLY: dir_id >= len(self.inventory_data)')
             return
         dir_item = self.inventory_data[dir_id]
         if dir_item.children_ids is not None:
-            print('\n\tLOAD_DIR RETURNING EARLY: dir already loaded)')
+            # print('\n\tLOAD_DIR RETURNING EARLY: dir already loaded)')
             return  # This dir has already been loaded.
         if not dir_item.item.kind == 'directory':
-            print('\n\tLOAD_DIR RETURNING EARLY: not a directory')
+            # print('\n\tLOAD_DIR RETURNING EARLY: not a directory')
             return
 
         if not self._many_loaddirs_started:
@@ -709,18 +709,18 @@ class TreeModel(QtCore.QAbstractItemModel):
         # revision_tree_get_children seems to be a hangover from
         # python 2.4 days when one could not have yield in a try / finally block
         # nor had context managers.
-        print('\n\tSTARTING LOAD_DIR dir_id, type:', dir_id, type(dir_id))
+        # print('\n\tSTARTING LOAD_DIR dir_id, type:', dir_id, type(dir_id))
         try:
             dir_item.children_ids = []
             child_list = list(self.get_children(dir_item))
-            print('\t\t\t We have', child_list, 'as the child_list. get_children is', self.get_children)
+            # print('\t\t\t We have', child_list, 'as the child_list. get_children is', self.get_children)
             children = sorted(child_list, key=ModelItemData.dirs_first_sort_key)
             parent_model_index = self._index_from_id(dir_id, 0)
-            print('\n\t\t~~~ load_dir, parent_model_index', parent_model_index, 'children', children)
+            # print('\n\t\t~~~ load_dir, parent_model_index', parent_model_index, 'children', children)
             self.beginInsertRows(parent_model_index, 0, len(children) - 1)
             try:
                 for child in children:
-                    print('\n\t\t\t>>>>>>>>>>>> child: ', child)
+                    # print('\n\t\t\t>>>>>>>>>>>> child: ', child)
                     child_id = self.append_item(child, dir_id)
                     dir_item.children_ids.append(child_id)
             finally:
@@ -728,7 +728,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         finally:
             if not self._many_loaddirs_started:
                 self.tree.unlock()
-        print('\n\t FINISHED load_dir\n')
+        # print('\n\t FINISHED load_dir\n')
 
     def _get_entry(self, tree, file_id):
         for _, entry in tree.iter_entries_by_dir([self.tree.id2path(file_id)]):
@@ -738,7 +738,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     def process_tree(self, get_children, initial_checked_paths, load_dirs):
         # RJL get_children seems to be a pass function and looks like it is used by
         # load_dir
-        print('\n\t process_tree with get_children as ', get_children)
+        # print('\n\t process_tree with get_children as ', get_children)
         self.get_children = get_children
 
         root_item = ModelItemData('', item=self._get_entry(self.tree, self.tree.path2id('')))
@@ -752,13 +752,13 @@ class TreeModel(QtCore.QAbstractItemModel):
                 self.load_dir(index.internalId())
 
         if self.checkable:
-            print('\ncheckable!')
+            # print('\ncheckable!')
             if initial_checked_paths is not None:
                 self.set_checked_paths(initial_checked_paths)
             else:
                 # RJL initial_checked_paths will be None (I think) if EVERYTHING is to be checked
                 # that is, 'select all'
-                print('\n\t ::: select all', root_id, self.NAME, 'index is ', self._index_from_id(root_id, self.NAME))
+                # print('\n\t ::: select all', root_id, self.NAME, 'index is ', self._index_from_id(root_id, self.NAME))
                 self.setData(self._index_from_id(root_id, self.NAME), QtCore.Qt.Checked, QtCore.Qt.CheckStateRole)
 
     def append_item(self, item_data, parent_id):
@@ -887,7 +887,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def setData(self, index, value, role):
         # This appears to be used when clicking select / deselec all (at least in qAdd
-        print('***setData, index.column is ', index.column(), 'and ', type(role), 'value is', value, type(value), self.NAME)
+        # print('***setData, index.column is ', index.column(), 'and ', type(role), 'value is', value, type(value), self.NAME)
         if index.column() == self.NAME and role == QtCore.Qt.CheckStateRole:
 
             def set_checked(item_data, checked, emit=True):
@@ -902,7 +902,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
             item_data = self.inventory_data[index.internalId()]
             first_index = self._index_from_id(item_data.id, self.NAME)
-            print('\n\t** got first_index of ', first_index)
+            # print('\n\t** got first_index of ', first_index)
             set_checked(item_data, value)
 
             # this is an array so that it is a poormans nonlocal
@@ -910,12 +910,12 @@ class TreeModel(QtCore.QAbstractItemModel):
             last_item_data = [None]
             # Recursively set all children to checked.
             def set_child_checked_recurse(item_data):
-                print('\n\t\t<<<>> set_child_checked_recurse', item_data)
+                # print('\n\t\t<<<>> set_child_checked_recurse', item_data)
                 if (item_data.children_ids is None and item_data.item.kind == "directory"):
                     self.load_dir(item_data.id)
 
                 if not item_data.children_ids:
-                    print('\n\t\t<<<>> returning FALSE', item_data.children_ids)
+                    # print('\n\t\t<<<>> returning FALSE', item_data.children_ids)
                     return False
                 have_changed_item = False
 
@@ -924,13 +924,13 @@ class TreeModel(QtCore.QAbstractItemModel):
 
                     # If unchecking, uncheck everything, but if checking,
                     # only check those in "select_all" get checked.
-                    print('\n\t ---> child lock')
+                    # print('\n\t ---> child lock')
                     if value == QtCore.Qt.Unchecked:
-                        print('\n\t\t ~~ unlocking')
+                        # print('\n\t\t ~~ unlocking')
                         change = True
                         lookat_children = True
                     else:
-                        print('\n\t\t ~~ locking')
+                        # print('\n\t\t ~~ locking')
                         (change, lookat_children) = self.is_item_in_select_all(child)
 
                     last_item_data[0] = child
@@ -1247,22 +1247,22 @@ class TreeModel(QtCore.QAbstractItemModel):
         # We have to recurse and load all dirs, because we use --no-recurse
         # for add, and commit and revert don't recurse.
         i = 0
-        print('iter_checked', len(self.inventory_data), self.inventory_data)
+        # print('iter_checked', len(self.inventory_data), self.inventory_data)
         while i < len(self.inventory_data):
             item_data = self.inventory_data[i]
-            print('\n\t---> itemd_data is ', item_data, 'for', i, 'children_ids, kind, checked',
-                item_data.children_ids, item_data.item.kind, item_data.checked)
+            # print('\n\t---> itemd_data is ', item_data, 'for', i, 'children_ids, kind, checked',
+            #     item_data.children_ids, item_data.item.kind, item_data.checked)
             if (item_data.children_ids is None and item_data.item.kind == "directory" and item_data.checked):
-                print('\n\t...loading...')
+                # print('\n\t...loading...')
                 self.load_dir(item_data.id)
             i += 1
 
         for item_data in self.inventory_data[1:]:
-            print('\n\tsecond loop: ', item_data)
+            # print('\n\tsecond loop: ', item_data)
             if item_data.checked == QtCore.Qt.Checked:
                 if (item_data.change is None and item_data.item.kind == 'directory' and not include_unchanged_dirs):
                     continue
-                print('\n\t *** YIELDING *** ')
+                # print('\n\t *** YIELDING *** ')
                 yield self.item2ref(item_data)
 
     def set_checked_items(self, refs, ignore_no_file_error=True):
@@ -1366,8 +1366,8 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         """
 
         (unchanged, changed, unversioned, ignored) = self.filters
-        print('$$$ filter_id', unchanged, changed, unversioned, ignored)
-        print('$$$ item_data is ', type(item_data), item_data)
+        # print('$$$ filter_id', unchanged, changed, unversioned, ignored)
+        # print('$$$ item_data is ', type(item_data), item_data)
         is_changed = item_data.change is not None
         is_versioned = item_data.item.file_id is not None
 
@@ -1536,9 +1536,9 @@ class TreeWidget(RevisionTreeView):
             which should be selected in the widget. By default all items
             selected. Value None or empty list means: all selected.
         """
-        print('TreeWidget.set_tree', tree, 'branch', branch, 'initial', initial_checked_paths, 'change',
-            change_load_filter, 'isinstance', isinstance(tree, WorkingTree), 'changes mode', changes_mode,
-            'want unversioned?', want_unversioned)
+        # print('TreeWidget.set_tree', tree, 'branch', branch, 'initial', initial_checked_paths, 'change',
+        #     change_load_filter, 'isinstance', isinstance(tree, WorkingTree), 'changes mode', changes_mode,
+        #     'want unversioned?', want_unversioned)
         self.tree = tree
         if isinstance(tree, RevisionTree) and branch is None:
             raise AttributeError("A branch must be provided if the tree is a RevisionTree")
@@ -1564,8 +1564,8 @@ class TreeWidget(RevisionTreeView):
         if initial_checked_paths and not self.tree_model.checkable:
             raise AttributeError("You can't have a initial_selection if tree_model.checkable is not True.")
 
-        print('Treewidget calling its model set_tree with', self.tree, self.branch,
-                                 changes_mode, want_unversioned, change_load_filter, initial_checked_paths)
+        # print('Treewidget calling its model set_tree with', self.tree, self.branch,
+        #                          changes_mode, want_unversioned, change_load_filter, initial_checked_paths)
         self.tree_model.set_tree(self.tree, self.branch,
                                  changes_mode, want_unversioned,
                                  change_load_filter=self.change_load_filter,

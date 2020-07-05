@@ -257,13 +257,13 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
         self.build_tree_contents([('tree/changed', b'bnew')])
 
         self.model = TreeModel()
-        print('\n\t== self.model is ', self.model, type(self.model))
+        # print('\n\t== self.model is ', self.model, type(self.model))
         load_dirs=[PersistantItemReference(None, 'dir-with-unversioned'),
                    PersistantItemReference(None, 'ignored-dir-with-child')]
-        print('\n set_tree being called')
+        # print('\n set_tree being called')
         self.model.set_tree(tree, branch=tree.branch, load_dirs=load_dirs)
         self.filter_model = TreeFilterProxyModel()
-        print('\nmodel and filter: ', self.model, self.filter)
+        # print('\nmodel and filter: ', self.model, self.filter)
         self.filter_model.setSourceModel(self.model)
         self.filter_model.setFilters(self.filter)
         self.expected_visible.sort()
@@ -271,20 +271,20 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
         self.assertEqual(self.getVisiblePaths(), self.expected_visible)
 
     def getVisiblePaths(self):
-        print('\n@@@@ getVisiblePaths @@@')
+        # print('\n@@@@ getVisiblePaths @@@')
         visible_paths = []
         parent_indexes_to_visit = [QtCore.QModelIndex()]
         pushed_id = None
         while parent_indexes_to_visit:
             parent_index = parent_indexes_to_visit.pop()
-            print('\n\t === was pushed', pushed_id == parent_index, parent_indexes_to_visit)
-            print('\n\t->parent_index', parent_index, 'row count was ', self.filter_model.rowCount(parent_index))
+            # print('\n\t === was pushed', pushed_id == parent_index, parent_indexes_to_visit)
+            # print('\n\t->parent_index', parent_index, 'row count was ', self.filter_model.rowCount(parent_index))
             for row in range(self.filter_model.rowCount(parent_index)):
                 index = self.filter_model.index(row, 0, parent_index)
                 visible_paths.append(self.filter_model.data(index, self.model.PATH))
-                print('\n\t\t--> row, index, path', row, index, visible_paths)
+                # print('\n\t\t--> row, index, path', row, index, visible_paths)
                 if self.filter_model.hasChildren(index):
-                    print('\n\t\t\thasChildren! appending', index)
+                    # print('\n\t\t\thasChildren! appending', index)
                     parent_indexes_to_visit.append(index)
                     pushed_id = index
         visible_paths.sort()
@@ -346,12 +346,12 @@ class TestTreeWidgetSelectAll(qtests.QTestCase):
         self.tree = tree
 
     def assertSelectedPaths(self, treewidget, paths):
-        print('\n ^^^ assertSelectedPaths called\n')
+        # print('\n ^^^ assertSelectedPaths called\n')
         if 0: treewidget = TreeWidget()
-        for i in treewidget.tree_model.iter_checked():
-            print('\n-> is is', i)
+        # for i in treewidget.tree_model.iter_checked():
+        #     print('\n-> is is', i)
         selected = [item.path for item in treewidget.tree_model.iter_checked()]
-        print('\n^^^selected', selected, 'paths', paths)
+        # print('\n^^^selected', selected, 'paths', paths)
         # we do not care for the order in this test.
         self.assertEqual(set(selected), set(paths))
 
@@ -362,42 +362,46 @@ class TestTreeWidgetSelectAll(qtests.QTestCase):
         self.addCleanup(self.cleanup_win)
         self.win.initial_load()
         QTest.qWaitForWindowShown(self.win)
-        print('\ntest_add_select_all', self.win.filelist)
-        self.assertSelectedPaths(self.win.filelist, ['dir-with-unversioned/child',
+        # print('\ntest_add_select_all', self.win.filelist_widget)
+        self.assertSelectedPaths(self.win.filelist_widget, ['dir-with-unversioned/child',
                                                      'unversioned',
                                                      'unversioned-with-ignored'])
 
 
-    # def test_commit_selectall(self):
-    #     import breezy.plugins.qbrz.lib.commit
-    #     self.win = breezy.plugins.qbrz.lib.commit.CommitWindow(self.tree, None)
-    #     self.addCleanup(self.cleanup_win)
-    #     self.win.load()
-    #     self.assertSelectedPaths(self.win.filelist, ['changed'])
-    #     #self.win.show_nonversioned_checkbox.setCheckState(QtCore.Qt.Checked)
-    #     self.win.show_nonversioned_checkbox.click()
-    #     #self.win.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
-    #     self.win.selectall_checkbox.click()
-    #     #import pdb; pdb.set_trace()
-    #     self.assertSelectedPaths(self.win.filelist, ['changed',
-    #                                                  'dir-with-unversioned/child',
-    #                                                  'unversioned',
-    #                                                  'unversioned-with-ignored'])
+    def test_commit_selectall(self):
+        import breezy.plugins.qbrz.lib.commit
+        self.win = breezy.plugins.qbrz.lib.commit.CommitWindow(self.tree, None)
+        self.addCleanup(self.cleanup_win)
+        self.win.load()
+        self.assertSelectedPaths(self.win.filelist_widget, ['changed'])
+        #self.win.show_nonversioned_checkbox.setCheckState(QtCore.Qt.Checked)
+        self.win.show_nonversioned_checkbox.click()
+        #self.win.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
+        self.win.selectall_checkbox.click()
+        #import pdb; pdb.set_trace()
+        self.assertSelectedPaths(self.win.filelist_widget, ['changed',
+                                                     'dir-with-unversioned/child',
+                                                     'unversioned',
+                                                     'unversioned-with-ignored'])
 
-    # def test_revert_selectall(self):
-    #     import breezy.plugins.qbrz.lib.revert
-    #     self.win = breezy.plugins.qbrz.lib.revert.RevertWindow(self.tree, None)
-    #     self.addCleanup(self.cleanup_win)
-    #     self.win.initial_load()
-    #     self.win.selectall_checkbox.click()
-    #     self.assertSelectedPaths(self.win.filelist, ['changed'])
+    def test_revert_selectall(self):
+        import breezy.plugins.qbrz.lib.revert
+        self.win = breezy.plugins.qbrz.lib.revert.RevertWindow(self.tree, None)
+        self.addCleanup(self.cleanup_win)
+        self.win.initial_load()
+        self.win.selectall_checkbox.click()
+        self.assertSelectedPaths(self.win.filelist, ['changed'])
 
     def cleanup_win(self):
         # Sometimes the model was getting deleted before the widget, and the
         # widget was trying to query the model. So we delete everything here.
         self.win.deleteLater()
-        self.win.filelist.deleteLater()
-        self.win.filelist.tree_model.deleteLater()
+        try:
+            self.win.filelist_widget.deleteLater()
+            self.win.filelist_widget.tree_model.deleteLater()
+        except AttributeError:
+            self.win.filelist.deleteLater()
+            self.win.filelist.tree_model.deleteLater()
         QtCore.QCoreApplication.processEvents()
 
 

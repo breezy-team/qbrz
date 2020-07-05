@@ -24,12 +24,12 @@ checkone: test
 
 # Test specific item
 checkspecific: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz test_guidebar
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidget
 
-qlogtest:
+qtest:
 	# cd ~/pythonstuff/bzr_test_dir
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qadd
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qadd
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qdiff
 	# cd ~/pythonstuff/fix-python-etc
 
 # Apparently working:-
