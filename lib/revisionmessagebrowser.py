@@ -230,9 +230,10 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                 except KeyError:
                     #can't get Repository object for uncached revisions
                     pass
-                except AttributeError:
-                    # WorkingTreeRevision object has no attribute 'repository'
-                    pass
+                # RJLRJL removed
+                # except AttributeError:
+                #     # WorkingTreeRevision object has no attribute 'repository'
+                #     pass
 
             if not revid == CURRENT_REVISION:
                 if revid in self._all_loaded_revs:

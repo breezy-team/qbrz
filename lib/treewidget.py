@@ -497,10 +497,11 @@ class TreeModel(QtCore.QAbstractItemModel):
                         # print('::::change was', change, 'with path and file id of', path, fileid)
                         if change.old_or_new_path() == 'wibble.txt':
                             print("*** found wibble.txt ***")
+                        # RJLRJL Removed
                         # if fileid is None: # HOGEHOGE WORKAROUND
                         #     continue       # HOGEHOGE
-                        # if fileid == root_id:
-                        #     continue
+                        if fileid == root_id:
+                            continue
                         is_ignored = self.tree.is_ignored(path)
                         # change = ChangeDesc(change + (is_ignored,))
                         change.is_ignored = is_ignored
@@ -1087,6 +1088,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                     status.append(conflict.typestring)
                 return ", ".join(status)
 
+
+        # RJLRJL check this before patch changes (patch line ~= 1897)
         try:
             revid = item_data.item.revision
         except AttributeError:
@@ -1164,6 +1167,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                           self.createIndex (item_data.row, self.AUTHOR, item_data.id))
 
     def get_repo(self):
+        # RJLRJL Check this patch line ~= 1966
         if self.branch is not None:
             return self.branch.repository
         else:

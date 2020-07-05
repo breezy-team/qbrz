@@ -71,12 +71,12 @@ class QBzrRunDialog(SubProcessDialog):
         # add the parameters, if any
         if parameters:
             self.ui.opt_arg_edit.setText(parameters)
-        
+
         # and add the subprocess widgets
         for w in self.make_default_layout_widgets():
             self.ui.subprocess_container_layout.addWidget(w)
         self.process_widget.hide_progress()
-        
+
         # restore the sizes
         self.restoreSize("run", None)
         self.splitter = self.ui.splitter
@@ -94,7 +94,7 @@ class QBzrRunDialog(SubProcessDialog):
         QtCore.QObject.connect(self.ui.cat_combobox,
             QtCore.SIGNAL("currentIndexChanged(const QString&)"),
             self.set_category)
-        hookup_directory_picker(self, self.ui.browse_button, 
+        hookup_directory_picker(self, self.ui.browse_button,
             self.ui.wd_edit, gettext("Select working directory"))
         QtCore.QObject.connect(self.ui.directory_button,
             QtCore.SIGNAL("clicked()"),
@@ -114,7 +114,7 @@ class QBzrRunDialog(SubProcessDialog):
             # hide user edit fields
             self.ui.run_container.hide()
             self.ui.help_browser.hide()
-            
+
             # create edit button
             self.editButton = QtGui.QPushButton(gettext('&Edit'))
             QtCore.QObject.connect(self.editButton,
@@ -130,18 +130,18 @@ class QBzrRunDialog(SubProcessDialog):
             # add edit button to dialog buttons
             self.buttonbox.addButton(self.editButton,
                 QtGui.QDialogButtonBox.ResetRole)
-            
+
             # setup initial dialog button status
             self.closeButton.setHidden(True)
             self.okButton.setHidden(True)
             self.editButton.setHidden(True)
-            
+
             # cancel button gets hidden when finished.
             QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFinished(bool)"),
                                self.cancelButton,
                                QtCore.SLOT("setHidden(bool)"))
-            
+
             # run command
             self.do_start()
         else:
@@ -163,14 +163,14 @@ class QBzrRunDialog(SubProcessDialog):
 
     def set_default_help(self):
         """Set default text in help widget."""
-        self.ui.help_browser.setHtml("<i><small>%s</small></i>" % 
+        self.ui.help_browser.setHtml("<i><small>%s</small></i>" %
             gettext("Help for command"))
 
     def collect_command_names(self):
         """Collect names of available bzr commands."""
         from breezy import commands as _mod_commands
         names = list(_mod_commands.all_command_names())
-        self.cmds_dict = dict((n, _mod_commands.get_cmd_object(n)) 
+        self.cmds_dict = dict((n, _mod_commands.get_cmd_object(n))
                               for n in names)
         # Find the commands for each category, public or otherwise
         builtins = _mod_commands.builtin_command_names()
@@ -183,8 +183,9 @@ class QBzrRunDialog(SubProcessDialog):
                 category = 'Core'
             else:
                 category = cmd.plugin_name()
-            if category is None:
-                continue
+            # RJLRJL Removed
+            # if category is None:
+            #     continue
             self.all_cmds['All'].append(name)
             self.all_cmds.setdefault(category, []).append(name)
             if not cmd.hidden:
@@ -235,7 +236,7 @@ class QBzrRunDialog(SubProcessDialog):
             index = cb.findText(cmd_name)
             if index >= 0:
                 self.set_cmd_help(cmd_name)
-        cb.setCurrentIndex(index)    
+        cb.setCurrentIndex(index)
 
     def _get_cmd_name(self):
         """Return the command name."""
@@ -265,7 +266,7 @@ class QBzrRunDialog(SubProcessDialog):
     def _get_cwd(self, default=None):
         """Return selected working dir for command.
 
-        @param default: if working dir is not exists then return this default 
+        @param default: if working dir is not exists then return this default
             value.
         """
         cwd = str(self.ui.wd_edit.text())

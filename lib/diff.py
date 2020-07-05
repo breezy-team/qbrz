@@ -344,11 +344,13 @@ class DiffItem(object):
         return groups
 
     def difference_groups(self, lines, complete, ignore_whitespace):
+        # RJL Changed strings to bytes for pattern-matching and coerced
+        # left and right to lists (instead of generators) in 'if...'
         left, right = lines
         if ignore_whitespace:
-            re_whitespaces = re.compile("\s+")
-            left  = (re_whitespaces.sub(" ", line) for line in left)
-            right = (re_whitespaces.sub(" ", line) for line in right)
+            re_whitespaces = re.compile(b"\s+")
+            left  = list((re_whitespaces.sub(b" ", line) for line in left))
+            right = list((re_whitespaces.sub(b" ", line) for line in right))
         matcher = SequenceMatcher(None, left, right)
         if complete:
             groups = list([matcher.get_opcodes()])
