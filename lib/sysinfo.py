@@ -20,11 +20,10 @@
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.sysinfo_data import get_sys_info
 from breezy.plugins.qbrz.lib.ui_sysinfo import Ui_MainWindow
-from breezy.plugins.qbrz.lib.util import (
-    BTN_CLOSE,
-    QBzrWindow,
-    )
+from breezy.plugins.qbrz.lib.util import BTN_CLOSE, QBzrWindow
 
+
+# RJLRJL check these for bzr / brz issues
 
 class QBzrSysInfoWindow(QBzrWindow):
 

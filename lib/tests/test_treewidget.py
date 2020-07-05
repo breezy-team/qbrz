@@ -437,6 +437,7 @@ class TestModelItemData(TestCase):
 
 # See [[../treewidget.py]] TreeFilterProxyModel
 # UNCHANGED, CHANGED, UNVERSIONED, IGNORED
+# RJLRJL check for .bzrignore vs .brzignore
 filter_scenarios = (
     ('All',
         {'filter': (True, True, True, True),

@@ -57,7 +57,7 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
         self.ui.verticalLayout.addWidget(self.buttonbox)
         self.throbber = ThrobberWidget(self)
         self.ui.verticalLayout.insertWidget(0, self.throbber)
-        
+
         self.acceptable_keys = acceptable_keys
         self.revision = revision
         self.location = location
@@ -80,7 +80,7 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
             header = branch.name
         self.ui.treeWidget.setHeaderLabels([str(header)])
 
-        #get our list of revisions
+        # get our list of revisions
         revisions = []
         if self.revision is not None:
             if len(self.revision) == 1:
@@ -92,12 +92,11 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
                 if to_revid is None:
                     to_revno = branch.revno()
                 if from_revno is None or to_revno is None:
-                    raise errors.BzrCommandError('Cannot verify a range of '\
-                                               'non-revision-history revisions')
+                    raise errors.BzrCommandError('Cannot verify a range of non-revision-history revisions')
                 for revno in range(from_revno, to_revno + 1):
                     revisions.append(branch.get_rev_id(revno))
         else:
-            #all revisions by default including merges
+            # all revisions by default including merges
             graph = repo.get_graph()
             revisions = []
             repo.lock_read()
@@ -110,48 +109,36 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
                     continue
                 revisions.append(rev_id)
             repo.unlock()
-        count, result, all_verifiable = gpg.bulk_verify_signatures(
-                repo, revisions, gpg_strategy, QApplication.processEvents)
+        count, result, all_verifiable = gpg.bulk_verify_signatures(repo, revisions, gpg_strategy, QApplication.processEvents)
 
         if all_verifiable:
-            message = QTreeWidgetItem( [gettext(
-                            "All commits signed with verifiable keys")] )
+            message = QTreeWidgetItem([gettext("All commits signed with verifiable keys")])
             self.ui.treeWidget.addTopLevelItem(message)
             for verbose_message in gpg.verbose_valid_message(result):
                 QTreeWidgetItem(message, [verbose_message])
         else:
-            valid_commit_message = QTreeWidgetItem(
-                            [gpg.valid_commits_message(count)] )
+            valid_commit_message = QTreeWidgetItem([gpg.valid_commits_message(count)])
             self.ui.treeWidget.addTopLevelItem(valid_commit_message)
             for verbose_message in gpg.verbose_valid_message(result):
                 QTreeWidgetItem(valid_commit_message, [verbose_message])
 
-            expired_key_message = QTreeWidgetItem(
-                            [gpg.expired_commit_message(count)] )
+            expired_key_message = QTreeWidgetItem([gpg.expired_commit_message(count)])
             self.ui.treeWidget.addTopLevelItem(expired_key_message)
-            for verbose_message in \
-                              gpg.verbose_expired_key_message(result,
-                                                                         repo):
+            for verbose_message in gpg.verbose_expired_key_message(result, repo):
                 QTreeWidgetItem(expired_key_message, [verbose_message])
 
-            unknown_key_message = QTreeWidgetItem(
-                            [gpg.unknown_key_message(count)] )
+            unknown_key_message = QTreeWidgetItem([gpg.unknown_key_message(count)])
             self.ui.treeWidget.addTopLevelItem(unknown_key_message)
-            for verbose_message in gpg.verbose_missing_key_message(
-                                                                        result):
+            for verbose_message in gpg.verbose_missing_key_message(result):
                 QTreeWidgetItem(unknown_key_message, [verbose_message])
 
-            commit_not_valid_message = QTreeWidgetItem(
-                            [gpg.commit_not_valid_message(count)] )
+            commit_not_valid_message = QTreeWidgetItem([gpg.commit_not_valid_message(count)])
             self.ui.treeWidget.addTopLevelItem(commit_not_valid_message)
-            for verbose_message in gpg.verbose_not_valid_message(
-                                                                result, repo):
+            for verbose_message in gpg.verbose_not_valid_message(result, repo):
                 QTreeWidgetItem(commit_not_valid_message, [verbose_message])
 
-            commit_not_signed_message = QTreeWidgetItem(
-                            [gpg.commit_not_signed_message(count)] )
+            commit_not_signed_message = QTreeWidgetItem([gpg.commit_not_signed_message(count)])
             self.ui.treeWidget.addTopLevelItem(commit_not_signed_message)
-            for verbose_message in gpg.verbose_not_signed_message(
-                                                                result, repo):
+            for verbose_message in gpg.verbose_not_signed_message(result, repo):
                 QTreeWidgetItem(commit_not_signed_message, [verbose_message])
         self.throbber.hide()

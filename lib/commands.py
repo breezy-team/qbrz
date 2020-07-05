@@ -254,7 +254,7 @@ class cmd_qannotate(QBzrCommand):
                 else:
                     tree = branch.repository.revision_tree(branch.last_revision())
             elif len(revision) != 1:
-                raise errors.BzrCommandError('bzr qannotate --revision takes exactly 1 argument')
+                raise errors.BzrCommandError('brz qannotate --revision takes exactly 1 argument')
             else:
                 tree = branch.repository.revision_tree(revision_id = revision[0].in_history(branch).rev_id)
 
@@ -263,7 +263,7 @@ class cmd_qannotate(QBzrCommand):
                 raise errors.NotVersionedError(filename)
             [(path, entry)] = list(tree.iter_entries_by_dir(specific_files=[filename]))
             if entry.kind != 'file':
-                raise errors.BzrCommandError('bzr qannotate only works for files (got %r)' % entry.kind)
+                raise errors.BzrCommandError('brz qannotate only works for files (got %r)' % entry.kind)
             #repo = branch.repository
             #w = repo.weave_store.get_weave(file_id, repo.get_transaction())
             #content = list(w.annotate_iter(entry.revision))
@@ -450,8 +450,7 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
             old=None, new=None, ui_mode=False):
 
         if revision and len(revision) > 2:
-            raise errors.BzrCommandError('bzr qdiff --revision takes exactly'
-                                         ' one or two revision specifiers')
+            raise errors.BzrCommandError('brz qdiff --revision takes exactly one or two revision specifiers')
         # changes filter
         filter_options = FilterOptions(added=added, deleted=deleted,
             modified=modified, renamed=renamed)
@@ -499,8 +498,7 @@ class cmd_qlog(QBzrCommand):
     takes_options = [
         ui_mode_option,
         Option('no-graph', help="Shows the log with no graph."),
-        Option('show-trees', help="Show working trees that have changes "
-                                  "as nodes in the graph"),
+        Option('show-trees', help="Show working trees that have changes as nodes in the graph"),
         ]
 
     def _qbrz_run(self, locations_list=None, ui_mode=False, no_graph=False, show_trees=False):
@@ -530,17 +528,14 @@ class cmd_qcat(QBzrCommand):
 
     takes_options = [
         'revision',
-        Option('encoding', type=check_encoding,
-               help='Encoding of files content (default: utf-8).'),
-        Option('native',
-               help='Show file with native application.'),
+        Option('encoding', type=check_encoding, help='Encoding of files content (default: utf-8).'),
+        Option('native', help='Show file with native application.'),
         ]
     takes_args = ['filename']
 
     def _qbrz_run(self, filename, revision=None, encoding=None, native=None):
         if revision is not None and len(revision) != 1:
-            raise errors.BzrCommandError("bzr qcat --revision takes exactly"
-                                         " one revision specifier")
+            raise errors.BzrCommandError("brz qcat --revision takes exactly one revision specifier")
 
         if native:
             branch, relpath = Branch.open_containing(filename)
@@ -552,9 +547,7 @@ class cmd_qcat(QBzrCommand):
             result = cat_to_native_app(tree, relpath)
             return int(not result)
 
-
-        window = QBzrCatWindow(filename = filename, revision = revision,
-                               encoding = encoding)
+        window = QBzrCatWindow(filename = filename, revision = revision, encoding = encoding)
         window.show()
         self._application.exec_()
 
@@ -699,13 +692,11 @@ class cmd_qverify_signatures(QBzrCommand):
 
     def _qbrz_run(self, acceptable_keys=None, revision=None, location=CUR_DIR):
         if gpg.GPGStrategy.verify_signatures_available():
-            window = QBzrVerifySignaturesWindow(acceptable_keys, revision,
-                                                                    location)
+            window = QBzrVerifySignaturesWindow(acceptable_keys, revision, location)
             window.show()
             self._application.exec_()
         else:
-            raise errors.DependencyNotPresent("python-gpgme",
-                                        "python-gpgme not installed")
+            raise errors.DependencyNotPresent("python-gpgme", "python-gpgme not installed")
 
 class cmd_qinit(QBzrCommand):
     """Initializes a new branch or shared repository."""
@@ -723,11 +714,8 @@ class cmd_merge(breezy.builtins.cmd_merge, DiffArgProvider):
     __doc__ = breezy.builtins.cmd_merge.__doc__
 
     takes_options = breezy.builtins.cmd_merge.takes_options + [
-            Option('qpreview', help='Instead of merging, '
-                'show a diff of the merge in a GUI window.'),
-            Option('encoding', type=check_encoding,
-                   help='Encoding of files content, used with --qpreview '
-                        '(default: utf-8).'),
+            Option('qpreview', help='Instead of merging, show a diff of the merge in a GUI window.'),
+            Option('encoding', type=check_encoding, help='Encoding of files content, used with --qpreview (default: utf-8).'),
             ]
 
     def run(self, *args, **kw):

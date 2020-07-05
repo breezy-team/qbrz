@@ -126,7 +126,7 @@ class QBzrPushWindow(SubProcessDialog):
             self.layout().addWidget(w)
 
         self.default_location = self.branch.get_push_location()
-        df = url_for_display(self.default_location or 
+        df = url_for_display(self.default_location or
             self._suggested_push_location())
         fill_combo_with(self.ui.location, df,
                         iter_branch_related_locations(self.branch))
@@ -238,23 +238,20 @@ class QBzrPushWindow(SubProcessDialog):
         cfg = self.branch.get_config()
         strict = cfg.get_user_option('push_strict')
         if strict is not None:
-            bools = dict(yes=True, no=False, on=True, off=False,
-                         true=True, false=False)
+            bools = dict(yes=True, no=False, on=True, off=False, true=True, false=False)
             strict = bools.get(strict.lower(), None)
         if strict == False:
             return True     # don't check blocking conditions
         # the code below based on check in from breezy/builtins.py: cmd_push
         tree = self.tree
         blocker = None
-        if (tree.has_changes(tree.basis_tree())
-            or len(tree.get_parent_ids()) > 1):
-                blocker = gettext('Working tree has uncommitted changes.')
+        if (tree.has_changes(tree.basis_tree()) or len(tree.get_parent_ids()) > 1):
+            blocker = gettext('Working tree has uncommitted changes.')
         if tree.last_revision() != tree.branch.last_revision():
             # The tree has lost sync with its branch, there is little
             # chance that the user is aware of it but he can still force
             # the push with --no-strict
-            blocker = gettext("Working tree is out of date, "
-                "please run 'bzr update'.")
+            blocker = gettext("Working tree is out of date, please run 'brz update'.")
         #
         if blocker is None:
             return True
@@ -297,7 +294,7 @@ class QBzrMergeWindow(SubProcessDialog):
             self.ui.uncommitted.setCheckState(QtCore.Qt.Checked)
         if revision:
             self.ui.revision.setText(revision)
-    
+
         # One directory picker for the pull location.
         hookup_directory_picker(self,
                                 self.ui.location_picker,

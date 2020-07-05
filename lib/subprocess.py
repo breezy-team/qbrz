@@ -575,8 +575,7 @@ class SubProcessWidget(QtGui.QWidget):
         self.progressBar.setHidden(True)
 
     def is_running(self):
-        return self.process.state() == QtCore.QProcess.Running or\
-               self.process.state() == QtCore.QProcess.Starting
+        return self.process.state() == QtCore.QProcess.Running or self.process.state() == QtCore.QProcess.Starting
 
     def do_start(self, workdir, *args):
         """Launch one bzr command.
@@ -585,7 +584,7 @@ class SubProcessWidget(QtGui.QWidget):
         @param  args:   bzr command and its arguments
         @type   args:   all arguments should be unicode strings (or ascii-only).
         """
-        QtGui.QApplication.processEvents() # make sure ui has caught up
+        QtGui.QApplication.processEvents()  # make sure ui has caught up
         self.start_multi(((workdir, args),))
 
     def start_multi(self, commands):
@@ -602,7 +601,8 @@ class SubProcessWidget(QtGui.QWidget):
 
         # Log the command we about to execute
         def format_args_for_log(args):
-            r = ['bzr']
+            # r = ['bzr']
+            r = ['brz']
             for a in args:
                 a = str(a).translate({
                         ord('\n'): '\\n',
@@ -646,15 +646,14 @@ class SubProcessWidget(QtGui.QWidget):
 
         self.process.setWorkingDirectory(dir)
         if getattr(sys, "frozen", None) is not None:
-            bzr_exe = sys.executable
-            if os.path.basename(bzr_exe) != "bzr.exe":
+            brz_exe = sys.executable
+            if os.path.basename(brz_exe) != "brz.exe":
                 # Was run from bzrw.exe or tbzrcommand.
-                bzr_exe = os.path.join(os.path.dirname(sys.executable), "bzr.exe")
-                if not os.path.isfile(bzr_exe):
+                brz_exe = os.path.join(os.path.dirname(sys.executable), "brz.exe")
+                if not os.path.isfile(brz_exe):
                     self.reportProcessError(
-                        None, gettext('Could not locate "bzr.exe".'))
-            self.process.start(
-                bzr_exe, ['qsubprocess', '--bencode', args])
+                        None, gettext('Could not locate "brz.exe".'))
+            self.process.start(brz_exe, ['qsubprocess', '--bencode', args])
         else:
             # otherwise running as python script.
             # ensure run from bzr, and not others, e.g. tbzrcommand.py
@@ -662,18 +661,16 @@ class SubProcessWidget(QtGui.QWidget):
             # make absolute, because we may be running in a different
             # dir.
             script = os.path.abspath(script)
-            if os.path.basename(script) != "bzr":
+            if os.path.basename(script) != "brz":
                 import breezy
                 # are we running directly from a bzr directory?
-                script = os.path.join(breezy.__path__[0], "..", "bzr")
+                script = os.path.join(breezy.__path__[0], "..", "brz")
                 if not os.path.isfile(script):
                     # maybe from an installed bzr?
-                    script = os.path.join(sys.prefix, "scripts", "bzr")
+                    script = os.path.join(sys.prefix, "scripts", "brz")
                 if not os.path.isfile(script):
-                    self.reportProcessError(
-                        None, gettext('Could not locate "bzr" script.'))
-            self.process.start(
-                sys.executable, [script, 'qsubprocess', '--bencode', args])
+                    self.reportProcessError(None, gettext('Could not locate "brz" script.'))
+            self.process.start(sys.executable, [script, 'qsubprocess', '--bencode', args])
 
     def _setup_stdout_stderr(self):
         if self.stdout is None:
@@ -824,9 +821,9 @@ class SubProcessWidget(QtGui.QWidget):
         self.setProgress(1000000, [gettext("Failed!")])
         if message is None:
             if error == QtCore.QProcess.FailedToStart:
-                message = gettext("Failed to start bzr.")
+                message = gettext("Failed to start brz.")
             else:
-                message = gettext("Error while running bzr. (error code: %d)" % error)
+                message = gettext("Error while running brz. (error code: %d)" % error)
         self.logMessage(message, True)
         self.emit(QtCore.SIGNAL("failed(QString)"), self.error_class)
 
@@ -857,6 +854,7 @@ class SubProcessWidget(QtGui.QWidget):
         """
         if self._args_file:
             self._delete_args_file()
+        # RJLRJL check QBzr vs QBrz
         qdir = os.path.join(tempfile.gettempdir(), 'QBzr', 'qsubprocess')
         if not os.path.isdir(qdir):
             os.makedirs(qdir)
@@ -1015,9 +1013,7 @@ def run_subprocess_command(cmd, bencoded=False):
         thread.start_new_thread(windows_emulate_ctrl_c, ())
     else:
         signal.signal(signal.SIGINT, sigabrt_handler)
-    ui.ui_factory = SubprocessUIFactory(stdin=sys.stdin,
-                                        stdout=sys.stdout,
-                                        stderr=sys.stderr)
+    ui.ui_factory = SubprocessUIFactory(stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
     if cmd.startswith('@'):
         fname = cmd[1:]
         f = open(fname, 'rb')
@@ -1050,9 +1046,8 @@ def sigabrt_handler(signum, frame):
 if MS_WINDOWS:
     import ctypes
     if getattr(sys, "frozen", None):
-        # this is needed for custom bzr.exe builds (without TortoiseBzr inside)
-        ctypes.__path__.append(os.path.normpath(
-            os.path.join(os.path.dirname(__file__), '..', '_lib', 'ctypes')))
+        # this is needed for custom brz.exe builds (without TortoiseBzr inside)
+        ctypes.__path__.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '_lib', 'ctypes')))
     from ctypes import cast, POINTER, Structure
     from ctypes.wintypes import DWORD, HANDLE
 

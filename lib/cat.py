@@ -69,7 +69,7 @@ class QBzrCatWindow(QBzrWindow):
                  tree=None, file_id=None, encoding=None,
                  parent=None):
         """Create qcat window."""
-        
+
         self.filename = filename
         self.revision = revision
         self.tree = tree
@@ -112,7 +112,7 @@ class QBzrCatWindow(QBzrWindow):
         # we show the bare form as soon as possible.
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(0, self.load)
-    
+
     @runs_in_loading_queue
     @ui_current_widget
     @reports_exception()
@@ -131,17 +131,17 @@ class QBzrCatWindow(QBzrWindow):
                 else:
                     revision_id = self.revision[0].in_branch(branch).rev_id
                     self.tree = branch.repository.revision_tree(revision_id)
-                
+
                 self.file_id = self.tree.path2id(relpath)
-            
+
             if not self.file_id:
                 self.file_id = self.tree.path2id(self.filename)
-                
+
             if not self.file_id:
                 raise errors.BzrCommandError(
                     "%r is not present in revision %s" % (
                         self.filename, self.tree.get_revision_id()))
-            
+
             self.tree.lock_read()
             try:
                 kind = self.tree.kind(self.filename)
@@ -331,6 +331,7 @@ def cat_to_native_app(tree, relpath):
     # make temp file
     import os
     import tempfile
+    # RJLRJL Check this QBzr reference
     qdir = os.path.join(tempfile.gettempdir(), 'QBzr', 'qcat')
     if not os.path.isdir(qdir):
         os.makedirs(qdir)

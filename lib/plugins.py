@@ -63,10 +63,8 @@ class QBzrPluginsWindow(QBzrWindow):
             ]
         footer = gettext("Plugins installed: %(rows)d")
         details = None
-        self._summary_viewer = QBzrConditionalDataView("tree",
-            summary_headers, footer, details)
-        self._locations_viewer = QBzrConditionalDataView("tree",
-            locations_headers, footer, details)
+        self._summary_viewer = QBzrConditionalDataView("tree", summary_headers, footer, details)
+        self._locations_viewer = QBzrConditionalDataView("tree", locations_headers, footer, details)
         tabs = QtGui.QTabWidget()
         tabs.addTab(self._summary_viewer, gettext("Summary"))
         tabs.addTab(self._locations_viewer, gettext("Locations"))

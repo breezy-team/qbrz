@@ -59,18 +59,17 @@ _mail_clients = [
 # XXX use special function from bugs.py instead
 _bug_tracker_re = re.compile('bugtracker_(.+?)_url')
 
+
 class QRadioCheckItemDelegate(QtGui.QItemDelegate):
 
-    def drawCheck (self, painter, option, rect, state):
+    def drawCheck(self, painter, option, rect, state):
         style = self.parent().style()
         radioOption = QtGui.QStyleOptionButton()
         radioOption.rect = option.rect
         radioOption.state = option.state
         if state:
             radioOption.state = radioOption.state | QtGui.QStyle.State_On
-        style.drawControl(QtGui.QStyle.CE_RadioButton,
-                          radioOption,
-                          painter)
+        style.drawControl(QtGui.QStyle.CE_RadioButton, radioOption, painter)
 
 
 class QBzrConfigWindow(QBzrDialog):
@@ -420,7 +419,7 @@ class QBzrConfigWindow(QBzrDialog):
         # Merge
         if mergetools is not None:
             user_merge_tools = config.get_merge_tools()
-            # RJLRJL: check this - might need to be 'brz.default_mergetoo'
+            # RJLRJL: check this - might need to be 'brz.default_mergetool'
             default_merge_tool = config.get_user_option('bzr.default_mergetool')
             if len(user_merge_tools) == 0:
                 self.import_external_merge(user_merge_tools, config, qconfig)

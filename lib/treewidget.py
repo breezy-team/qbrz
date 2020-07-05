@@ -333,7 +333,9 @@ class ChangeDesc:
         """
         if len(self.change._as_tuple()) > 8:
             # ignored is when file match ignore pattern and not versioned
-            return self.change.copied and self.change.versioned == (False, False)
+            # HOWEVER, the old [8] position is now occupied by 'copied'
+            #return self.change.copied and self.change.versioned == (False, False)
+            return self._is_ignored and self.change.versioned == (False, False)
             # return desc[8] and desc[3] == (False, False)
         else:
             return None

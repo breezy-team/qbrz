@@ -43,17 +43,14 @@ class cmd_bug_url(commands.Command):
             branch = FakeBranchForBugs()
         tokens = bug_id.split(':')
         if len(tokens) != 2:
-            raise errors.BzrCommandError(
-                "Invalid bug %s. Must be in the form of 'tag:id'." % bug_id)
+            raise errors.BzrCommandError("Invalid bug %s. Must be in the form of 'tag:id'." % bug_id)
         tag, tag_bug_id = tokens
         try:
             bug_url = bugtracker.get_bug_url(tag, branch, tag_bug_id)
         except errors.UnknownBugTrackerAbbreviation:
-            raise errors.BzrCommandError(
-                'Unrecognized bug %s.' % bug_id)
+            raise errors.BzrCommandError('Unrecognized bug %s.' % bug_id)
         except errors.MalformedBugIdentifier:
-            raise errors.BzrCommandError(
-                "Invalid bug identifier for %s." % bug_id)
+            raise errors.BzrCommandError("Invalid bug identifier for %s." % bug_id)
         self.outf.write(url_for_display(bug_url) + "\n")
         if open:
             open_browser(bug_url)

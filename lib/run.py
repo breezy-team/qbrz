@@ -51,8 +51,7 @@ class QBzrRunDialog(SubProcessDialog):
         @param parent:  parent window.
         @param execute: True => run command immediately
         """
-        super(QBzrRunDialog, self).__init__(name="run", ui_mode=ui_mode,
-            dialog=True, parent=parent)
+        super(QBzrRunDialog, self).__init__(name="run", ui_mode=ui_mode, dialog=True, parent=parent)
         self.ui = Ui_RunDialog()
         self.ui.setupUi(self)
         if workdir is None:
@@ -82,26 +81,13 @@ class QBzrRunDialog(SubProcessDialog):
         self.splitter = self.ui.splitter
         self.restoreSplitterSizes()
         # setup signals
-        QtCore.QObject.connect(self.ui.hidden_checkbox,
-            QtCore.SIGNAL("stateChanged(int)"),
-            self.set_show_hidden)
-        QtCore.QObject.connect(self.ui.cmd_combobox,
-            QtCore.SIGNAL("currentIndexChanged(const QString&)"),
-            self.set_cmd_help)
-        QtCore.QObject.connect(self.ui.cmd_combobox,
-            QtCore.SIGNAL("editTextChanged(const QString&)"),
-            self.set_cmd_help)
-        QtCore.QObject.connect(self.ui.cat_combobox,
-            QtCore.SIGNAL("currentIndexChanged(const QString&)"),
-            self.set_category)
-        hookup_directory_picker(self, self.ui.browse_button,
-            self.ui.wd_edit, gettext("Select working directory"))
-        QtCore.QObject.connect(self.ui.directory_button,
-            QtCore.SIGNAL("clicked()"),
-            self.insert_directory)
-        QtCore.QObject.connect(self.ui.filenames_button,
-            QtCore.SIGNAL("clicked()"),
-            self.insert_filenames)
+        QtCore.QObject.connect(self.ui.hidden_checkbox, QtCore.SIGNAL("stateChanged(int)"), self.set_show_hidden)
+        QtCore.QObject.connect(self.ui.cmd_combobox, QtCore.SIGNAL("currentIndexChanged(const QString&)"), self.set_cmd_help)
+        QtCore.QObject.connect(self.ui.cmd_combobox, QtCore.SIGNAL("editTextChanged(const QString&)"), self.set_cmd_help)
+        QtCore.QObject.connect(self.ui.cat_combobox, QtCore.SIGNAL("currentIndexChanged(const QString&)"), self.set_category)
+        hookup_directory_picker(self, self.ui.browse_button, self.ui.wd_edit, gettext("Select working directory"))
+        QtCore.QObject.connect(self.ui.directory_button, QtCore.SIGNAL("clicked()"), self.insert_directory)
+        QtCore.QObject.connect(self.ui.filenames_button, QtCore.SIGNAL("clicked()"), self.insert_filenames)
         # Init the category if set.
         # (This needs to be done after the signals are hooked up)
         if category:
@@ -117,19 +103,13 @@ class QBzrRunDialog(SubProcessDialog):
 
             # create edit button
             self.editButton = QtGui.QPushButton(gettext('&Edit'))
-            QtCore.QObject.connect(self.editButton,
-                QtCore.SIGNAL("clicked()"),
-                self.enable_command_edit)
+            QtCore.QObject.connect(self.editButton, QtCore.SIGNAL("clicked()"), self.enable_command_edit)
 
             # cause edit button to be shown if command fails
-            QtCore.QObject.connect(self,
-                                   QtCore.SIGNAL("subprocessFailed(bool)"),
-                                   self.editButton,
-                                   QtCore.SLOT("setHidden(bool)"))
+            QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFailed(bool)"), self.editButton, QtCore.SLOT("setHidden(bool)"))
 
             # add edit button to dialog buttons
-            self.buttonbox.addButton(self.editButton,
-                QtGui.QDialogButtonBox.ResetRole)
+            self.buttonbox.addButton(self.editButton, QtGui.QDialogButtonBox.ResetRole)
 
             # setup initial dialog button status
             self.closeButton.setHidden(True)
@@ -137,10 +117,7 @@ class QBzrRunDialog(SubProcessDialog):
             self.editButton.setHidden(True)
 
             # cancel button gets hidden when finished.
-            QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self.cancelButton,
-                               QtCore.SLOT("setHidden(bool)"))
+            QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFinished(bool)"), self.cancelButton, QtCore.SLOT("setHidden(bool)"))
 
             # run command
             self.do_start()
@@ -153,25 +130,20 @@ class QBzrRunDialog(SubProcessDialog):
     def enable_command_edit(self):
         """Hide Edit button and make user edit fields visible"""
         self.editButton.setHidden(True)
-        QtCore.QObject.disconnect(self,
-                                  QtCore.SIGNAL("subprocessFailed(bool)"),
-                                  self.editButton,
-                                  QtCore.SLOT("setHidden(bool)"))
+        QtCore.QObject.disconnect(self, QtCore.SIGNAL("subprocessFailed(bool)"), self.editButton, QtCore.SLOT("setHidden(bool)"))
         self.ui.run_container.show()
         self.ui.help_browser.show()
         self.okButton.setShown(True)
 
     def set_default_help(self):
         """Set default text in help widget."""
-        self.ui.help_browser.setHtml("<i><small>%s</small></i>" %
-            gettext("Help for command"))
+        self.ui.help_browser.setHtml("<i><small>%s</small></i>" % gettext("Help for command"))
 
     def collect_command_names(self):
         """Collect names of available bzr commands."""
         from breezy import commands as _mod_commands
         names = list(_mod_commands.all_command_names())
-        self.cmds_dict = dict((n, _mod_commands.get_cmd_object(n))
-                              for n in names)
+        self.cmds_dict = dict((n, _mod_commands.get_cmd_object(n)) for n in names)
         # Find the commands for each category, public or otherwise
         builtins = _mod_commands.builtin_command_names()
         self.all_cmds = {'All': []}
@@ -294,18 +266,15 @@ class QBzrRunDialog(SubProcessDialog):
             gettext("Select path to insert"),
             cwd)
         if path:
-            self.ui.opt_arg_edit.insert(
-                self._prepare_filepath(str(path))+" ")
+            self.ui.opt_arg_edit.insert(self._prepare_filepath(str(path)) + " ")
 
     def insert_filenames(self):
         """Select one or more existing files and insert them to command line."""
         cwd = self._get_cwd("")
-        filenames = QtGui.QFileDialog.getOpenFileNames(self,
-            gettext("Select files to insert"),
-            cwd)
+        filenames = QtGui.QFileDialog.getOpenFileNames(self, gettext("Select files to insert"), cwd)
         for i in filenames:
             self.ui.opt_arg_edit.insert(
-                self._prepare_filepath(str(i))+" ")
+                self._prepare_filepath(str(i)) + " ")
 
     def validate(self):
         """Validate before launch command: start command only if there is one."""

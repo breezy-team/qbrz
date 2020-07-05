@@ -18,6 +18,7 @@
 
 from breezy.tests import TestCaseWithTransport, KnownFailure
 
+# RJLRJL this needs bzr / brz checking
 class TestIsIgnored(TestCaseWithTransport):
 
     def test_is_ignored(self):

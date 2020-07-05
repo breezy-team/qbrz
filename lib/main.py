@@ -403,8 +403,8 @@ class QBzrMainWindow(QBzrWindow):
             'breezy_version': breezy.__version__,
         }
         QtGui.QMessageBox.about(self,
-            gettext("About QBzr"),
-            gettext("<b>QBzr</b> \u2014 A graphical user interface for Bazaar<br>"
+            gettext("About QBrz"),
+            gettext("<b>QBrz</b> \u2014 A graphical user interface for Breezy<br>"
                     "<small>Version %(qbrz_version)s (breezy %(breezy_version)s)</small><br>"
                     "<br>"
                     "Copyright \u00A9 2006-2008 Luk\xe1\u0161 Lalinsk\xfd and others<br>"
@@ -535,7 +535,7 @@ class QBzrMainWindow(QBzrWindow):
 
     def setDirectory(self, path):
         self.currentDirectory = path
-        self.setWindowTitle("QBzr - %s" % path)
+        self.setWindowTitle("QBrz - %s" % path)
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         try:
             pathParts = osutils.splitpath(path)

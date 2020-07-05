@@ -28,8 +28,7 @@ class TestAutocomplete(TestCase):
     def assertIn(self, item, container):
         """Assert that `item` is present in `container`."""
         if item not in container:
-            raise AssertionError("value(s) %r not present in container %r" %
-                                 (item, container))
+            raise AssertionError("value(s) %r not present in container %r" % (item, container))
 
     def test_cpp_header(self):
         source = '''

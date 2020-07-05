@@ -49,7 +49,7 @@ class RevertWindow(SubProcessDialog):
         self.tree = tree
         self.has_pending_merges = len(tree.get_parent_ids())>1
         self.initial_selected_list = selected_list
-        
+
         SubProcessDialog.__init__(self,
                                   gettext("Revert"),
                                   name = "revert",
@@ -59,13 +59,13 @@ class RevertWindow(SubProcessDialog):
                                   parent = parent,
                                   hide_progress=True)
 
-        self.throbber = ThrobberWidget(self) 
+        self.throbber = ThrobberWidget(self)
 
         # Display the list of changed files
         self.file_groupbox = QtGui.QGroupBox(gettext("Select changes to revert"), self)
 
         self.filelist = TreeWidget(self.file_groupbox)
-        self.filelist.throbber = self.throbber 
+        self.filelist.throbber = self.throbber
         self.filelist.tree_model.set_select_all_kind('versioned')
 
         def filter_context_menu():
@@ -87,7 +87,7 @@ class RevertWindow(SubProcessDialog):
         filesbox.addWidget(self.filelist)
         filesbox.addWidget(self.selectall_checkbox)
         filesbox.addWidget(self.no_backup_checkbox)
-        
+
         if self.has_pending_merges:
             self.file_groupbox.setCheckable(True)
             self.merges_groupbox = QtGui.QGroupBox(gettext("Forget pending merges"))
@@ -100,7 +100,7 @@ class RevertWindow(SubProcessDialog):
                 self.processEvents, self.throbber, self)
             merges_box = QtGui.QVBoxLayout(self.merges_groupbox)
             merges_box.addWidget(self.pending_merges)
-            
+
             self.connect(self.selectall_checkbox,
                          QtCore.SIGNAL("stateChanged(int)"),
                          self.selectall_state_changed)
@@ -113,8 +113,8 @@ class RevertWindow(SubProcessDialog):
             self.connect(self.filelist.tree_model,
                          QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                          self.filelist_data_changed)
-            
-        
+
+
         # groupbox gets disabled as we are executing.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("disableUi(bool)"),
@@ -125,7 +125,7 @@ class RevertWindow(SubProcessDialog):
         self.splitter.addWidget(self.file_groupbox)
         if self.has_pending_merges:
             self.splitter.addWidget(self.merges_groupbox)
-        
+
         self.splitter.addWidget(self.make_default_status_box())
         self.splitter.setStretchFactor(0, 10)
         self.restoreSplitterSizes([150, 150])
@@ -146,16 +146,16 @@ class RevertWindow(SubProcessDialog):
         layout.addLayout(hbox)
         self.throbber.show()
 
-    def show(self): 
-        SubProcessDialog.show(self) 
-        QtCore.QTimer.singleShot(1, self.initial_load) 
+    def show(self):
+        SubProcessDialog.show(self)
+        QtCore.QTimer.singleShot(1, self.initial_load)
 
-    @runs_in_loading_queue 
-    @ui_current_widget 
-    @reports_exception() 
+    @runs_in_loading_queue
+    @ui_current_widget
+    @reports_exception()
     def initial_load(self):
-        self.filelist.tree_model.checkable = True 
-        #fmodel.setFilter(fmodel.UNVERSIONED, False) 
+        self.filelist.tree_model.checkable = True
+        #fmodel.setFilter(fmodel.UNVERSIONED, False)
         if self.initial_selected_list is None and not self.has_pending_merges:
             self.initial_selected_list = []
 
@@ -185,28 +185,28 @@ class RevertWindow(SubProcessDialog):
     # and then later we go back to a state where that change was not necessary,
     # we can return to what it was. This is stored in merges_base_checked, and
     # filelist_checked_base.
-    
+
     def selectall_state_changed(self, state):
         if state == QtCore.Qt.Checked:
             self.merges_groupbox.setChecked(self.merges_base_checked)
         elif self.file_groupbox.isChecked():
             self.merges_groupbox.setChecked(False)
-    
+
     def merges_clicked(self, state):
         self.merges_base_checked = state
-        
+
         if state:
             if self.file_groupbox.isChecked():
                 self.selectall_checkbox.clicked(QtCore.Qt.Checked)
             else:
                 self.selectall_checkbox.clicked(QtCore.Qt.Unchecked)
-        
+
         if not state:
             self.file_groupbox.setChecked(True)
             self.filelist.tree_model.set_checked_items(
                 self.filelist_checked_base,
                 ignore_no_file_error=True)
-    
+
     def file_groupbox_clicked(self, state):
         if not state:
             self.merges_groupbox.setChecked(True)
@@ -218,7 +218,7 @@ class RevertWindow(SubProcessDialog):
                     ignore_no_file_error=True)
             else:
                 self.selectall_checkbox.clicked(QtCore.Qt.Checked)
-    
+
     def filelist_data_changed(self, start, end):
         if (self.file_groupbox.isChecked() and
             not self.merges_groupbox.isChecked()):
@@ -291,13 +291,9 @@ class RevertWindow(SubProcessDialog):
                 self.tree.basis_tree().get_revision_id(), self.tree,
                 self.tree.branch, self.tree.branch,
                 specific_files=checked)
-            
-            show_diff(arg_provider, ext_diff=ext_diff, parent_window=self,
-                      context=self.filelist.diff_context)
+
+            show_diff(arg_provider, ext_diff=ext_diff, parent_window=self, context=self.filelist.diff_context)
 
         else:
             msg = "No changes selected to " + dialog_action
-            QtGui.QMessageBox.warning(self,
-                "QBzr - " + gettext("Diff"),
-                gettext(msg),
-                QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.warning(self, "QBrz - " + gettext("Diff"), gettext(msg), QtGui.QMessageBox.Ok)
