@@ -27,18 +27,20 @@ checkspecific: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidget
 
 qtest:
-	# cd ~/pythonstuff/bzr_test_dir
+	cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc/ brz qcommit
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qadd
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qannotate -v lib/treewidget.py
-	# cd ~/pythonstuff/fix-python-etc
+	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qannotate -v lib/treewidget.py
+	cd ~/pythonstuff/fix-python-etc
 
 # Fully working:
 # qlog
 # qadd
+# qannotate
+# qcommit
 
 # Apparently working:-
-# qlog, qblame, qannotate, qblame, qbind, qbranch, qbrowse, qcat,
-# qcommit, qcmd, qconflicts, qgetn, qignore, qinfo, qinit, qmerge
+# qblame, qbind, qbranch, qbrowse, qcat,
+# qcmd, qconflicts, qgetn, qignore, qinfo, qinit, qmerge
 # qplugins, qresolve, qrevert, qsend, qshelve, qtag, quncommit
 # qunshelve, qupdate, qviewer
 

@@ -69,8 +69,10 @@ class TextEdit(QtGui.QTextEdit):
 
     def __init__(self, spell_checker, parent=None, main_window=None):
         QtGui.QTextEdit.__init__(self, parent)
+        # RJL The completer, I think, is to provide suggestions for anything typed
         self.completer = None
         self.spell_checker = spell_checker
+        # RJL eow = 'end of word'?
         self.eow = "~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-="
         self.main_window = main_window
 
@@ -98,15 +100,25 @@ class TextEdit(QtGui.QTextEdit):
             QtGui.QTextEdit.keyPressEvent(self, e)
 
         ctrlOrShift = e.modifiers() & (QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier)
-        if ctrlOrShift and e.text().isEmpty():
+        # if ctrlOrShift and e.text().isEmpty():
+        if ctrlOrShift and not e.text():
             return
 
         hasModifier = (e.modifiers() != QtCore.Qt.NoModifier) and not ctrlOrShift
         completionPrefix = self.textUnderCursor()
 
-        if not isShortcut and (hasModifier or e.text().isEmpty()
-                               or completionPrefix.length() < 2
-                               or self.eow.contains(e.text().right(1))):
+        # RJL I *think* this is trying to find out whether to hide or display a list
+        # of possible completions. right() is a QString method that:
+        #
+        #  Returns a substring that contains the n rightmost characters of the string.
+        #  The entire string is returned if n is greater than size() or less than zero.
+        #  QString x = "Pineapple";
+        #  QString y = x.right(5);      // y == "apple"
+        #
+        # or simply x[-5:] in the land of Python, .right(1) is the last letter
+        # which is e.text()[-1:]
+
+        if not isShortcut and (hasModifier or not e.text() or len(completionPrefix) < 2 or e.text()[-1:] in self.eow):
             c.popup().hide()
             return
 
@@ -115,8 +127,7 @@ class TextEdit(QtGui.QTextEdit):
             c.popup().setCurrentIndex(c.completionModel().index(0, 0))
 
         cr = self.cursorRect()
-        cr.setWidth(c.popup().sizeHintForColumn(0) +
-                    c.popup().verticalScrollBar().sizeHint().width())
+        cr.setWidth(c.popup().sizeHintForColumn(0) + c.popup().verticalScrollBar().sizeHint().width())
         c.complete(cr);
 
     def textUnderCursor(self):
@@ -126,34 +137,33 @@ class TextEdit(QtGui.QTextEdit):
 
     def insertCompletion(self, completion):
         tc = self.textCursor()
-        extra = completion.length() - self.completer.completionPrefix().length()
+        extra = len(completion) - len(self.completer.completionPrefix())
         tc.movePosition(QtGui.QTextCursor.Left)
         tc.movePosition(QtGui.QTextCursor.EndOfWord)
-        tc.insertText(completion.right(extra))
+        # We want the right-most 'extra' letters
+        # tc.insertText(completion.right(extra))
+        tc.insertText(completion[-extra:])
         self.setTextCursor(tc)
 
     def setCompleter(self, completer):
         self.completer = completer
         completer.setWidget(self)
         completer.setCaseSensitivity(QtCore.Qt.CaseSensitive)
-        self.connect(completer, QtCore.SIGNAL("activated(QString)"),
-                     self.insertCompletion)
+        self.connect(completer, QtCore.SIGNAL("activated(QString)"), self.insertCompletion)
 
     def contextMenuEvent(self, event):
         menu = self.createStandardContextMenu(event.globalPos())
 
         self.context_tc = self.cursorForPosition(event.pos())
         self.context_tc.movePosition(QtGui.QTextCursor.StartOfWord)
-        self.context_tc.movePosition(QtGui.QTextCursor.EndOfWord,
-                                     QtGui.QTextCursor.KeepAnchor)
+        self.context_tc.movePosition(QtGui.QTextCursor.EndOfWord, QtGui.QTextCursor.KeepAnchor)
         text = str(self.context_tc.selectedText())
         if list(self.spell_checker.check(text)):
             suggestions = self.spell_checker.suggest(text)
             first_action = menu.actions()[0]
             for suggestion in suggestions:
                 action = QtGui.QAction(suggestion, self)
-                self.connect(action, QtCore.SIGNAL("triggered(bool)"),
-                             self.suggestion_selected(suggestion))
+                self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.suggestion_selected(suggestion))
                 menu.insertAction(first_action, action)
             if suggestions:
                 menu.insertSeparator(first_action)
