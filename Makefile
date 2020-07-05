@@ -29,8 +29,12 @@ checkspecific: test
 qtest:
 	# cd ~/pythonstuff/bzr_test_dir
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qadd
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qdiff
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qannotate -v lib/treewidget.py
 	# cd ~/pythonstuff/fix-python-etc
+
+# Fully working:
+# qlog
+# qadd
 
 # Apparently working:-
 # qlog, qblame, qannotate, qblame, qbind, qbranch, qbrowse, qcat,

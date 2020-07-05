@@ -741,6 +741,8 @@ class AnnotateWindow(QBzrWindow):
 
 
 # QIntValidator did not work on vila's setup, so this is a workaround.
+# RJLRJL QIntValidator seems to be working in 2020, whereas this isn't
+# so ignored for now.
 class IntValidator(QtGui.QValidator):
     def validate (self, input, pos):
         if input == '':
@@ -749,6 +751,7 @@ class IntValidator(QtGui.QValidator):
             i = int(input)
         except ValueError:
             return (QtGui.QValidator.Invalid, pos)
+
         if i > 0:
             return (QtGui.QValidator.Acceptable, pos)
         else:
@@ -770,7 +773,9 @@ class GotoLineToolbar(QtGui.QToolBar):
         self.addWidget(label)
 
         self.line_edit = QtGui.QLineEdit(self)
-        self.line_edit.setValidator(IntValidator(self.line_edit))
+        # QIntValidator is working in python3, so we'll use that
+        # self.line_edit.setValidator(IntValidator(self.line_edit))
+        self.line_edit.setValidator(QtGui.QIntValidator())
         self.addWidget(self.line_edit)
         label.setBuddy(self.line_edit)
 
@@ -782,21 +787,14 @@ class GotoLineToolbar(QtGui.QToolBar):
         self.addWidget(spacer)
 
         close = QtGui.QAction(self)
-        close.setIcon(self.style().standardIcon(
-                                        QtGui.QStyle.SP_DialogCloseButton))
+        close.setIcon(self.style().standardIcon(QtGui.QStyle.SP_DialogCloseButton))
         self.addAction(close)
         close.setShortcut((QtCore.Qt.Key_Escape))
         close.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         close.setStatusTip(gettext("Close Goto Line"))
-        self.connect(close,
-                     QtCore.SIGNAL("triggered(bool)"),
-                     self.close_triggered)
-        self.connect(go,
-                     QtCore.SIGNAL("triggered(bool)"),
-                     self.go_triggered)
-        self.connect(self.line_edit,
-                     QtCore.SIGNAL("returnPressed()"),
-                     self.go_triggered)
+        self.connect(close, QtCore.SIGNAL("triggered(bool)"), self.close_triggered)
+        self.connect(go, QtCore.SIGNAL("triggered(bool)"), self.go_triggered)
+        self.connect(self.line_edit, QtCore.SIGNAL("returnPressed()"), self.go_triggered)
 
     def close_triggered(self, state):
         self.show_action.setChecked(False)
@@ -817,13 +815,9 @@ class AnnotateLogList(LogList):
 
     def create_context_menu(self):
         LogList.create_context_menu(self, diff_is_default_action=False)
-        set_rev_action = QtGui.QAction(gettext("&Annotate this revision"),
-                                       self.context_menu)
-        self.connect(set_rev_action, QtCore.SIGNAL('triggered()'),
-                     self.parent_annotate_window.set_annotate_revision)
-        self.context_menu.insertAction(
-            self.context_menu.actions()[0],
-            set_rev_action)
+        set_rev_action = QtGui.QAction(gettext("&Annotate this revision"), self.context_menu)
+        self.connect(set_rev_action, QtCore.SIGNAL('triggered()'), self.parent_annotate_window.set_annotate_revision)
+        self.context_menu.insertAction(self.context_menu.actions()[0], set_rev_action)
         self.context_menu.setDefaultAction(set_rev_action)
 
     def default_action(self, index=None):
