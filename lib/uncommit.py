@@ -25,10 +25,7 @@ from breezy.revisionspec import RevisionSpec
 from breezy.plugins.qbrz.lib.html_log import log_as_html
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
-from breezy.plugins.qbrz.lib.trace import (
-   reports_exception,
-   SUB_LOAD_METHOD,
-   )
+from breezy.plugins.qbrz.lib.trace import reports_exception, SUB_LOAD_METHOD
 from breezy.plugins.qbrz.lib.util import url_for_display
 
 
@@ -46,17 +43,15 @@ class QBzrUncommitWindow(SubProcessDialog):
                                   hide_progress=True,
                                   )
         self.tree, self.branch = controldir.ControlDir.open_tree_or_branch(location)
- 
+
         # Display the branch
-        branch_label = QtGui.QLabel(gettext("Branch: %s") %
-            url_for_display(self.branch.base))
+        branch_label = QtGui.QLabel(gettext("Branch: %s") % url_for_display(self.branch.base))
 
         # Display the revision selection section. We nearly always
         # want to just uncommit the last revision (to tweak the
         # commit message say) so we make that the default.
         groupbox = QtGui.QGroupBox(gettext("Move tip to"), self)
-        self.last_radio = QtGui.QRadioButton(
-            gettext("Parent of current tip revision"))
+        self.last_radio = QtGui.QRadioButton(gettext("Parent of current tip revision"))
         self.last_radio.setChecked(QtCore.Qt.Checked)
         self.other_radio = QtGui.QRadioButton(gettext("Other revision:"))
         self.other_revision = QtGui.QLineEdit()
@@ -66,18 +61,13 @@ class QBzrUncommitWindow(SubProcessDialog):
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.last_radio)
         vbox.addLayout(other)
- 
+
         # If the user starts entering a value in the 'other revision' field,
         # set the matching radio button implicitly
-        QtCore.QObject.connect(self.other_revision,
-                               QtCore.SIGNAL("textChanged(QString)"),
-                               self.do_other_revision_changed)
-        
+        QtCore.QObject.connect(self.other_revision, QtCore.SIGNAL("textChanged(QString)"), self.do_other_revision_changed)
+
         # groupbox gets disabled as we are executing.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
-                               groupbox,
-                               QtCore.SLOT("setDisabled(bool)"))
+        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessStarted(bool)"), groupbox, QtCore.SLOT("setDisabled(bool)"))
 
         # Put the form together
         layout = QtGui.QVBoxLayout(self)
@@ -117,13 +107,11 @@ class QBzrUncommitWindow(SubProcessDialog):
             revno = rev_spec.in_history(self.branch).revno
             # We need to offset the revno by +1 because we'll be uncommitting
             # *back* to revno, meaning those after it are 'deleted'
-            log_rqst = log.make_log_request_dict(start_revision=revno+1)
+            log_rqst = log.make_log_request_dict(start_revision=revno + 1)
         log_data = log_as_html(self.branch, log_rqst)
         question = gettext("Do you really want to uncommit these revisions?")
-        if self.ask_confirmation(
-            '<font color="red">%s</font><br/>%s' % (question, log_data),
-            type='warning'):
-                return True
+        if self.ask_confirmation('<font color="red">%s</font><br/>%s' % (question, log_data),type='warning'):
+            return True
         return False
 
     def do_start(self):

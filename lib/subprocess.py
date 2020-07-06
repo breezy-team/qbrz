@@ -798,8 +798,7 @@ class SubProcessWidget(QtGui.QWidget):
                 self.finished = True
                 self.setProgress(1000000, [gettext("Finished!")])
                 if self.conflicted:
-                    self.emit(QtCore.SIGNAL("conflicted(QString)"),
-                              self.conflict_tree_path)
+                    self.emit(QtCore.SIGNAL("conflicted(QString)"), self.conflict_tree_path)
                 time.sleep(2)
                 self.emit(QtCore.SIGNAL("finished()"))
         else:

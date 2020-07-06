@@ -27,7 +27,8 @@ checkspecific: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidget
 
 qtest:
-	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qunbind
+	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qupdate
+	# cd ~/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qlog
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qplugins
 	#BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qviewer lib/treewidget.py
 	cd ~/pythonstuff/fix-python-etc
@@ -45,12 +46,17 @@ qtest:
 # qbranch
 # qbind
 # qunbind
+# qignore
+# qinfo
+# qupdate
+# quncommit
+# qpull
 
 
 # Apparently working:-
-# qcmd, qconflicts, qgetn, qignore, qinfo, qmerge
-# qresolve, qrevert, qsend, qshelve, qtag, quncommit
-# qunshelve, qupdate
+# qcmd, qconflicts, qgetn, qmerge
+# qresolve, qrevert, qsend, qshelve, qtag
+# qunshelve
 
 # NOT working
 # qcheckout-ala-explorer NOT working (unknown)

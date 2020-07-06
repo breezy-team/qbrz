@@ -17,14 +17,26 @@
 
 from html import escape
 import codecs
-from io import StringIO
+from io import StringIO, BytesIO
 
 from breezy import log
 
 
+# def log_as_html(branch, rqst):
+#     """Get the log for a branch as HTML text."""
+#     sio = codecs.getwriter('utf-8')(StringIO())
+#     #sio.encoding = 'utf-8'
+#     try:
+#         lf = HtmlLogFormatter(sio)
+#         log.Logger(branch, rqst).show(lf)
+#         return sio.getvalue().decode('utf-8')
+#     finally:
+#         sio.close()
+
+
 def log_as_html(branch, rqst):
     """Get the log for a branch as HTML text."""
-    sio = codecs.getwriter('utf-8')(StringIO())
+    sio = codecs.getwriter('utf-8')(BytesIO())
     #sio.encoding = 'utf-8'
     try:
         lf = HtmlLogFormatter(sio)
@@ -32,7 +44,6 @@ def log_as_html(branch, rqst):
         return sio.getvalue().decode('utf-8')
     finally:
         sio.close()
-
 
 class HtmlLogFormatter(log.LineLogFormatter):
 
