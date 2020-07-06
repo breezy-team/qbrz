@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'ui/sysinfo.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.3
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
+from breezy.plugins.qbrz.lib.i18n import gettext
+
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -25,7 +27,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(387, 254)
+        MainWindow.resize(404, 288)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.vboxlayout = QtGui.QVBoxLayout(self.centralwidget)
@@ -99,12 +101,12 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "System Information", None))
-        self.bazaar_library.setTitle(_translate("MainWindow", "Bazaar Library", None))
+        self.bazaar_library.setTitle(_translate("MainWindow", "Breezy Library", None))
         self.label.setText(_translate("MainWindow", "Version:", None))
         self.bzr_version.setText(_translate("MainWindow", "(bzr-version)", None))
         self.label_3.setText(_translate("MainWindow", "Path:", None))
         self.bzr_lib_path.setText(_translate("MainWindow", "(bzr-lib-path)", None))
-        self.bazaar_configuration.setTitle(_translate("MainWindow", "Bazaar Configuration", None))
+        self.bazaar_configuration.setTitle(_translate("MainWindow", "Breezy Configuration", None))
         self.label_2.setText(_translate("MainWindow", "Settings:", None))
         self.bzr_config_dir.setText(_translate("MainWindow", "(bzr-config-dir)", None))
         self.label_4.setText(_translate("MainWindow", "Log File:", None))

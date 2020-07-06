@@ -21,7 +21,7 @@ import os
 import sys
 
 import breezy
-from breezy import controldir, config, errors, osutils, trace
+from breezy import controldir, config, errors, osutils, trace, bedding
 
 
 def get_sys_info():
@@ -43,14 +43,15 @@ def get_sys_info():
     result["bzr-version"] = breezy.__version__
     result["bzr-lib-path"] = breezy.__path__
     # is breezy itself in a branch?
-    source_tree = None  #_get_bzr_source_tree()
+    source_tree = None  # _get_bzr_source_tree()
     if source_tree:
         result["bzr-source-tree"] = _source_tree_details()
     else:
         result["bzr-source-tree"] = None
 
     # Bazaar configuration
-    config_dir = os.path.normpath(config.config_dir())  # use native slashes
+    # config_dir = os.path.normpath(config.config_dir())  # use native slashes
+    config_dir = osutils.normpath(bedding.config_dir())
     if not isinstance(config_dir, str):
         config_dir = config_dir.decode(osutils.get_user_encoding())
     result["brz-config-dir"] = config_dir
@@ -81,8 +82,7 @@ def _get_bzr_source_tree():
     try:
         control = controldir.ControlDir.open_containing(__file__)[0]
         return control.open_workingtree(recommend_upgrade=False)
-    except (errors.NotBranchError, errors.UnknownFormatError,
-            errors.NoWorkingTree):
+    except (errors.NotBranchError, errors.UnknownFormatError, errors.NoWorkingTree):
         return None
 
 

@@ -27,9 +27,9 @@ checkspecific: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidget
 
 qtest:
-	cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc/ brz qcommit
-	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qadd
-	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qannotate -v lib/treewidget.py
+	# cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc/ brz qbrowse
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qversion
+	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qcat -r 1445 lib/treewidget.py
 	cd ~/pythonstuff/fix-python-etc
 
 # Fully working:
@@ -37,22 +37,21 @@ qtest:
 # qadd
 # qannotate
 # qcommit
+# qbrowse
+# qcat
+# qversion
 
 # Apparently working:-
-# qblame, qbind, qbranch, qbrowse, qcat,
+# qblame, qbind, qbranch,
 # qcmd, qconflicts, qgetn, qignore, qinfo, qinit, qmerge
 # qplugins, qresolve, qrevert, qsend, qshelve, qtag, quncommit
 # qunshelve, qupdate, qviewer
-
-# Fails in action: qcommit, on editing message
 
 # NOT working
 # qcheckout-ala-explorer NOT working (unknown)
 # qinit-workspace also unknown
 # qconfig, qdiff (although OK when embedded), qhelp
-# qadd, although qignore shows files, qadd disnae
 # qmain, qpush, qsubprocess, qswitch, qverify-signatures,
-# qversion
 
 # Not tested
 # qunbind,
