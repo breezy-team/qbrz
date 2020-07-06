@@ -27,25 +27,27 @@ checkspecific: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidget
 
 qtest:
-	# cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc/ brz qbrowse
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qversion
-	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qcat -r 1445 lib/treewidget.py
+	cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc/ brz qinit
+	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qplugins
+	#BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qviewer lib/treewidget.py
 	cd ~/pythonstuff/fix-python-etc
 
 # Fully working:
 # qlog
 # qadd
-# qannotate
+# qannotate, qblame
 # qcommit
 # qbrowse
-# qcat
+# qcat, qviewer
 # qversion
+# qplugins
+# qinit
 
 # Apparently working:-
-# qblame, qbind, qbranch,
-# qcmd, qconflicts, qgetn, qignore, qinfo, qinit, qmerge
-# qplugins, qresolve, qrevert, qsend, qshelve, qtag, quncommit
-# qunshelve, qupdate, qviewer
+# qbind, qbranch,
+# qcmd, qconflicts, qgetn, qignore, qinfo, qmerge
+# qresolve, qrevert, qsend, qshelve, qtag, quncommit
+# qunshelve, qupdate
 
 # NOT working
 # qcheckout-ala-explorer NOT working (unknown)

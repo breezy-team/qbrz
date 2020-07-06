@@ -90,8 +90,7 @@ class WarningInfoWidget(InfoWidget):
         label_layout = QtGui.QHBoxLayout()
 
         icon = QtGui.QLabel()
-        icon.setPixmap(self.style().standardPixmap(
-                       QtGui.QStyle.SP_MessageBoxWarning))
+        icon.setPixmap(self.style().standardPixmap(QtGui.QStyle.SP_MessageBoxWarning))
         label_layout.addWidget(icon)
         self.label = QtGui.QLabel()
         label_layout.addWidget(self.label, 2)
@@ -164,76 +163,45 @@ class SubProcessWindowBase(object):
             self.setWindowFlags(flags)
 
         self.process_widget = SubProcessWidget(self.ui_mode, self, hide_progress)
-        self.connect(self.process_widget,
-            QtCore.SIGNAL("finished()"),
-            self.on_finished)
-        self.connect(self.process_widget,
-            QtCore.SIGNAL("failed(QString)"),
-            self.on_failed)
-        self.connect(self.process_widget,
-            QtCore.SIGNAL("error()"),
-            self.on_error)
-        self.connect(self.process_widget,
-            QtCore.SIGNAL("conflicted(QString)"),
-            self.on_conflicted)
+        self.connect(self.process_widget, QtCore.SIGNAL("finished()"), self.on_finished)
+        self.connect(self.process_widget, QtCore.SIGNAL("failed(QString)"), self.on_failed)
+        self.connect(self.process_widget, QtCore.SIGNAL("error()"), self.on_error)
+        self.connect(self.process_widget, QtCore.SIGNAL("conflicted(QString)"), self.on_conflicted)
 
         self.closeButton = StandardButton(BTN_CLOSE)
         self.okButton = StandardButton(BTN_OK)
         self.cancelButton = StandardButton(BTN_CANCEL)
 
         # ok button gets disabled when we start.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
-                               self.okButton,
-                               QtCore.SLOT("setDisabled(bool)"))
+        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessStarted(bool)"), self.okButton, QtCore.SLOT("setDisabled(bool)"))
 
         # ok button gets hidden when we finish.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self.okButton,
-                               QtCore.SLOT("setHidden(bool)"))
+        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFinished(bool)"), self.okButton, QtCore.SLOT("setHidden(bool)"))
 
         # close button gets shown when we finish.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self.closeButton,
-                               QtCore.SLOT("setShown(bool)"))
+        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFinished(bool)"), self.closeButton, QtCore.SLOT("setShown(bool)"))
 
         # cancel button gets disabled when finished.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self.cancelButton,
-                               QtCore.SLOT("setDisabled(bool)"))
+        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFinished(bool)"), self.cancelButton, QtCore.SLOT("setDisabled(bool)"))
 
         # ok button gets enabled when we fail.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFailed(bool)"),
-                               self.okButton,
-                               QtCore.SLOT("setDisabled(bool)"))
+        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFailed(bool)"), self.okButton, QtCore.SLOT("setDisabled(bool)"))
 
         # Change the ok button to 'retry' if we fail.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFailed(bool)"),
-                               lambda failed: self.okButton.setText(
-                                              gettext('&Retry')))
+        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFailed(bool)"),
+                               lambda failed: self.okButton.setText(gettext('&Retry')))
 
         self.buttonbox = QtGui.QDialogButtonBox(self)
-        self.buttonbox.addButton(self.okButton,
-            QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(self.closeButton,
-            QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(self.cancelButton,
-            QtGui.QDialogButtonBox.RejectRole)
+        self.buttonbox.addButton(self.okButton, QtGui.QDialogButtonBox.AcceptRole)
+        self.buttonbox.addButton(self.closeButton, QtGui.QDialogButtonBox.AcceptRole)
+        self.buttonbox.addButton(self.cancelButton, QtGui.QDialogButtonBox.RejectRole)
         self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.do_accept)
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)
         self.closeButton.setHidden(True) # but 'close' starts as hidden.
 
         self.infowidget = WarningInfoWidget(self)
         self.infowidget.hide()
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
-                               self.infowidget,
-                               QtCore.SLOT("setHidden(bool)"))
+        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessStarted(bool)"), self.infowidget, QtCore.SLOT("setHidden(bool)"))
 
         if immediate:
             self.do_accept()
@@ -324,8 +292,7 @@ class SubProcessWindowBase(object):
     def on_conflicted(self, tree_path):
         if tree_path:
             self.action_url = str(tree_path) # QString -> unicode
-            self.infowidget.setup_for_conflicted(self.open_conflicts_win,
-                                                 self.open_revert_win)
+            self.infowidget.setup_for_conflicted(self.open_conflicts_win, self.open_revert_win)
             self.infowidget.show()
 
     def on_failed(self, error):
@@ -374,10 +341,7 @@ class SubProcessWindowBase(object):
         window = ConflictsWindow(self.action_url, parent=self)
         self.windows.append(window)
         window.show()
-        QtCore.QObject.connect(window,
-                               QtCore.SIGNAL("allResolved(bool)"),
-                               self.infowidget,
-                               QtCore.SLOT("setHidden(bool)"))
+        QtCore.QObject.connect(window, QtCore.SIGNAL("allResolved(bool)"), self.infowidget, QtCore.SLOT("setHidden(bool)"))
 
 class SubProcessWindow(SubProcessWindowBase, QBzrWindow):
 
@@ -493,14 +457,8 @@ class SimpleSubProcessDialog(SubProcessDialog):
 
     def auto_start(self):
         if self.auto_start_show_on_failed:
-            QtCore.QObject.connect(self,
-                                   QtCore.SIGNAL("subprocessFailed(bool)"),
-                                   self,
-                                   QtCore.SLOT("setHidden(bool)"))
-            QtCore.QObject.connect(self,
-                                   QtCore.SIGNAL("subprocessError(bool)"),
-                                   self,
-                                   QtCore.SLOT("setHidden(bool)"))
+            QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFailed(bool)"), self, QtCore.SLOT("setHidden(bool)"))
+            QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessError(bool)"), self, QtCore.SLOT("setHidden(bool)"))
             self.do_start()
 
 
@@ -709,10 +667,17 @@ class SubProcessWidget(QtGui.QWidget):
 
     def readStdout(self):
         # TODO: This will almost certainly fail - see TestSubprocessProgressView in test_subprocess
-        # ensure we read from subprocess plain string
+        # ensure we read from subprocess plain string.
+        #
+        # ``run_subprocess_command`` seems to end up here
+        #
+        # ``readAllStandardOutput`` is a PyQt4 routine. The docs state that it returns a QByteArray:
+        # testing shows that it does and that its ``.data()`` method returns bytes
+        #
         data = self.process.readAllStandardOutput().data().decode(self.encoding)
-        # we need unicode for all strings except bencoded streams
+
         for line in data.splitlines():
+            # Note that bdecode needs bytes so we encode() once we've snipped off the leading SUB_PROGRESS or whatever
             if line.startswith(SUB_PROGRESS):
                 try:
                     progress, transport_activity, task_info = bencode.bdecode(line[len(SUB_PROGRESS):].encode(self.encoding))
@@ -720,39 +685,31 @@ class SubProcessWidget(QtGui.QWidget):
                 except ValueError as e:
                     # we got malformed data from qsubprocess (bencode failed to decode)
                     # so just show it in the status console
-                    self.logMessageEx("qsubprocess error: "+str(e), "error", self.stderr)
+                    self.logMessageEx("qsubprocess error: " + str(e), "error", self.stderr)
                     self.logMessageEx(line, "error", self.stderr)
                 else:
                     self.setProgress(progress, messages, transport_activity.decode("utf-8"))
             elif line.startswith(SUB_GETPASS):
-                prompt = bittorrent_b_decode_prompt(line[len(SUB_GETPASS):])
-                passwd, ok = QtGui.QInputDialog.getText(self,
-                                                        gettext("Enter Password"),
-                                                        prompt,
-                                                        QtGui.QLineEdit.Password)
+                prompt = bittorrent_b_decode_prompt(line[len(SUB_GETPASS):].encode(self.encoding))
+                passwd, ok = QtGui.QInputDialog.getText(self, gettext("Enter Password"), prompt, QtGui.QLineEdit.Password)
                 data = str(passwd).encode('utf-8'), int(ok)
                 self.process.write(SUB_GETPASS + bencode.bencode(data) + "\n")
                 if not ok:
                     self.abort_futher_processes()
             elif line.startswith(SUB_GETUSER):
-                prompt = bittorrent_b_decode_prompt(line[len(SUB_GETUSER):])
-                passwd, ok = QtGui.QInputDialog.getText(self,
-                                                        gettext("Enter Username"),
-                                                        prompt)
+                prompt = bittorrent_b_decode_prompt(line[len(SUB_GETUSER):].encode(self.encoding))
+                passwd, ok = QtGui.QInputDialog.getText(self, gettext("Enter Username"), prompt)
                 data = str(passwd).encode('utf-8'), int(ok)
                 self.process.write(SUB_GETUSER + bencode.bencode(data) + "\n")
                 if not ok:
                     self.abort_futher_processes()
             elif line.startswith(SUB_GETBOOL):
-                prompt = bittorrent_b_decode_prompt(line[len(SUB_GETBOOL):])
-                button = QtGui.QMessageBox.question(
-                    self, "Bazaar", prompt,
-                    QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-
+                prompt = bittorrent_b_decode_prompt(line[len(SUB_GETBOOL):].encode(self.encoding))
+                button = QtGui.QMessageBox.question(self, "Bazaar", prompt, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
                 data = (button == QtGui.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
             elif line.startswith(SUB_CHOOSE):
-                msg, choices, default = bittorrent_b_decode_choose_args(line[len(SUB_CHOOSE):])
+                msg, choices, default = bittorrent_b_decode_choose_args(line[len(SUB_CHOOSE):].encode(self.encoding))
                 mbox = QtGui.QMessageBox(parent=self)
                 mbox.setText(msg)
                 mbox.setIcon(QtGui.QMessageBox.Question)
@@ -766,13 +723,12 @@ class SubProcessWidget(QtGui.QWidget):
                 index = mbox.exec_()
                 self.process.write(SUB_CHOOSE + bencode.bencode(index) + "\n")
             elif line.startswith(SUB_ERROR):
-                self.error_class, self.error_data = bittorrent_b_decode_exception_instance(
-                    line[len(SUB_ERROR):])
+                self.error_class, self.error_data = bittorrent_b_decode_exception_instance(line[len(SUB_ERROR):].encode(self.encoding))
             elif line.startswith(SUB_NOTIFY):
-                msg = line[len(SUB_NOTIFY):]
+                msg = line[len(SUB_NOTIFY):].encode(self.encoding)
                 if msg.startswith(NOTIFY_CONFLICT):
                     self.conflicted = True
-                    self.conflict_tree_path = bittorrent_b_decode_prompt(msg[len(NOTIFY_CONFLICT):])
+                    self.conflict_tree_path = bittorrent_b_decode_prompt(msg[len(NOTIFY_CONFLICT):].encode(self.encoding))
             else:
                 self.logMessageEx(line, 'plain', self.stdout)
 
@@ -782,7 +738,9 @@ class SubProcessWidget(QtGui.QWidget):
             self.emit(QtCore.SIGNAL("error()"))
 
         for line in data.splitlines():
-            error = line.startswith("bzr: ERROR:")
+            # RJLRJL this should be brz, I think
+            # error = line.startswith("bzr: ERROR:")
+            error = line.startswith("brz: ERROR:")
             self.logMessage(line, error, self.stderr)
 
     def logMessage(self, message, error=False, terminal_stream=None):
@@ -904,8 +862,7 @@ class SubprocessProgressView (TextProgressView):
         trans = self._last_transport_msg.encode("utf-8")
 
         bdata = bencode.bencode((progress, trans, task_info))
-        self._term_file.write(
-            SUB_PROGRESS + bdata.decode("utf-8") + '\n')
+        self._term_file.write(SUB_PROGRESS + bdata.decode("utf-8") + '\n')
         self._term_file.flush()
 
     def clear(self):
@@ -1029,13 +986,22 @@ def run_subprocess_command(cmd, bencoded=False):
         argv = [str(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
     try:
         def on_conflicted(wtpath):
-            print("%s%s%s" % (SUB_NOTIFY, NOTIFY_CONFLICT, bittorrent_b_encode_prompt(wtpath)))
+            # See comment re: frankenstrings below for why we cast to string
+            print("%s%s%s" % (SUB_NOTIFY, NOTIFY_CONFLICT, str(bittorrent_b_encode_prompt(wtpath), 'utf-8')))
         with watch_conflicts(on_conflicted):
             return commands.run_bzr(argv)
     except (KeyboardInterrupt, SystemExit):
         raise
     except Exception as e:
-        print("%s%s" % (SUB_ERROR, bittorrent_b_encode_exception_instance(e)))
+        # The problem with the original code is that it sends a Frankenstring, for example:
+        #
+        #   qbrz:ERROR:b'l18:AlreadyBranchErrordee'
+        #
+        # which is a str, but with a byte-marked string (b'...') inside it, so
+        # force it to be properly bytes OR force the bittorrent to string and let
+        # the receiver sort it out: strictly speaking, it's not really b-encoded
+        # if it has a prefix so make it a string
+        print("%s%s" % (SUB_ERROR, str(bittorrent_b_encode_exception_instance(e), 'utf-8') ))
         raise
 
 
@@ -1255,6 +1221,8 @@ def bittorrent_b_decode_exception_instance(bencoded_bytes: bytes) -> (str, list)
     # b-decode will return bytes so, from the above example, we'd get:
     #
     #  ``[b'PermissionError', {}]``
+    if not isinstance(bencoded_bytes, bytes):
+        raise TypeError('Bytes required for bittorrent_b_decode_exception_instance')
 
     ename, d = bencode.bdecode(bencoded_bytes)
 
