@@ -27,7 +27,7 @@ checkspecific: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidget
 
 qtest:
-	cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc/ brz qinit
+	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qunbind
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qplugins
 	#BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qviewer lib/treewidget.py
 	cd ~/pythonstuff/fix-python-etc
@@ -42,9 +42,12 @@ qtest:
 # qversion
 # qplugins
 # qinit
+# qbranch
+# qbind
+# qunbind
+
 
 # Apparently working:-
-# qbind, qbranch,
 # qcmd, qconflicts, qgetn, qignore, qinfo, qmerge
 # qresolve, qrevert, qsend, qshelve, qtag, quncommit
 # qunshelve, qupdate
@@ -55,8 +58,6 @@ qtest:
 # qconfig, qdiff (although OK when embedded), qhelp
 # qmain, qpush, qsubprocess, qswitch, qverify-signatures,
 
-# Not tested
-# qunbind,
 
 
 test:

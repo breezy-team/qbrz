@@ -1001,7 +1001,7 @@ def run_subprocess_command(cmd, bencoded=False):
         # force it to be properly bytes OR force the bittorrent to string and let
         # the receiver sort it out: strictly speaking, it's not really b-encoded
         # if it has a prefix so make it a string
-        print("%s%s" % (SUB_ERROR, str(bittorrent_b_encode_exception_instance(e), 'utf-8') ))
+        print("%s%s" % (SUB_ERROR, str(bittorrent_b_encode_exception_instance(e), 'utf-8')))
         raise
 
 
