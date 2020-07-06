@@ -725,7 +725,7 @@ class SubProcessWidget(QtGui.QWidget):
             elif line.startswith(SUB_ERROR):
                 self.error_class, self.error_data = bittorrent_b_decode_exception_instance(line[len(SUB_ERROR):].encode(self.encoding))
             elif line.startswith(SUB_NOTIFY):
-                msg = line[len(SUB_NOTIFY):].encode(self.encoding)
+                msg = line[len(SUB_NOTIFY):]
                 if msg.startswith(NOTIFY_CONFLICT):
                     self.conflicted = True
                     self.conflict_tree_path = bittorrent_b_decode_prompt(msg[len(NOTIFY_CONFLICT):].encode(self.encoding))

@@ -61,9 +61,7 @@ class ShelveWindow(QBzrWindow):
     def __init__(self, initial_tab=0, directory=None, file_list=None, complete=False,
                  ignore_whitespace=False, encoding=None, parent=None, ui_mode=True,
                  select_all=False, message=None):
-        QBzrWindow.__init__(self,
-                            [gettext("Shelve Manager")],
-                            parent, ui_mode=ui_mode)
+        QBzrWindow.__init__(self, [gettext("Shelve Manager")], parent, ui_mode=ui_mode)
         self.restoreSize("shelve", (780, 680))
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
@@ -88,12 +86,9 @@ class ShelveWindow(QBzrWindow):
         self.tab.addTab(shelve_view, gettext('Shelve'))
         self.tab.addTab(shelvelist_view, gettext('View shelved changes'))
         self.tab.setCurrentIndex(initial_tab)
-        self.connect(self.tab, QtCore.SIGNAL("currentChanged(int)"),
-                self.current_tab_changed)
-        self.connect(shelve_view, QtCore.SIGNAL("shelfCreated(int)"),
-                self.shelf_created)
-        self.connect(shelvelist_view, QtCore.SIGNAL("unshelved(int, QString*)"),
-                self.unshelved)
+        self.connect(self.tab, QtCore.SIGNAL("currentChanged(int)"), self.current_tab_changed)
+        self.connect(shelve_view, QtCore.SIGNAL("shelfCreated(int)"), self.shelf_created)
+        self.connect(shelvelist_view, QtCore.SIGNAL("unshelved(int, QString*)"), self.unshelved)
 
         self.splitters.restore_state()
 
