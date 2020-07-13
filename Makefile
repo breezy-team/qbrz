@@ -27,10 +27,10 @@ checkspecific: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidget
 
 qtest:
-	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qrevert
-	# cd ~/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qadd
+	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qrevert
+	# cd ~/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qpush
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qplugins
-	#BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qviewer lib/treewidget.py
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qpush
 	cd ~/pythonstuff/fix-python-etc
 
 # Fully working:

@@ -15,7 +15,7 @@ class Ui_PushForm(object):
     def setupUi(self, PushForm):
         PushForm.setObjectName("PushForm")
         PushForm.resize(349, 175)
-        self.verticalLayout = QtGui.QVBoxLayouty(PushForm)
+        self.verticalLayout = QtGui.QVBoxLayout(PushForm)
         self.verticalLayout.setMargin(9)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtGui.QGroupBox(PushForm)
