@@ -390,24 +390,18 @@ class DiffWindow(QBzrWindow):
         self.processEvents()
 
     def set_diff_title(self):
-        rev1_title = get_title_for_tree(self.trees[0], self.branches[0],
-                                        self.branches[1])
-        rev2_title = get_title_for_tree(self.trees[1], self.branches[1],
-                                        self.branches[0])
-
+        rev1_title = get_title_for_tree(self.trees[0], self.branches[0], self.branches[1])
+        rev2_title = get_title_for_tree(self.trees[1], self.branches[1], self.branches[0])
         title = [gettext("Diff"), "%s..%s" % (rev1_title, rev2_title)]
-
         if self.specific_files:
             nfiles = len(self.specific_files)
             if nfiles > 2:
-                title.append(
-                    ngettext("%d file", "%d files", nfiles) % nfiles)
+                title.append(ngettext("%d file", "%d files", nfiles) % nfiles)
             else:
                 title.append(", ".join(self.specific_files))
         else:
             if self.filter_options and not self.filter_options.is_all_enable():
                 title.append(self.filter_options.to_str())
-
         self.set_title_and_icon(title)
         self.processEvents()
 
