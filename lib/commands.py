@@ -241,8 +241,7 @@ class cmd_qannotate(QBzrCommand):
         back to this function to process the command-line args and convert
         them into the branch and tree etc needed by the UI.
         """
-        wt, branch, relpath = \
-            ControlDir.open_containing_tree_or_branch(filename)
+        wt, branch, relpath = ControlDir.open_containing_tree_or_branch(filename)
         if wt is not None:
             wt.lock_read()
         else:
@@ -420,9 +419,7 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
             (args["old_tree"], args["new_tree"],
              args["old_branch"], args["new_branch"],
              args["specific_files"], _) = \
-                get_trees_and_branches_to_diff_locked(
-                    self.file_list, self.revision, self.old, self.new,
-                    add_cleanup)
+                get_trees_and_branches_to_diff_locked(self.file_list, self.revision, self.old, self.new, add_cleanup)
         args["ignore_whitespace"] = self.ignore_whitespace
         return args
 
