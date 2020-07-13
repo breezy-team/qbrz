@@ -30,7 +30,7 @@ qtest:
 	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qswitch
 	# cd ~/pythonstuff/bzr_test_dir BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qmain
 	# cd ~/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qpush
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qcmd
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess diff
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsend
 	cd ~/pythonstuff/fix-python-etc
 
@@ -64,6 +64,7 @@ qtest:
 # qresolve
 # qswitch
 # qcmd
+# qsubprocess
 
 
 # === qdiff ===
@@ -110,32 +111,6 @@ qtest:
 # ImportError: cannot import name 'ensure_config_dir_exists'
 
 
-# === qsubprocess ===
-
-# brz: ERROR: AttributeError: 'bytes' object has no attribute 'read'
-# Traceback (most recent call last):
-#   File "/usr/local/lib/python3.5/dist-packages/breezy/commands.py", line 1022, in exception_to_return_code
-#     return the_callable(*args, **kwargs)
-#   File "/usr/local/lib/python3.5/dist-packages/breezy/commands.py", line 1208, in run_bzr
-#     ret = run(*run_argv)
-#   File "/usr/local/lib/python3.5/dist-packages/breezy/commands.py", line 762, in run_argv_aliases
-#     return self.run(**all_cmd_args)
-#   File "/usr/local/lib/python3.5/dist-packages/breezy/commands.py", line 787, in run
-#     return class_run(*args, **kwargs)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/commands.py", line 803, in run
-#     return run_subprocess_command(cmd, bencoded)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/subprocess.py", line 983, in run_subprocess_command
-#     argv = [str(p, 'utf-8') for p in shlex.split(cmd_utf8)]
-#   File "/usr/lib/python3.5/shlex.py", line 273, in split
-#     return list(lex)
-#   File "/usr/lib/python3.5/shlex.py", line 263, in __next__
-#     token = self.get_token()
-#   File "/usr/lib/python3.5/shlex.py", line 90, in get_token
-#     raw = self.read_token()
-#   File "/usr/lib/python3.5/shlex.py", line 118, in read_token
-#     nextchar = self.instream.read(1)
-
-
 # === qmain ===
 
 # brz: ERROR: TypeError: 'TreeChange' object does not support indexing
@@ -167,7 +142,6 @@ qtest:
 # === qhelp ===
 
 # qhelp doesn't work for me even in bzr
-
 
 
 # === Items in Plug-ins ===

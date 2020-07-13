@@ -73,7 +73,7 @@ DIFF_BY_TAGS = dict(
 #
 # N.B. this appears to be missing a binary file test
 
-wait_delay_ms = 5500
+wait_delay_ms = 500
 
 class TestGuideBarBase(QTestCase):
 

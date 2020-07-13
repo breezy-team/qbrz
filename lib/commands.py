@@ -839,7 +839,6 @@ class cmd_qgetnew(QBzrCommand):
         self.main_window.show()
         self._application.exec_()
 
-
 class cmd_qhelp(QBzrCommand):
     """Shows a help window"""
 

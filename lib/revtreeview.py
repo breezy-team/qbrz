@@ -44,17 +44,9 @@ class RevisionTreeView(QtGui.QTreeView):
 
     def __init__(self, parent=None):
         QtGui.QTreeView.__init__(self, parent)
-        self.connect(self.verticalScrollBar(),
-                     QtCore.SIGNAL("valueChanged (int)"),
-                     self.scroll_changed)
-
-        self.connect(self,
-                     QtCore.SIGNAL("collapsed (QModelIndex)"),
-                     self.collapsed_expanded)
-
-        self.connect(self,
-                     QtCore.SIGNAL("expanded (QModelIndex)"),
-                     self.collapsed_expanded)
+        self.connect(self.verticalScrollBar(), QtCore.SIGNAL("valueChanged (int)"), self.scroll_changed)
+        self.connect(self, QtCore.SIGNAL("collapsed (QModelIndex)"), self.collapsed_expanded)
+        self.connect(self, QtCore.SIGNAL("expanded (QModelIndex)"), self.collapsed_expanded)
 
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
@@ -69,12 +61,8 @@ class RevisionTreeView(QtGui.QTreeView):
             # to a ProxyModel, so connect to the source model.
             model = model.sourceModel()
 
-        model.connect(model,
-                      QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                      self.data_changed)
-        model.connect(model,
-                      QtCore.SIGNAL("layoutChanged()"),
-                      self.layout_changed)
+        model.connect(model, QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.data_changed)
+        model.connect(model, QtCore.SIGNAL("layoutChanged()"), self.layout_changed)
 
     def scroll_changed(self, value):
         self.load_visible_revisions()
@@ -103,9 +91,9 @@ class RevisionTreeView(QtGui.QTreeView):
         if not index.isValid():
             return
 
-        #if self.throbber is not None:
+        # if self.throbber is not None:
         #    throbber_height = self.throbber.   etc...
-        bottom_index = self.indexAt(self.viewport().rect().bottomLeft()) # + throbber_height
+        bottom_index = self.indexAt(self.viewport().rect().bottomLeft())  # + throbber_height
 
         revids = []
         while True:

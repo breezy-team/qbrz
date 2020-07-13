@@ -964,25 +964,48 @@ def run_subprocess_command(cmd, bencoded=False):
 
     NOTE: if cmd starts with @ sign then it used as name of the file
     where actual command line string is saved (utf-8 encoded).
+
+    RJLRJL: Because of the joy of python2 -> python3, but more because nobody
+    bothered to make a class for bencoded, we have to fanny about with bytes
+    and strings - what larks!. So, one day, we'll make bencoded a class.
+    Strictly, bencoded (python3) *should* be bytes, but you never can tell.
+    Particularly in this code. And don't get me started on rev_ids.
+
+    Breezy's ``run_bzr`` says we should pass 'valid' strings so we need to
+    get rid of any lurking bytes. Unfortunately, we can no longer trust the
+    bencoded flag as passed
     """
     if MS_WINDOWS:
         thread.start_new_thread(windows_emulate_ctrl_c, ())
     else:
         signal.signal(signal.SIGINT, sigabrt_handler)
     ui.ui_factory = SubprocessUIFactory(stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
-    if cmd.startswith('@'):
-        fname = cmd[1:]
-        f = open(fname, 'rb')
+
+    # Right, here we go, we could be a string or bytes
+    # and bencoded might be actually true (it's bytes) or just
+    # pretending (it's not bytes but is bencoded)
+    s_cmd = cmd
+    if bencoded:
+        # if we are bytes AND bencoded (perhaps), decode properly
+        if isinstance(cmd, bytes):
+            s_cmd = bittorrent_b_decode_prompt(cmd)
+        else:
+            # Force to bytes to decode it properly from bencoded format
+            s_cmd = bittorrent_b_decode_prompt(bytes(cmd, 'utf-8'))
+    else:
+        if isinstance(cmd, bytes):
+            s_cmd = cmd.decode('utf-8')
+
+    if s_cmd.startswith('@'):
+        fname = s_cmd[1:]
+        f = open(fname, 'r', encoding='utf-8')
         try:
-            cmd_utf8 = f.read()
+            s_cmd = f.read()
         finally:
             f.close()
-    else:
-        cmd_utf8 = cmd.encode('utf8')
-    if not bencoded:
-        argv = [str(p, 'utf-8') for p in shlex.split(cmd_utf8)]
-    else:
-        argv = [str(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
+    # We use shlex.split() to work like the shell...
+    argv = shlex.split(s_cmd)
+
     try:
         def on_conflicted(wtpath):
             # See comment re: frankenstrings below for why we cast to string

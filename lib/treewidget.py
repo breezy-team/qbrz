@@ -1451,13 +1451,9 @@ class TreeWidget(RevisionTreeView):
         # self.setModel(self.tree_model)
 
         self.revno_item_delegate = RevNoItemDelegate(parent=self)
-
         self.set_header_width_settings()
-
         self.setItemDelegateForColumn(self.tree_model.REVNO, self.revno_item_delegate)
-
         self.create_context_menu()
-
         self.connect(self, QtCore.SIGNAL("doubleClicked(QModelIndex)"), self.do_default_action)
 
     def set_header_width_settings(self):
@@ -1471,15 +1467,12 @@ class TreeWidget(RevisionTreeView):
         header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.Stretch)
         fm = self.fontMetrics()
         # XXX Make this dynamic.
-        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
-                                               None, self) + 1) *2
+        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1) *2
 
         header.resizeSection(self.tree_model.REVNO,
             fm.width("8"*self.revno_item_delegate.max_mainline_digits + ".8.888") + col_margin)
-        header.resizeSection(self.tree_model.DATE,
-                             fm.width("88-88-8888 88:88") + col_margin)
-        header.resizeSection(self.tree_model.AUTHOR,
-                             fm.width("Joe I have a Long Name") + col_margin)
+        header.resizeSection(self.tree_model.DATE, fm.width("88-88-8888 88:88") + col_margin)
+        header.resizeSection(self.tree_model.AUTHOR, fm.width("Joe I have a Long Name") + col_margin)
         if self.tree and isinstance(self.tree, WorkingTree):
             header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.Stretch)
             header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.ResizeToContents)

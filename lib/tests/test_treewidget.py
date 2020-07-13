@@ -191,7 +191,7 @@ class TestTreeWidget(qtests.QTestCase):
         widget.update()
         QTest.qWaitForWindowShown(widget)
         QtCore.QCoreApplication.processEvents()
-        widget.expandAll ()
+        widget.expandAll()
         QTest.qWaitForWindowShown(widget)
         self.run_model_tests()
 
@@ -208,7 +208,7 @@ class TestTreeWidget(qtests.QTestCase):
         widget.update()
         QTest.qWaitForWindowShown(widget)
         QtCore.QCoreApplication.processEvents()
-        widget.expandAll ()
+        widget.expandAll()
         QTest.qWaitForWindowShown(widget)
         self.run_model_tests()
 
