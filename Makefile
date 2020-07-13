@@ -27,10 +27,10 @@ checkspecific: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidget
 
 qtest:
-	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qswitch
+	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qswitch
 	# cd ~/pythonstuff/bzr_test_dir BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qmain
 	# cd ~/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qpush
-	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qplugins
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qcmd
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsend
 	cd ~/pythonstuff/fix-python-etc
 
@@ -64,18 +64,19 @@ qtest:
 # qresolve
 # qswitch
 
-# Apparently working:-
-# qcmd
 
+# === qcmd ===
 
-# === Items in Plug-ins ===
+# brz: ERROR: TypeError: unorderable types: NoneType() < str()
+# Traceback (most recent call last):
+#   File "/home/rjl/pythonstuff/fix-python-etc/lib/commands.py", line 174, in run
+#     ret_code = self._qbrz_run(*args, **kwargs)
+#   File "/home/rjl/pythonstuff/fix-python-etc/lib/commands.py", line 1080, in _qbrz_run
+#     execute=execute)
+#   File "/home/rjl/pythonstuff/fix-python-etc/lib/run.py", line 67, in __init__
+#     categories = sorted(self.all_cmds.keys())
+# TypeError: unorderable types: NoneType() < str()
 
-# NOT working
-# qinit-workspace, qnew also unknown - they appear to be from the 'explorer' plugin
-
-
-# qverify-signatures
-#
 
 # === qdiff ===
 
@@ -119,11 +120,6 @@ qtest:
 #   File "/home/rjl/pythonstuff/fix-python-etc/lib/config.py", line 23, in <module>
 #     from breezy.config import (
 # ImportError: cannot import name 'ensure_config_dir_exists'
-
-
-# === qhelp ===
-
-# qhelp doesn't work for me even in bzr
 
 
 # === qsubprocess ===
@@ -175,6 +171,21 @@ qtest:
 #     self._cacheStatus(osutils.splitpath(entry[0]), 'unchanged', root=root)
 # TypeError: 'TreeChange' object does not support indexing
 
+# === qverify-signatures ===
+
+# qverify-signatures fails in bzr
+
+
+# === qhelp ===
+
+# qhelp doesn't work for me even in bzr
+
+
+
+# === Items in Plug-ins ===
+
+# NOT working
+# qinit-workspace, qnew also unknown - they appear to be from the 'explorer' plugin
 
 
 test:
