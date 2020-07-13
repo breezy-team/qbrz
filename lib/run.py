@@ -31,16 +31,12 @@ from breezy.plugins.qbrz.lib.help import get_help_topic_as_html
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
 from breezy.plugins.qbrz.lib.ui_run import Ui_RunDialog
-from breezy.plugins.qbrz.lib.util import (
-    hookup_directory_picker,
-    shlex_split_unicode,
-    )
+from breezy.plugins.qbrz.lib.util import hookup_directory_picker, shlex_split_unicode
 
 
 class QBzrRunDialog(SubProcessDialog):
 
-    def __init__(self, command=None, parameters=None, workdir=None,
-        category=None, ui_mode=False, parent=None, execute=False):
+    def __init__(self, command=None, parameters=None, workdir=None, category=None, ui_mode=False, parent=None, execute=False):
         """Build dialog.
 
         @param command: initial command selection.
@@ -64,7 +60,12 @@ class QBzrRunDialog(SubProcessDialog):
         self.ui.cmd_layout.setColumnStretch(2, 1)
         # fill cmd_combobox with available commands
         self.collect_command_names()
-        categories = sorted(self.all_cmds.keys())
+        # RJL in python 2 we could do this quite happily, even if a key were None
+        #
+        #   categories = sorted(self.all_cmds.keys())
+        #
+        # Python3 spits a TypeError at you, though, so convert None to ''
+        categories = sorted(self.all_cmds, key=lambda k: '' if k is None else k)
         self.ui.cat_combobox.insertItems(0, categories)
         self.set_cmd_combobox(cmd_name=command)
         # add the parameters, if any

@@ -63,19 +63,7 @@ qtest:
 # qconflicts
 # qresolve
 # qswitch
-
-
-# === qcmd ===
-
-# brz: ERROR: TypeError: unorderable types: NoneType() < str()
-# Traceback (most recent call last):
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/commands.py", line 174, in run
-#     ret_code = self._qbrz_run(*args, **kwargs)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/commands.py", line 1080, in _qbrz_run
-#     execute=execute)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/run.py", line 67, in __init__
-#     categories = sorted(self.all_cmds.keys())
-# TypeError: unorderable types: NoneType() < str()
+# qcmd
 
 
 # === qdiff ===
