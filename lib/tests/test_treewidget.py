@@ -258,35 +258,41 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
 
         self.model = TreeModel()
         # print('\n\t== self.model is ', self.model, type(self.model))
-        load_dirs=[PersistantItemReference(None, 'dir-with-unversioned'),
-                   PersistantItemReference(None, 'ignored-dir-with-child')]
+        load_dirs = [PersistantItemReference(None, 'dir-with-unversioned'), PersistantItemReference(None, 'ignored-dir-with-child')]
         # print('\n set_tree being called')
         self.model.set_tree(tree, branch=tree.branch, load_dirs=load_dirs)
         self.filter_model = TreeFilterProxyModel()
-        # print('\nmodel and filter: ', self.model, self.filter)
         self.filter_model.setSourceModel(self.model)
         self.filter_model.setFilters(self.filter)
         self.expected_visible.sort()
         # print('\n*=*=*= after-sort expected', self.expected_visible, type(self.expected_visible))
         self.assertEqual(self.getVisiblePaths(), self.expected_visible)
 
+
     def getVisiblePaths(self):
-        # print('\n@@@@ getVisiblePaths @@@')
+        # RJLRJL this appears to have an off-by-one error which does seem
+        # unlikely - however, changes in both breezy and python might now
+        # be causing problems. In other words, it doesn't seem to handle
+        # children properly
         visible_paths = []
+        # New QModelIndex objects are created by the model using the QAbstractItemModel.createIndex() function.
+        # An invalid model index can be constructed with the QModelIndex constructor. Invalid indexes are often
+        # used as parent indexes when referring to top-level items in a model. (from the PyQt4 docs)
         parent_indexes_to_visit = [QtCore.QModelIndex()]
-        pushed_id = None
         while parent_indexes_to_visit:
             parent_index = parent_indexes_to_visit.pop()
-            # print('\n\t === was pushed', pushed_id == parent_index, parent_indexes_to_visit)
-            # print('\n\t->parent_index', parent_index, 'row count was ', self.filter_model.rowCount(parent_index))
-            for row in range(self.filter_model.rowCount(parent_index)):
+            rows = self.filter_model.rowCount(parent_index)
+            for row in range(0, rows):
+                # we get a QModelIndex into index from row, column (0) and the current parent
                 index = self.filter_model.index(row, 0, parent_index)
-                visible_paths.append(self.filter_model.data(index, self.model.PATH))
-                # print('\n\t\t--> row, index, path', row, index, visible_paths)
+                # and the data (the path in this case)
+                the_path = self.filter_model.data(index, self.model.PATH)
+                visible_paths.append(the_path)
                 if self.filter_model.hasChildren(index):
-                    # print('\n\t\t\thasChildren! appending', index)
+                    # It appears that, although this will be visited, it won't be recorded
+                    # as row_count will be zero whereas the first lot are, as they are children
+                    # of the base QtCore parent
                     parent_indexes_to_visit.append(index)
-                    pushed_id = index
         visible_paths.sort()
         return visible_paths
 
@@ -363,9 +369,7 @@ class TestTreeWidgetSelectAll(qtests.QTestCase):
         self.win.initial_load()
         QTest.qWaitForWindowShown(self.win)
         # print('\ntest_add_select_all', self.win.filelist_widget)
-        self.assertSelectedPaths(self.win.filelist_widget, ['dir-with-unversioned/child',
-                                                     'unversioned',
-                                                     'unversioned-with-ignored'])
+        self.assertSelectedPaths(self.win.filelist_widget, ['dir-with-unversioned/child', 'unversioned', 'unversioned-with-ignored'])
 
 
     def test_commit_selectall(self):

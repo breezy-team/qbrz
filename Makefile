@@ -24,13 +24,13 @@ checkone: test
 
 # Test specific item
 checkspecific: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidget
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeFilterProxyModel
 
 qtest:
 	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qdiff
 	# cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qbranch
 	# cd ~/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qpush
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess qdiff
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess qconfig
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
 	cd ~/pythonstuff/fix-python-etc
 
@@ -66,27 +66,7 @@ qtest:
 # qcmd
 # qsubprocess
 # qdiff
-
-
-
-# === qconfig ===
-
-# brz: ERROR: ImportError: cannot import name 'ensure_config_dir_exists'
-# Traceback (most recent call last):
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/commands.py", line 174, in run
-#     ret_code = self._qbrz_run(*args, **kwargs)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/commands.py", line 515, in _qbrz_run
-#     window = QBzrConfigWindow()
-#   File "/usr/local/lib/python3.5/dist-packages/breezy/lazy_import.py", line 154, in __call__
-#     obj = object.__getattribute__(self, '_resolve')()
-#   File "/usr/local/lib/python3.5/dist-packages/breezy/lazy_import.py", line 122, in _resolve
-#     obj = factory(self, scope, name)
-#   File "/usr/local/lib/python3.5/dist-packages/breezy/lazy_import.py", line 241, in _import
-#     module = _builtin_import(name, scope, scope, [member], level=0)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/config.py", line 23, in <module>
-#     from breezy.config import (
-# ImportError: cannot import name 'ensure_config_dir_exists'
-
+# qconfig
 
 # === qmain ===
 

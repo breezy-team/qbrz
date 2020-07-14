@@ -20,10 +20,8 @@
 import re
 import os.path
 from PyQt4 import QtCore, QtGui
-from breezy.config import (
-    ensure_config_dir_exists,
-    extract_email_address,
-    )
+from breezy.config import extract_email_address
+from breezy.bedding import ensure_config_dir_exists
 from breezy import cmdline, errors, trace
 
 from breezy.plugins.qbrz.lib import ui_merge_config
@@ -974,23 +972,22 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
 
     def sort(self, column, sortOrder):
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-        index_map = self._order[:] # copy
+        index_map = self._order[:]  # copy
+
         def tool_cmp(a, b):
             if column == self.COL_NAME:
                 return cmp(a, b)
             elif column == self.COL_COMMANDLINE:
-                return cmp(self.get_merge_tool_command_line(a),
-                           self.get_merge_tool_command_line(b))
+                return cmp(self.get_merge_tool_command_line(a), self.get_merge_tool_command_line(b))
             return 0
-        self._order.sort(cmp=tool_cmp,
-                         reverse=sortOrder==QtCore.Qt.DescendingOrder)
+
+        # self._order.sort(cmp=tool_cmp, reverse=sortOrder==QtCore.Qt.DescendingOrder)
         for i in range(0, len(index_map)):
             index_map[i] = self._order.index(index_map[i])
         from_list = []
         to_list = []
         for col in range(0, self.columnCount(None)):
             from_list.extend([self.index(i, col) for i in index_map])
-            to_list.extend([self.index(i, col)
-                            for i in range(0, len(index_map))])
+            to_list.extend([self.index(i, col) for i in range(0, len(index_map))])
         self.changePersistentIndexList(from_list, to_list)
         self.emit(QtCore.SIGNAL("layoutChanged()"))

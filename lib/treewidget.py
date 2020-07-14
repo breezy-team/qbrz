@@ -1316,6 +1316,7 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
                 return x
             else:
                 return y
+
         self.filters = [iff(f is not None, f, old_f) for f, old_f in zip(filters, self.filters)]
         self.invalidateFilter()
 
