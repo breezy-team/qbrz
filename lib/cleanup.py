@@ -134,12 +134,10 @@ class OperationWithCleanups(ObjectWithCleanups):
         self.func = func
 
     def run(self, *args, **kwargs):
-        return _do_with_cleanups(
-            self.cleanups, self.func, self, *args, **kwargs)
+        return _do_with_cleanups(self.cleanups, self.func, self, *args, **kwargs)
 
     def run_simple(self, *args, **kwargs):
-        return _do_with_cleanups(
-            self.cleanups, self.func, *args, **kwargs)
+        return _do_with_cleanups(self.cleanups, self.func, *args, **kwargs)
 
 
 def _do_with_cleanups(cleanup_funcs, func, *args, **kwargs):

@@ -23,6 +23,7 @@
 import errno
 import re
 import time
+import contextlib
 
 from PyQt4 import QtCore, QtGui
 
@@ -370,7 +371,10 @@ class DiffWindow(QBzrWindow):
 
 
     def _initial_load(self, op):
-        args = self.arg_provider.get_diff_window_args(self.processEvents, op.add_cleanup)
+        # RJL Breezy expects a context handler of some type
+        exit_stack = contextlib.ExitStack()
+        args = self.arg_provider.get_diff_window_args(self.processEvents, exit_stack)
+        # args = self.arg_provider.get_diff_window_args(self.processEvents, op.add_cleanup)
 
         self.trees = (args["old_tree"], args["new_tree"])
         self.branches = (args.get("old_branch", None), args.get("new_branch",None))

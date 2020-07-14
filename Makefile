@@ -27,10 +27,10 @@ checkspecific: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidget
 
 qtest:
-	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qshelve
-	cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qbranch
+	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qdiff
+	# cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qbranch
 	# cd ~/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qpush
-	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess qget
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess qdiff
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
 	cd ~/pythonstuff/fix-python-etc
 
@@ -65,31 +65,8 @@ qtest:
 # qswitch
 # qcmd
 # qsubprocess
+# qdiff
 
-
-# === qdiff ===
-
-# This *does* work when embedded in other windows
-#
-# brz: ERROR: AttributeError: 'function' object has no attribute 'enter_context'
-# Traceback (most recent call last):
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/trace.py", line 378, in reports_exception_decorate
-#     return f(*args, **kargs)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/diffwindow.py", line 369, in initial_load
-#     op.run()
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/cleanup.py", line 138, in run
-#     self.cleanups, self.func, self, *args, **kwargs)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/cleanup.py", line 171, in _do_with_cleanups
-#     result = func(*args, **kwargs)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/diffwindow.py", line 373, in _initial_load
-#     args = self.arg_provider.get_diff_window_args(self.processEvents, op.add_cleanup)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/commands.py", line 422, in get_diff_window_args
-#     get_trees_and_branches_to_diff_locked(self.file_list, self.revision, self.old, self.new, add_cleanup)
-#   File "/usr/local/lib/python3.5/dist-packages/breezy/diff.py", line 437, in get_trees_and_branches_to_diff_locked
-#     lock_tree_or_branch(working_tree, branch)
-#   File "/usr/local/lib/python3.5/dist-packages/breezy/diff.py", line 427, in lock_tree_or_branch
-#     exit_stack.enter_context(wt.lock_read())
-# AttributeError: 'function' object has no attribute 'enter_context'
 
 
 # === qconfig ===

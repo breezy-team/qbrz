@@ -19,6 +19,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import signal
+import contextlib
 
 from breezy import errors
 from breezy.commands import Command
@@ -40,6 +41,7 @@ from breezy import (
 from breezy.branch import Branch
 from breezy.controldir import ControlDir
 from breezy.workingtree import WorkingTree
+from breezy.diff import get_trees_and_branches_to_diff_locked
 
 from breezy.plugins.qbrz.lib import i18n
 from breezy.plugins.qbrz.lib.add import AddWindow
@@ -405,21 +407,17 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
     aliases = ['qdi']
 
     def get_diff_window_args(self, processEvents, add_cleanup):
+        # RJL if you get a ``AttributeError: 'function' object has no attribute 'enter_context'``
+        # error, or something similar, use something like:
+        #
+        #  exit_stack = contextlib.ExitStack()
+        #
+        # and pass that as add_cleanup
+        #
         args = {}
-        try:
-            from breezy.diff import get_trees_and_branches_to_diff_locked
-        except ImportError:
-            from breezy.diff import get_trees_and_branches_to_diff
-            (args["old_tree"], args["new_tree"],
-             args["old_branch"], args["new_branch"],
-             args["specific_files"], _) = \
-                get_trees_and_branches_to_diff(
-                    self.file_list, self.revision, self.old, self.new)
-        else:
-            (args["old_tree"], args["new_tree"],
-             args["old_branch"], args["new_branch"],
-             args["specific_files"], _) = \
-                get_trees_and_branches_to_diff_locked(self.file_list, self.revision, self.old, self.new, add_cleanup)
+        (args["old_tree"], args["new_tree"],
+            args["old_branch"], args["new_branch"],
+            args["specific_files"], _) = get_trees_and_branches_to_diff_locked(self.file_list, self.revision, self.old, self.new, add_cleanup)
         args["ignore_whitespace"] = self.ignore_whitespace
         return args
 
@@ -461,11 +459,7 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
         self.new = new
         self.ignore_whitespace = ignore_whitespace
 
-        window = DiffWindow(self,
-                            complete=complete,
-                            encoding=encoding,
-                            filter_options=filter_options,
-                            ui_mode=ui_mode)
+        window = DiffWindow(self, complete=complete, encoding=encoding, filter_options=filter_options, ui_mode=ui_mode)
         window.show()
         self._application.exec_()
 
