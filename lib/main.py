@@ -19,6 +19,7 @@
 
 import os.path
 import sys
+from base64 import b64encode, b64decode
 from PyQt4 import QtCore, QtGui
 
 
@@ -56,18 +57,15 @@ class BookmarkDialog(QtGui.QDialog):
         self.setWindowTitle(title)
         self.ui = Ui_BookmarkDialog()
         self.ui.setupUi(self)
-        self.ui.buttonBox.addButton(StandardButton(BTN_OK),
-                                    QtGui.QDialogButtonBox.AcceptRole)
-        self.ui.buttonBox.addButton(StandardButton(BTN_CANCEL),
-                                    QtGui.QDialogButtonBox.RejectRole)
+        self.ui.buttonBox.addButton(StandardButton(BTN_OK), QtGui.QDialogButtonBox.AcceptRole)
+        self.ui.buttonBox.addButton(StandardButton(BTN_CANCEL), QtGui.QDialogButtonBox.RejectRole)
 
     def setValues(self, name, location):
         self.ui.name.setText(name)
         self.ui.location.setText(location)
 
     def values(self):
-        return (str(self.ui.name.text()),
-                str(self.ui.location.text()))
+        return (str(self.ui.name.text()), str(self.ui.location.text()))
 
 
 class SideBarItem(object):
@@ -85,7 +83,7 @@ class SideBarItem(object):
         pass
 
     def __repr__(self):
-        return '<%s ("%s")>' % (self.__class__.__name__, self.text.toString())
+        return '<%s ("%s")>' % (self.__class__.__name__, self.text)
 
 
 class DirectoryItem(SideBarItem):
@@ -336,12 +334,8 @@ class QBzrMainWindow(QBzrWindow):
         self.sideBarView.setModel(self.sideBarModel)
         self.sideBarView.setTextElideMode(QtCore.Qt.ElideLeft)
         self.sideBarView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.connect(self.sideBarView,
-                     QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
-                     self.sideBarModel.showContextMenu)
-        self.connect(self.sideBarView.selectionModel(),
-                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
-                     self.updateFileList)
+        self.connect(self.sideBarView, QtCore.SIGNAL("customContextMenuRequested(QPoint)"), self.sideBarModel.showContextMenu)
+        self.connect(self.sideBarView.selectionModel(), QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), self.updateFileList)
         header = self.sideBarView.header()
         header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         header.setStretchLastSection(False)
@@ -354,9 +348,7 @@ class QBzrMainWindow(QBzrWindow):
             gettext("Size"),
             gettext("Status"),
             ])
-        self.connect(self.fileListView,
-                     QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
-                     self.onFileActivated)
+        self.connect(self.fileListView, QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"), self.onFileActivated)
 
         self.hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         self.hsplitter.addWidget(self.sideBarView)
@@ -371,28 +363,31 @@ class QBzrMainWindow(QBzrWindow):
     def _saveSize(self, config):
         super(type(self),self)._saveSize(config)
         name = self._window_name
-        config.set_option(
-            name + "_vsplitter_state",
-            str(self.vsplitter.saveState()).encode("base64").strip())
-        config.set_option(
-            name + "_hsplitter_state",
-            str(self.hsplitter.saveState()).encode("base64").strip())
-        config.set_option(
-            name + "_file_list_header_state",
-            str(self.fileListView.header().saveState()).encode("base64").strip())
+        # The splitter stuff returns bytes in (apparently) base64 - we use b64encode from base64
+        # then turn it into a utf-8 string, then strip and concat with name, like this:
+        #
+        #  main_vsplitter_state = AAAA/wAAAAAAAAACAAAAwAAAAMABAAAABgEAAAAC
+        #
+        config.set_option(name + "_vsplitter_state", str(b64encode(self.vsplitter.saveState()), 'utf-8').strip())
+        config.set_option(name + "_hsplitter_state", str(b64encode(self.hsplitter.saveState()), "utf-8").strip())
+        config.set_option(name + "_file_list_header_state", str(b64encode(self.fileListView.header().saveState()), "utf-8").strip())
+        # config.set_option(name + "_vsplitter_state", str(self.vsplitter.saveState()).encode("base64").strip())
+        # config.set_option(name + "_hsplitter_state", str(self.hsplitter.saveState()).encode("base64").strip())
+        # config.set_option(name + "_file_list_header_state", str(self.fileListView.header().saveState()).encode("base64").strip())
 
     def restoreSize(self, name, defaultSize):
         config = QBzrWindow.restoreSize(self, name, defaultSize)
         name = self._window_name
         value = config.get_option(name + "_vsplitter_state")
+        # We get a utf-8 string, but need some bytes...
         if value:
-            self.vsplitter.restoreState(value.decode("base64"))
+            self.vsplitter.restoreState(b64decode(value))
         value = config.get_option(name + "_hsplitter_state")
         if value:
-            self.hsplitter.restoreState(value.decode("base64"))
+            self.hsplitter.restoreState(b64decode(value))
         value = config.get_option(name + "_file_list_header_state")
         if value:
-            self.fileListView.header().restoreState(value.decode("base64"))
+            self.fileListView.header().restoreState(b64decode(value))
 
     def showHelp(self):
         open_browser("http://bazaar-vcs.org/QBzr/Documentation")
@@ -511,7 +506,7 @@ class QBzrMainWindow(QBzrWindow):
         self.setDirectory(str(item.path))
 
     def onFileActivated(self, item, column):
-        path = item.data(0, QtCore.Qt.UserRole).toString()
+        path = item.data(0, QtCore.Qt.UserRole)
         if path:
             # directory
             self.setDirectory(str(path))

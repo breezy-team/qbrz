@@ -655,6 +655,7 @@ def format_timestamp(timestamp):
     formatted in user locale"""
     date = QtCore.QDateTime()
     date.setTime_t(int(timestamp))
+    # RJLRJL possible removeal of toString needed
     return str(date.toString(QtCore.Qt.LocalDate))
 
 
@@ -810,9 +811,9 @@ def show_shortcut_hint(action):
     Make sure to set the shortcut and tooltip *before* calling this.
     """
     shortcut = action.shortcut()
-    if shortcut and shortcut.toString():
+    if shortcut:
         toolTip = action.toolTip()
-        action.setToolTip("%s (%s)" % (toolTip, shortcut.toString()))
+        action.setToolTip("%s (%s)" % (toolTip, shortcut))
 
 def iter_saved_pull_locations():
     """ Iterate the 'pull' locations we have previously saved for the user.

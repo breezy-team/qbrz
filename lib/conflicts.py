@@ -88,9 +88,9 @@ class ConflictsWindow(QBzrWindow):
         self.connect(self.merge_tools_combo,
                      QtCore.SIGNAL("currentIndexChanged(int)"),
                      self.update_merge_tool_ui)
-        
+
         self.merge_tool_error = QtGui.QLabel('', self)
-        
+
         self.program_launch_button = QtGui.QPushButton(gettext("&Launch..."), self)
         self.program_launch_button.setEnabled(False)
         self.connect(
@@ -121,7 +121,7 @@ class ConflictsWindow(QBzrWindow):
         hbox.addWidget(autobutton)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
-        self.initialize_ui()        
+        self.initialize_ui()
 
     def initialize_ui(self):
         config = GlobalConfig()
@@ -251,8 +251,8 @@ class ConflictsWindow(QBzrWindow):
             # XXX why we need to use file_id -> path conversion if we already have filename???
             # this conversion fails in the case when user removed file or directory
             # which marked as conflicted (e.g. in missing parent conflict case).
-            #~file_id = str(item.data(0, QtCore.Qt.UserRole).toString())
-            #~file_names.append(self.wt.id2path(file_id))
+            # ~file_id = str(item.data(0, QtCore.Qt.UserRole).toString())
+            # ~file_names.append(self.wt.id2path(file_id))
             file_names.append(str(item.text(0)))
         resolve(self.wt, file_names, action=action)
         self.refresh()

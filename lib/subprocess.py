@@ -981,20 +981,33 @@ def run_subprocess_command(cmd, bencoded=False):
         signal.signal(signal.SIGINT, sigabrt_handler)
     ui.ui_factory = SubprocessUIFactory(stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
 
+    if not isinstance(cmd, str) and not isinstance(cmd, bytes):
+        raise TypeError('Only string or bytes accepted ({0}, {1})'.format(cmd, type(cmd)))
+
     # Right, here we go, we could be a string or bytes
     # and bencoded might be actually true (it's bytes) or just
-    # pretending (it's not bytes but is bencoded)
+    # pretending (it's not bytes but is bencoded). Also, the cmd might
+    # result in a list once decoded, even though this is not supposed to
+    # be called with one
     s_cmd = cmd
     if bencoded:
         # if we are bytes AND bencoded (perhaps), decode properly
         if isinstance(cmd, bytes):
-            s_cmd = bittorrent_b_decode_prompt(cmd)
-        else:
+            s_cmd = bencode.bdecode(cmd)
+        elif isinstance(cmd, str):
             # Force to bytes to decode it properly from bencoded format
-            s_cmd = bittorrent_b_decode_prompt(bytes(cmd, 'utf-8'))
+            # s_cmd = bittorrent_b_decode_prompt(b)
+            s_cmd = bencode.bdecode(bytes(cmd, 'utf-8'))
     else:
         if isinstance(cmd, bytes):
             s_cmd = cmd.decode('utf-8')
+
+    # Sometimes we get a list
+    if isinstance(s_cmd, list):
+        for i, s in enumerate(s_cmd):
+            if isinstance(s, bytes):
+                s_cmd[i] = s.decode('utf-8')
+        s_cmd = ' '.join(s_cmd)
 
     if s_cmd.startswith('@'):
         fname = s_cmd[1:]
@@ -1143,14 +1156,11 @@ def bittorrent_b_decode_prompt(bencoded_bytes: bytes) -> str:
     # bytes... and we convert them to a string
     return bencode.bdecode(bencoded_bytes).decode('utf-8')
 
+
 def bittorrent_b_encode_choose_args(msg, choices, default):
     if default is None:
         default = -1
-    return bencode.bencode([
-        msg.encode('utf-8'),
-        choices.encode('utf-8'),
-        default
-    ])
+    return bencode.bencode([msg.encode('utf-8'), choices.encode('utf-8'), default])
 
 def bittorrent_b_decode_choose_args(s):
     msg, choices, default = bencode.bdecode(s)

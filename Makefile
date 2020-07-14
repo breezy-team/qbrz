@@ -27,11 +27,11 @@ checkspecific: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeWidget
 
 qtest:
-	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qswitch
-	# cd ~/pythonstuff/bzr_test_dir BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qmain
+	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qshelve
+	cd ~/pythonstuff/bzr_test_dir BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qmain
 	# cd ~/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qpush
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess diff
-	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsend
+	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess diff
+	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
 	cd ~/pythonstuff/fix-python-etc
 
 # Fully working: (note, qchecout-ala-explorer is qgetn
