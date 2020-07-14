@@ -28,9 +28,9 @@ checkspecific: test
 
 qtest:
 	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qshelve
-	cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qmain
+	cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qbranch
 	# cd ~/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qpush
-	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess diff
+	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess qget
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
 	cd ~/pythonstuff/fix-python-etc
 
@@ -113,26 +113,8 @@ qtest:
 
 # === qmain ===
 
-# brz: ERROR: TypeError: 'TreeChange' object does not support indexing
-# Traceback (most recent call last):
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/statuscache.py", line 132, in getDirectoryStatus
-#     entry = self._getCacheEntry(path)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/statuscache.py", line 73, in _getCacheEntry
-#     entry = entry.children[part]
-# KeyError: 'home'
-# During handling of the above exception, another exception occurred:
-# Traceback (most recent call last):
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/commands.py", line 174, in run
-#     ret_code = self._qbrz_run(*args, **kwargs)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/commands.py", line 778, in _qbrz_run
-#     window.setDirectory(osutils.realpath(CUR_DIR))
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/main.py", line 554, in setDirectory
-#     status = self.cache.getDirectoryStatus(pathParts, str(fileInfo.fileName()))
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/statuscache.py", line 134, in getDirectoryStatus
-#     entry = self._cacheDirectoryStatus(path)
-#   File "/home/rjl/pythonstuff/fix-python-etc/lib/statuscache.py", line 102, in _cacheDirectoryStatus
-#     self._cacheStatus(osutils.splitpath(entry[0]), 'unchanged', root=root)
-# TypeError: 'TreeChange' object does not support indexing
+# qmain fails in bzr
+
 
 # === qverify-signatures ===
 

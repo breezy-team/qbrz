@@ -113,8 +113,7 @@ class Config(object):
     def _load(self):
         if self._configobj is not None:
             return
-        self._configobj = configobj.ConfigObj(self._filename,
-                                              encoding='utf-8')
+        self._configobj = configobj.ConfigObj(self._filename, encoding='utf-8')
 
     def set_option(self, name, value, section=None):
         self._load()
@@ -197,9 +196,9 @@ class QBzrConfig(Config):
         self.set_section('BOOKMARKS', section)
 
     def add_bookmark(self, name, location):
-        bookmarks = list(self.getBookmarks())
+        bookmarks = list(self.get_bookmarks())
         bookmarks.append((name, location))
-        self.setBookmarks(bookmarks)
+        self.set_bookmarks(bookmarks)
 
     def get_color(self, name, section=None):
         """
