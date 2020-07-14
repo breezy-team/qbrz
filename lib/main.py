@@ -433,8 +433,7 @@ class QBzrMainWindow(QBzrWindow):
                 icon.addFile('/'.join([':', size, name]) + '.png')
             if name_on is not None:
                 for size in sizes:
-                    icon.addFile('/'.join([':', size, name_on]) + '.png',
-                        QtCore.QSize(), QtGui.QIcon.Normal, QtGui.QIcon.On)
+                    icon.addFile('/'.join([':', size, name_on]) + '.png', QtCore.QSize(), QtGui.QIcon.Normal, QtGui.QIcon.On)
             self.icons[name] = icon
 
     def commit(self):
@@ -501,7 +500,9 @@ class QBzrMainWindow(QBzrWindow):
         if not items:
             return
         item = items[0]
-        if not isinstance(item, DirectoryItem):
+        # RJL This should be type, I suspect, as FileSystemItems haven't got a path
+        # if not isinstance(item, DirectoryItem):
+        if type(item) is not DirectoryItem:
             return
         self.setDirectory(str(item.path))
 

@@ -44,15 +44,11 @@ class StatusCache(QtCore.QObject):
     def __init__(self, window):
         QtCore.QObject.__init__(self)
         self.fileSystemWatcher = QtCore.QFileSystemWatcher(self)
-        self.connect(self.fileSystemWatcher,
-                     QtCore.SIGNAL("directoryChanged(QString)"),
-                     self.invalidateDirectory)
+        self.connect(self.fileSystemWatcher, QtCore.SIGNAL("directoryChanged(QString)"), self.invalidateDirectory)
         self.autoRefreshPath = None
         self.autoRefreshTimer = QtCore.QTimer(self)
         self.autoRefreshTimer.setSingleShot(True)
-        self.connect(self.autoRefreshTimer,
-                     QtCore.SIGNAL("timeout()"),
-                     self.autoRefresh)
+        self.connect(self.autoRefreshTimer, QtCore.SIGNAL("timeout()"), self.autoRefresh)
         self.window = window
         self.cache = CacheEntry()
 
@@ -77,10 +73,10 @@ class StatusCache(QtCore.QObject):
         p = '/'.join(path)
         if sys.platform != 'win32':
             p = '/' + p
-        #print "caching", p
+        # print "caching", p
         try:
             # to stop bzr-svn from trying to give status on svn checkouts
-            #if not QtCore.QDir(p).exists('.bzr'):
+            # if not QtCore.QDir(p).exists('.bzr'):
             #    raise errors.NotBranchError(p)
             wt, relpath = workingtree.WorkingTree.open_containing(p)
         except errors.BzrError:
@@ -89,19 +85,26 @@ class StatusCache(QtCore.QObject):
         self.fileSystemWatcher.addPath(wt.basedir)
         bt = wt.basis_tree()
         root = self._cacheStatus(osutils.splitpath(wt.basedir), 'branch')
+        # delta will be a TreeDelta: commit 7389 makes TreeDelta HOLD TreeChange objects in
+        # list member variables called added, removed, renamed, copied, kind_changes, modified
+        # unchanged, unversioned and missing
         delta = wt.changes_from(bt, want_unchanged=True, want_unversioned=True)
+        # ... and thus entry will be a TreeChange object, with the path in,
+        # perhaps unsurprisingly, 'path' rather than entry[0]. Path is a tuple of
+        # old and new path, so get whatever works
         for entry in delta.added:
-            self._cacheStatus(osutils.splitpath(entry[0]), 'added', root=root)
+            self._cacheStatus(osutils.splitpath(entry.path[0] or entry.path[1]), 'added', root=root)
         for entry in delta.removed:
             # FIXME
-            self._cacheStatus(osutils.splitpath(entry[0]), 'modified', root=root)
+            self._cacheStatus(osutils.splitpath(entry.path[0] or entry.path[1]), 'modified', root=root)
 #            self._cacheStatus(osutils.splitpath(entry[0]), 'removed', root=root)
         for entry in delta.modified:
-            self._cacheStatus(osutils.splitpath(entry[0]), 'modified', root=root)
+            self._cacheStatus(osutils.splitpath(entry.path[0] or entry.path[1]), 'modified', root=root)
         for entry in delta.unchanged:
-            self._cacheStatus(osutils.splitpath(entry[0]), 'unchanged', root=root)
+            self._cacheStatus(osutils.splitpath(entry.path[0] or entry.path[1]), 'unchanged', root=root)
+            # self._cacheStatus(osutils.splitpath(entry[0]), 'unchanged', root=root)
         for entry in delta.unversioned:
-            self._cacheStatus(osutils.splitpath(entry[0]), 'non-versioned', root=root)
+            self._cacheStatus(osutils.splitpath(entry.path[0] or entry.path[1]), 'non-versioned', root=root)
         try:
             return self._getCacheEntry(path)
         except KeyError:
@@ -135,7 +138,7 @@ class StatusCache(QtCore.QObject):
         else:
             if entry.status == 'unknown':
                 entry = self._cacheDirectoryStatus(path)
-        #print path, entry.status
+        # print path, entry.status
         return entry.status
 
     def invalidateDirectory(self, path):

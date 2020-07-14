@@ -675,7 +675,7 @@ class FileListContainer(QtGui.QWidget):
 
         # Jelmer's commit 7389 states: TreeDelta holds TreeChange objects rather than tuples of various sizes
         #
-        # It used to be:--
+        # It used to be seven lists:--
         #
         # added
         #     (path, id, kind)
@@ -692,7 +692,7 @@ class FileListContainer(QtGui.QWidget):
         # unversioned
         #     (path, None, kind)
         #
-        # Now they are TreeChange objects in added[[, removed[] renamed[], copied[] and modified[]
+        # Now they are TreeChange objects in the lists added[[, removed[] renamed[], copied[] and modified[]
         #
         # self.file_id = file_id
         # self.path = path

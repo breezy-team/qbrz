@@ -28,7 +28,7 @@ checkspecific: test
 
 qtest:
 	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qshelve
-	cd ~/pythonstuff/bzr_test_dir BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qmain
+	cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qmain
 	# cd ~/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qpush
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess diff
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
