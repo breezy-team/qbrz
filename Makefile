@@ -55,6 +55,7 @@ check: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s bp.qbrz -x TestTreeFilterProxyModel
 
 # Stop on first error, ignore TestTreeFilterProxyModel for now
+
 checkone: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x  TestTreeFilterProxyModel
 
@@ -67,15 +68,15 @@ checkspecific: test
 # Rather than running the test_ suite, this lets you run the actual plugin - note
 # that the tests can often pass but the code fails in actual use.
 qtest:
-	# You can test on qbrz itself like this (qlog in this example):
-	#
-	#  BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
-	#
-	# If you have a test directory you wish to use, you can cd to it, run the code, cd back from it.
-	# In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` - we have
-	# to ``cd`` to it (note the semi-colon) THEN execute the plugin code we want:
-	#
-	#  cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qdiff
+# You can test on qbrz itself like this (qlog in this example):
+#
+	 BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
+#
+# If you have a test directory you wish to use, you can cd to it, run the code, cd back from it.
+# In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` - we have
+# to ``cd`` to it (note the semi-colon) THEN execute the plugin code we want:
+#
+#  cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qdiff
 
 test:
 	brz selftest -s bp.qbrz
