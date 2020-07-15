@@ -3,9 +3,7 @@
 ./docs/**/*.html
 ./launchpad-export.tar.gz
 tags
-qbrz-0.23.2.tar.gz
-qbrz-0.23.2.tar.gz.asc
-qbzr-0.23.2.tar.gz.asc
-qbzr-.tar.gz.asc
+*.tar.gz
+*.tar.gz.asc
 .vscode/bookmarks.json
 .vscode

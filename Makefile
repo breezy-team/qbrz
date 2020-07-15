@@ -29,6 +29,9 @@ tarball:
 # inno: mo
 # 	./iscc installer/qbrz-setup.iss
 # 	gpg -ab qbrz-setup-$(RELEASE).exe
+inno:
+	./iscc installer/qbrz-setup.iss
+	gpg2 -ab qbrz-setup-$(RELEASE).exe
 
 # release: tarball inno
 release: tarball

@@ -5,17 +5,17 @@
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId=QBzr
+AppId=QBrz
 
-AppName=                 QBzr
-AppVerName=              QBzr 0.23.2
-OutputBaseFilename=qbzr-setup-0.23.2
+AppName=                 QBrz
+AppVerName=              QBrz 0.3.1
+OutputBaseFilename=qbrz-setup-0.3.1
 
 SourceDir="..\"
 OutputDir="."
-OutputManifestFile=qbzr-setup-iss.log
+OutputManifestFile=qbrz-setup-iss.log
 
-AppPublisher=QBzr Developers
+AppPublisher=QBrz Developers
 AppPublisherURL=http://launchpad.net/qbzr
 AppSupportURL=http://groups.google.com/group/qbzr
 AppUpdatesURL=http://launchpad.net/qbzr/+download
@@ -70,26 +70,26 @@ Type: files; Name: {app}\lib\tests\*.pyo
 Type: files; Name: {app}\lib\widgets\*.pyo
 
 [Registry]
-Root: HKLM; Subkey: "Software\QBzr"; Flags: uninsdeletekey
-Root: HKLM; Subkey: "Software\QBzr"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"
+Root: HKLM; Subkey: "Software\QBrz"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\QBrz"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"
 
 [Code]
-{Function detects system-wide installation of bzr: either bzr.exe or python-based}
-function GetBzrPath(): String;
+{Function detects system-wide installation of brz: either brz.exe or python-based}
+function GetBrzPath(): String;
 var
-  BzrPath: String;
+  BrzPath: String;
   PythonVersions: TArrayOfString;
   Ix: Integer;
   PythonKey: String;
   PythonPath: String;
-  BzrlibPath: String;
+  BrzlibPath: String;
   Path: String;
 begin
-  {Check bzr.exe presence}
-  if RegQueryStringValue(HKEY_LOCAL_MACHINE, 'Software\Bazaar', 'InstallPath', BzrPath) then begin
-    Result := BzrPath;
+  {Check brz.exe presence}
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE, 'Software\Breezy', 'InstallPath', BrzPath) then begin
+    Result := BrzPath;
   end else begin
-    BzrlibPath := '';
+    BrzlibPath := '';
     {Get list of all installed python versions}
     if RegGetSubkeyNames(HKEY_LOCAL_MACHINE, 'Software\Python\PythonCore', PythonVersions) then begin
       {Iterate over installed pythons and check if there is installed bzrlib}
@@ -98,39 +98,39 @@ begin
         if RegQueryStringValue(HKEY_LOCAL_MACHINE, PythonKey, '', PythonPath) then begin
           Path := AddBackslash(PythonPath) + 'Lib\site-packages\bzrlib'
           if DirExists(Path) then begin
-            BzrlibPath := Path;
+            BrzlibPath := Path;
             break;
           end;
         end;
       end;
     end;
-    Result := BzrlibPath;
+    Result := BrzlibPath;
   end;
 end;
 
-{Function determines best possible PATH to install QBzr.
-  At first it tries to find system-wide installation (either bzr.exe or python-based)
-  then checks BZR_PLUGIN_PATH,
-  if all above fails then it suggests install to %APPDATA%\bazaar\2.0
+{Function determines best possible PATH to install QBrz.
+  At first it tries to find system-wide installation (either brz.exe or python-based)
+  then checks BRZ_PLUGIN_PATH,
+  if all above fails then it suggests install to %APPDATA%\Breezy\2.0
 }
 function GetDirName(Param: String): String;
 var
   Path: String;
-  BzrPath: String;
-  EnvBzrPluginPath: String;
+  BrzPath: String;
+  EnvBrzPluginPath: String;
   Ix: Integer;
 begin
-  Path := ExpandConstant('{userappdata}\bazaar\2.0\plugins\qbzr');
-  BzrPath := GetBzrPath();
-  if BzrPath <> '' then begin
-     Path := AddBackslash(BzrPath) + 'plugins\qbzr';
+  Path := ExpandConstant('{userappdata}\Breezy\2.0\plugins\qbzr');
+  BrzPath := GetBrzPath();
+  if BrzPath <> '' then begin
+     Path := AddBackslash(BrzPath) + 'plugins\qbzr';
   end else begin
-      EnvBzrPluginPath := GetEnv('BZR_PLUGIN_PATH')
-      Ix := Pos(';', EnvBzrPluginPath)
+      EnvBrzPluginPath := GetEnv('BRZ_PLUGIN_PATH')
+      Ix := Pos(';', EnvBrzPluginPath)
       if Ix > 0 then
-        EnvBzrPluginPath := Copy(EnvBzrPluginPath, 1, Ix-1)
-      if EnvBzrPluginPath <> '' then
-        Path := AddBackslash(EnvBzrPluginPath) + 'qbzr';
+        EnvBrzPluginPath := Copy(EnvBrzPluginPath, 1, Ix-1)
+      if EnvBrzPluginPath <> '' then
+        Path := AddBackslash(EnvBrzPluginPath) + 'qbzr';
   end;
   Result := Path;
 end;
