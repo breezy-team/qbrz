@@ -25,9 +25,8 @@ from breezy.plugins.qbrz.lib import i18n
 class TestI18n(TestCase):
 
     def setUp(self):
-        print('\n**** setUp starting')
         TestCase.setUp(self)
-        # i18n.uninstall()
+        i18n.uninstall()
 
     def tearDown(self):
         i18n.uninstall()
@@ -35,12 +34,10 @@ class TestI18n(TestCase):
 
     def test_gettext(self):
         # simple pass-through
-        print('\ntest_gettext')
         i18n.install()
         self.assertEqual('file', i18n.gettext('file'))
 
     def test_ngettext(self):
-        print('\ntest_N_gettext')
         i18n.install()
         self.assertEqual('singular', i18n.ngettext('singular', 'plural', 1))
         self.assertEqual('plural', i18n.ngettext('singular', 'plural', 2))

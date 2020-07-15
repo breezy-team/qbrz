@@ -29,21 +29,18 @@ _translation = _null_translation
 
 
 def gettext(s):
-    print('\n === gettext', s)
-    return _translation.ugettext(s)
-    return s
+    return _translation.gettext(s)
+
 
 def ngettext(s, p, n):
-    print('\n=== ngettext', s, p, n)
-    return _translation.ungettext(s, p, n)
-    return s
+    return _translation.ngettext(s, p, n)
+
 
 def N_(s):
     return s
 
 
 def install():
-    print('\n*** installing translations ***')
     global _translation
     if not os.environ.get('LANGUAGE'):
         from breezy import config
@@ -52,14 +49,10 @@ def install():
             os.environ['LANGUAGE'] = lang
     if sys.platform == 'win32':
         _check_win32_locale()
-    print('\n\t about to set _translation, was', _translation, _get_locale_dir())
     _translation = _gettext.translation('qbrz', localedir=_get_locale_dir(), fallback=True)
-    print('\n\t -> now', _translation)
-
 
 
 def uninstall():
-    print('\n+++uninstall called ')
     global _translation
     _translation = _null_translation
 
@@ -70,6 +63,7 @@ def _get_locale_dir():
         if not os.access(localedir, os.R_OK | os.X_OK):
             localedir = '/usr/share/locale'
     return localedir
+
 
 def _check_win32_locale():
     for i in ('LANGUAGE','LC_ALL','LC_MESSAGES','LANG'):
