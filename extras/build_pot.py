@@ -56,7 +56,7 @@ class build_pot(Command):
         if self.build_dir is None:
             self.build_dir = 'po'
         if not self.output:
-            self.output = (self.distribution.get_name() or 'messages')+'.pot'
+            self.output = (self.distribution.get_name() or 'messages')+ '.pot'
         if self.lang is not None:
             self.lang = [i.strip() for i in self.lang.split(',') if i.strip()]
         if self.lang and self.no_lang:
@@ -91,25 +91,34 @@ class build_pot(Command):
         if not os.path.isdir(self.build_dir):
             log.info('Make directory: ' + self.build_dir)
             os.makedirs(self.build_dir)
-        self.spawn(['xgettext',
-                    '--keyword=N_',
-                    '-p', self.build_dir,
-                    '-o', self.output,
-                    '__init__.py',
-                    ] + glob.glob('lib/*.py') + glob.glob('lib/widgets/*.py')
-                    )
-        self._force_LF(fullname)
+
+
+        # self.spawn(['xgettext',
+        #             '--keyword=N_',
+        #             '-p', self.build_dir,
+        #             '-o', self.output,
+        #             '__init__.py',
+        #             ] + glob.glob('lib/*.py') + glob.glob('lib/widgets/*.py')
+        #             )
+        # self._force_LF(fullname)
+
         # regenerate english PO
+        print('self.english is ', self.english, 'project is ', prj_name)
         if self.english:
             log.info('Regenerating English PO file...')
+            log.info(' project: {0}, build_dir {1}, output {2}'.format(prj_name, self.build_dir, self.output))
+            print('Regenerating English PO file...')
+            print(' project: {0}, build_dir {1}, output {2}'.format(prj_name, self.build_dir, self.output))
             regenerate_en(prj_name, self.build_dir, self.output, self.spawn)
         # search and update all po-files
         if self.no_lang:
+            print('No language: stopping')
             return
         for po in glob.glob(os.path.join(self.build_dir,'*.po')):
+            print('\tworking on ', po)
             if self.lang is not None:
                 po_lang = os.path.splitext(os.path.basename(po))[0]
-                if prj_name and po_lang.startswith(prj_name+'-'):
+                if prj_name and po_lang.startswith(prj_name + '-'):
                     po_lang = po_lang[5:]
                 if po_lang not in self.lang:
                     continue
