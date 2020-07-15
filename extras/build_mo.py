@@ -45,8 +45,7 @@ class build_mo(Command):
                     ('output-base=', 'o', 'mo-files base name'),
                     ('source-dir=', None, 'Directory with sources po files'),
                     ('force', 'f', 'Force creation of mo files'),
-                    ('lang=', None, 'Comma-separated list of languages '
-                                    'to process'),
+                    ('lang=', None, 'Comma-separated list of languages to process'),
                    ]
 
     boolean_options = ['force']
@@ -90,14 +89,14 @@ class build_mo(Command):
             log.warn("Skip compiling po files.")
             return
 
-        if 'en' in self.lang:
-            if find_executable('msginit') is None:
-                log.warn("GNU gettext msginit utility not found!")
-                log.warn("Skip creating English PO file.")
-            else:
-                log.info('Creating English PO file...')
-                pot = (self.prj_name or 'messages') + '.pot'
-                regenerate_en(self.prj_name, self.source_dir, pot, self.spawn)
+        # if 'en' in self.lang:
+        #     if find_executable('msginit') is None:
+        #         log.warn("GNU gettext msginit utility not found!")
+        #         log.warn("Skip creating English PO file.")
+        #     else:
+        #         log.info('Creating English PO file...')
+        #         pot = (self.prj_name or 'messages') + '.pot'
+        #         regenerate_en(self.prj_name, self.source_dir, pot, self.spawn)
 
         basename = self.output_base
         if not basename.endswith('.mo'):
