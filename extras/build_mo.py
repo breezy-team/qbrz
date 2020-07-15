@@ -89,6 +89,7 @@ class build_mo(Command):
             log.warn("Skip compiling po files.")
             return
 
+        # RJLRJL: TODO: by-passed for now: we don't want to shred what we have
         # if 'en' in self.lang:
         #     if find_executable('msginit') is None:
         #         log.warn("GNU gettext msginit utility not found!")

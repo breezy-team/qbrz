@@ -93,6 +93,7 @@ class build_pot(Command):
             os.makedirs(self.build_dir)
 
 
+        # RJLRJL: TODO: bypassed for now, to not shred what we have
         # self.spawn(['xgettext',
         #             '--keyword=N_',
         #             '-p', self.build_dir,

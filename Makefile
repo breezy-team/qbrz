@@ -14,26 +14,74 @@ all:
 
 .PHONY: test pot mo clean tags docs ui
 
-check: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s bp.qbrz -x TestI18n
+# Making pot files is disabled for now - no translators!
+# pot:
+# 	python3 setup.py build_pot -N -d.
 
-# Stop on first error, ignore internationalization for now
+mo:
+	python3 setup.py build_mo -f --verbose
+
+tarball:
+	brz export --root=qbrz qbrz-$(RELEASE).tar.gz
+	gpg2 -ab qbrz-$(RELEASE).tar.gz
+
+# RJL needs to come back in
+# inno: mo
+# 	./iscc installer/qbrz-setup.iss
+# 	gpg -ab qbrz-setup-$(RELEASE).exe
+
+# release: tarball inno
+release: tarball
+
+clean:
+	python3 setup.py clean -a
+
+tags:
+	ctags *.py lib/*.py lib/extra/*.py lib/tests/*.py
+
+epydoc:
+	epydoc.py -o api -v lib
+
+docs:
+	$(MAKE) -C docs
+
+ui:
+	python3 setup.py build_ui
+
+
+# === Tests beyond this point ===
+
+check: test
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s bp.qbrz -x TestTreeFilterProxyModel
+
+# Stop on first error, ignore TestTreeFilterProxyModel for now
 checkone: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x  TestTreeFilterProxyModel
 
-# Test specific item
+# Test specific item - e.g. for internationalisation, use:
+#
+#  BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestI18n
 checkspecific: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestI18n
 
+# Rather than running the test_ suite, this lets you run the actual plugin - note
+# that the tests can often pass but the code fails in actual use.
 qtest:
-	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qdiff
-	# cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qbranch
-	# cd ~/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qpush
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess qlog
-	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
-	cd ~/pythonstuff/fix-python-etc
+	# You can test on qbrz itself like this (qlog in this example):
+	#
+	#  BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
+	#
+	# If you have a test directory you wish to use, you can cd to it, run the code, cd back from it.
+	# In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` - we have
+	# to ``cd`` to it (note the semi-colon) THEN execute the plugin code we want:
+	#
+	#  cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qdiff
 
-# Fully working: (note, qchecout-ala-explorer is qgetn
+test:
+	brz selftest -s bp.qbrz
+
+
+# Fully working: (note, qcheckout-ala-explorer is qgetn).
 # qlog
 # qadd
 # qannotate, qblame
@@ -67,6 +115,7 @@ qtest:
 # qdiff
 # qconfig
 
+
 # === qmain ===
 
 # qmain fails in bzr
@@ -88,38 +137,3 @@ qtest:
 # qinit-workspace, qnew also unknown - they appear to be from the 'explorer' plugin
 
 
-test:
-	brz selftest -s bp.qbrz
-
-# pot:
-# 	python3 setup.py build_pot -N -d.
-
-mo:
-	python3 setup.py build_mo -f --verbose
-
-tarball:
-	brz export --root=qbrz qbrz-$(RELEASE).tar.gz
-	gpg2 -ab qbrz-$(RELEASE).tar.gz
-
-# RJL needs to come back in
-# inno: mo
-# 	./iscc installer/qbrz-setup.iss
-# 	gpg -ab qbrz-setup-$(RELEASE).exe
-
-# release: tarball inno
-release: tarball
-
-clean:
-	python3 setup.py clean -a
-
-tags:
-	ctags *.py lib/*.py lib/extra/*.py lib/tests/*.py
-
-epydoc:
-	epydoc.py -o api -v lib
-
-docs:
-	$(MAKE) -C docs
-
-ui:
-	python3 setup.py build_ui
