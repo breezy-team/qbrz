@@ -39,8 +39,7 @@ class build_pot(Command):
     #   - help string.
     user_options = [('build-dir=', 'd', 'Directory to put POT file'),
                     ('output=', 'o', 'POT filename'),
-                    ('lang=', None, 'Comma-separated list of languages '
-                                    'to update po-files'),
+                    ('lang=', None, 'Comma-separated list of languages to update po-files'),
                     ('no-lang', 'N', "Don't update po-files"),
                     ('english', 'E', 'Regenerate English PO file'),
                    ]
@@ -61,8 +60,7 @@ class build_pot(Command):
         if self.lang is not None:
             self.lang = [i.strip() for i in self.lang.split(',') if i.strip()]
         if self.lang and self.no_lang:
-            raise DistutilsOptionError("You can't use options "
-                "--lang=XXX and --no-lang in the same time.")
+            raise DistutilsOptionError("You can't use options --lang=XXX and --no-lang in the same time.")
 
     def _force_LF(self, src, dst=None):
         f = open(src, 'rU')
@@ -98,9 +96,7 @@ class build_pot(Command):
                     '-p', self.build_dir,
                     '-o', self.output,
                     '__init__.py',
-                    ]
-                    + glob.glob('lib/*.py')
-                    + glob.glob('lib/widgets/*.py')
+                    ] + glob.glob('lib/*.py') + glob.glob('lib/widgets/*.py')
                     )
         self._force_LF(fullname)
         # regenerate english PO

@@ -36,29 +36,30 @@ except ImportError:
 def load_tests(loader, basic_tests, pattern):
     testmod_names = [
         'mock',
-        'test_annotate',
-        'test_autocomplete',
-        'test_bugs',
-        'test_cat',
-        'test_commit',
-        'test_commit_data',
-        # 'test_diffview',  # - broken by API changes
-        'test_extra_isignored',
-        'test_extra_isversioned',
         'test_i18n',
-        'test_log',
-        'test_loggraphviz',
-        'test_logmodel',
-        'test_revisionmessagebrowser',
-        #  RJLRJL ignore spellcheck for now
-        'test_spellcheck',
-        'test_subprocess',
-        'test_tree_branch',
-        'test_treewidget',
-        'test_util',
-        'test_decorator',
-        'test_guidebar',
-        'test_extdiff',
+        # 'test_annotate',
+        # 'test_autocomplete',
+        # 'test_bugs',
+        # 'test_cat',
+        # 'test_commit',
+        # 'test_commit_data',
+        # # 'test_diffview',  # - broken by API changes
+        # 'test_extra_isignored',
+        # 'test_extra_isversioned',
+        # # 'test_i18n',
+        # 'test_log',
+        # 'test_loggraphviz',
+        # 'test_logmodel',
+        # 'test_revisionmessagebrowser',
+        # #  RJLRJL ignore spellcheck for now
+        # 'test_spellcheck',
+        # 'test_subprocess',
+        # 'test_tree_branch',
+        # 'test_treewidget',
+        # 'test_util',
+        # 'test_decorator',
+        # 'test_guidebar',
+        # 'test_extdiff',
     ]
     for name in testmod_names:
         m = "%s.%s" % (__name__, name)

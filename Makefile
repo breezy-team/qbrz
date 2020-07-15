@@ -14,23 +14,22 @@ all:
 
 .PHONY: test pot mo clean tags docs ui
 
-# Ignore internationalization for now
 check: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s bp.qbrz -x TestI18n
 
 # Stop on first error, ignore internationalization for now
 checkone: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x TestI18n -x TestTreeFilterProxyModel
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x  TestTreeFilterProxyModel
 
 # Test specific item
 checkspecific: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestTreeFilterProxyModel
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestI18n
 
 qtest:
 	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qdiff
 	# cd ~/pythonstuff/bzr_test_dir; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qbranch
 	# cd ~/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qpush
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess qconfig
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qsubprocess qlog
 	# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
 	cd ~/pythonstuff/fix-python-etc
 
@@ -92,8 +91,8 @@ qtest:
 test:
 	brz selftest -s bp.qbrz
 
-pot:
-	python3 setup.py build_pot -N -d.
+# pot:
+# 	python3 setup.py build_pot -N -d.
 
 mo:
 	python3 setup.py build_mo -f --verbose

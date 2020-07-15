@@ -28,12 +28,7 @@ def regenerate_en(prj_name, po_dir, pot_file, spawn):
     else:
         en_po = 'en.po'
     en_po_path = os.path.join(po_dir, en_po)
-    spawn(['msginit',
-        '--no-translator',
-        '-l', 'en',
-        '-i', os.path.join(po_dir, pot_file),
-        '-o', en_po_path,
-        ])
+    spawn(['msginit', '--no-translator', '-l', 'en', '-i', os.path.join(po_dir, pot_file), '-o', en_po_path, ])
     # normalize line-endings in en.po file (to LF)
     f = open(en_po_path, 'rU')
     s = f.read()

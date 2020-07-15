@@ -4,15 +4,15 @@
 from distutils.core import setup
 
 # RJL Patched out temporarily
-# try:
-#     from .extras import cmdclass
-# except (ImportError, SystemError):
-#     cmdclass = {}
-# except ValueError:
-#     try:
-#         from extras import cmdclass
-#     except ImportError:
-#         cmdclass = {}
+try:
+    from .extras import cmdclass
+except (ImportError, SystemError):
+    cmdclass = {}
+except ValueError:
+    try:
+        from extras import cmdclass
+    except ImportError:
+        cmdclass = {}
 
 # RJLRJL: patiencediff and dulwich also needed
 # https://katastrophos.net/andre/blog/2009/03/16/setting-up-the-inno-setup-compiler-on-debian/
