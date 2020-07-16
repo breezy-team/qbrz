@@ -20,25 +20,24 @@ all:
 # pot:
 # 	python3 setup.py build_pot -N -d.
 
+.check-env-vars:
+	@test $${RELEASE?RELEASE is undefined. To To build release run make release with RELEASE=X.Y.Z}
+
 mo:
 	python3 setup.py build_mo -f --verbose
 
-tarball:
-	ifndev RELEASE
-		$(error RELEASE is undefined. To To build release run make release with RELEASE=X.Y.Z)
-	endif
+tarball: .check-env-vars
 	brz export --root=qbrz qbrz-$(RELEASE).tar.gz
+	rm -f qbrz-$(RELEASE).tar.gz.asc
 	gpg2 -ab qbrz-$(RELEASE).tar.gz
 
 # RJL needs to come back in
 # inno: mo
 # 	./iscc installer/qbrz-setup.iss
 # 	gpg -ab qbrz-setup-$(RELEASE).exe
-inno:
-	ifndev RELEASE
-		$(error RELEASE is undefined. To To build release run make release with RELEASE=X.Y.Z)
-	endif
+inno: .check-env-vars
 	./iscc installer/qbrz-setup.iss
+	rm -f qbrz-setup-$(RELEASE).exe.asc
 	gpg2 -ab qbrz-setup-$(RELEASE).exe
 
 # release: tarball inno
