@@ -7,3 +7,6 @@ tags
 *.tar.gz.asc
 .vscode/bookmarks.json
 .vscode
+qbrz-setup-iss.log
+*.exe
+*.exe.asc

@@ -8,6 +8,7 @@ all:
 	@echo   docs   - build htmls for texts in docs/ directory
 	@echo   epydoc - build API docs with epydoc
 	@echo   ui     - compile UI files
+	@echo   inno   - compile exe (pass RELEASE=X.Y.Z)
 	@echo
 	@echo To build release run:
 	@echo    make release RELEASE=X.Y.Z
@@ -66,14 +67,14 @@ checkone: test
 #
 #  BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestI18n
 checkspecific: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestI18n
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestBencode
 
 # Rather than running the test_ suite, this lets you run the actual plugin - note
 # that the tests can often pass but the code fails in actual use.
 qtest:
 # You can test on qbrz itself like this (qlog in this example):
 #
-	 BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
+	 BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qignore
 #
 # If you have a test directory you wish to use, you can cd to it, run the code, cd back from it.
 # In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` - we have

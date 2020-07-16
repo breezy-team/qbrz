@@ -48,17 +48,28 @@ class TestBencode(TestCase):
 
 
     def test_bittorrent_b_encode_unicode(self):
-        self.assertEqual("l7:versione", bittorrent_b_encode_unicode(["version"]))
-        self.assertEqual("l3:add3:\u1234e", bittorrent_b_encode_unicode(["add", "\u1234"]))
+        # Encoding should ALWAYS give bytes and expects bytes BUT our routines convert
+        self.assertEqual(b"l7:versione", bittorrent_b_encode_unicode(["version"]))
+        # self.assertEqual(b"l3:add3:\u1234e", bittorrent_b_encode_unicode(["add", "\u1234"]))
+        result = bittorrent_b_encode_unicode(["add", "\u1234"])
+        self.assertEqual(b'l3:add3:\xe1\x88\xb4e', result)
+        # Now check the '\u1234' comes back when it's a string...
+        u = bencode.bdecode(result)
+        self.assertIsInstance(u, list)
+        self.assertEqual("\u1234", u[1].decode('utf-8'))
+
+    def test_bad_bittorrent_examples(self):
+        self.assertRaises(ValueError, bencode.bdecode, b'@/tmp/QBrz/qsubprocess/tmprkdrsdyi')
 
     def test_bittorrent_b_encode_prompt(self):
         self.assertEqual(b"4:spam", bittorrent_b_encode_prompt(utf_string='spam'))
-        self.assertEqual(b"9:spam\neggs", bittorrent_b_encode_prompt('spam'+'\n'+'eggs'))
+        self.assertEqual(b"9:spam\neggs", bittorrent_b_encode_prompt('spam' + '\n' + 'eggs'))
         # "Р\nС" is NOT "P\nC" it's b'\xd0\xa0\n\xd0\xa1'
         # CYRILLIC CAPITAL LETTER ER, \n and CYRILLIC CAPITAL LETTER ES
         self.assertEqual(b'5:\xd0\xa0\n\xd0\xa1', bittorrent_b_encode_prompt("Р\nС"))
 
     def test_bittorrent_b_decode_prompt(self):
+        # Decode must always give not-bytes
         self.assertEqual('spam', bittorrent_b_decode_prompt(b"4:spam"))
         self.assertEqual('spam'+'\n'+'eggs', bittorrent_b_decode_prompt(b"9:spam\neggs"))
         # "Р\nС" is NOT "P\nC" it's b'\xd0\xa0\n\xd0\xa1'

@@ -495,20 +495,12 @@ class SubProcessWidget(QtGui.QWidget):
         self.stderr = None
 
         self.process = QtCore.QProcess()
-        self.connect(self.process,
-            QtCore.SIGNAL("readyReadStandardOutput()"),
-            self.readStdout)
-        self.connect(self.process,
-            QtCore.SIGNAL("readyReadStandardError()"),
-            self.readStderr)
-        self.connect(self.process,
-            QtCore.SIGNAL("error(QProcess::ProcessError)"),
-            self.reportProcessError)
-        self.connect(self.process,
-            QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"),
-            self.onFinished)
+        self.connect(self.process, QtCore.SIGNAL("readyReadStandardOutput()"), self.readStdout)
+        self.connect(self.process, QtCore.SIGNAL("readyReadStandardError()"), self.readStderr)
+        self.connect(self.process, QtCore.SIGNAL("error(QProcess::ProcessError)"), self.reportProcessError)
+        self.connect(self.process, QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"), self.onFinished)
 
-        self.defaultWorkingDir = self.process.workingDirectory ()
+        self.defaultWorkingDir = self.process.workingDirectory()
 
         self.finished = False
         self.aborting = False
@@ -555,7 +547,7 @@ class SubProcessWidget(QtGui.QWidget):
         """Start first command from self.commands queue."""
         self._setup_stdout_stderr()
         self._delete_args_file()
-        dir, args = self.commands.pop(0)
+        directory, args = self.commands.pop(0)
 
         # Log the command we about to execute
         def format_args_for_log(args):
@@ -575,8 +567,9 @@ class SubProcessWidget(QtGui.QWidget):
             if len(s) > 128:  # XXX make it configurable?
                 s = s[:128] + '...'
             return s
-        self.logMessageEx("Run command: "+format_args_for_log(args), "cmdline", self.stderr)
+        self.logMessageEx("Run command: " + format_args_for_log(args), "cmdline", self.stderr)
 
+        # RJLRJL: these are encoded, just to be decoded again in run_subprocess_command
         args = bittorrent_b_encode_unicode(args)
 
         # win32 has command-line length limit about 32K, but it seems
@@ -585,32 +578,45 @@ class SubProcessWidget(QtGui.QWidget):
         # on Linux I believe command-line is in utf-8,
         # so we need to have some extra space
         # when converting unicode -> utf8
-        if (len(args) > 10000       # XXX make the threshold configurable in qbrz.conf?
-            or re.search(r"(?:"
-                r"\n|\r"            # workaround for bug #517420
-                r"|\\\\"            # workaround for bug #528944
-                r")", args) is not None
-            or self.force_passing_args_via_file     # workaround for bug #936587
+        # XXX make the threshold configurable in qbrz.conf?
+        #
+        # RJL: at this point, args is now a byte string (bencoded)
+        if (len(args) > 10000 or re.search(rb"(?:"
+                rb"\n|\r"            # workaround for bug #517420 multi-line comments
+                rb"|\\\\"            # workaround for bug #528944 eating backslashes
+                rb")", args) is not None
+            or self.force_passing_args_via_file     # workaround for bug #936587 quoted regular expressions
             ):
             # save the args to the file
             fname = self._create_args_file(args)
+            # This:
+            #
+            #  args = "@" + fname.replace('\\', '/')
+            #
+            # was bad and caused a bug: args was now no longer a bencoded string... but
+            # the code below would pass it to qsubprocess telling the lie that it was. Tsk.
+            # In Python 2 this sort-of worked: more correctly, nobody noticed the bad behaviour
+            # (bug) for 10 or 12 years.
+            #
+            # Instead, we'll pass a properly constructed, bencoded string
+            #
             args = "@" + fname.replace('\\', '/')
+            args = bencode.bencode(bytes(args, 'utf-8'))
 
-        if dir is None:
-            dir = self.defaultWorkingDir
+        if directory is None:
+            directory = self.defaultWorkingDir
 
         self.error_class = ''
         self.error_data = {}
 
-        self.process.setWorkingDirectory(dir)
+        self.process.setWorkingDirectory(directory)
         if getattr(sys, "frozen", None) is not None:
             brz_exe = sys.executable
             if os.path.basename(brz_exe) != "brz.exe":
                 # Was run from bzrw.exe or tbzrcommand.
                 brz_exe = os.path.join(os.path.dirname(sys.executable), "brz.exe")
                 if not os.path.isfile(brz_exe):
-                    self.reportProcessError(
-                        None, gettext('Could not locate "brz.exe".'))
+                    self.reportProcessError(None, gettext('Could not locate "brz.exe".'))
             self.process.start(brz_exe, ['qsubprocess', '--bencode', args])
         else:
             # otherwise running as python script.
@@ -628,7 +634,7 @@ class SubProcessWidget(QtGui.QWidget):
                     script = os.path.join(sys.prefix, "scripts", "brz")
                 if not os.path.isfile(script):
                     self.reportProcessError(None, gettext('Could not locate "brz" script.'))
-            self.process.start(sys.executable, [script, 'qsubprocess', '--bencode', args])
+            self.process.start(sys.executable, [script, 'qsubprocess', '--bencode', str(args, 'utf-8')])
 
     def _setup_stdout_stderr(self):
         if self.stdout is None:
@@ -805,20 +811,22 @@ class SubProcessWidget(QtGui.QWidget):
             self.setProgress(1000000, [gettext("Failed!")])
             self.emit(QtCore.SIGNAL("failed(QString)"), self.error_class)
 
-    def _create_args_file(self, text):
+    def _create_args_file(self, text:bytes):
         """@param text: text to write into temp file,
                         it should be unicode string
         """
         if self._args_file:
             self._delete_args_file()
         # RJLRJL check QBzr vs QBrz
-        qdir = os.path.join(tempfile.gettempdir(), 'QBzr', 'qsubprocess')
+        # qdir = os.path.join(tempfile.gettempdir(), 'QBzr', 'qsubprocess')
+        qdir = os.path.join(tempfile.gettempdir(), 'QBrz', 'qsubprocess')
         if not os.path.isdir(qdir):
             os.makedirs(qdir)
         fd, fname = tempfile.mkstemp(dir=qdir)
         f = os.fdopen(fd, "wb")
         try:
-            f.write(text.encode('utf8'))
+            # f.write(text.decode('utf8'))
+            f.write(text)
         finally:
             f.close()   # it closes fd as well
         self._args_file = fname
@@ -963,13 +971,24 @@ def run_subprocess_command(cmd, bencoded=False):
     @param bencoded: either cmd_str is bencoded list or not.
 
     NOTE: if cmd starts with @ sign then it used as name of the file
-    where actual command line string is saved (utf-8 encoded).
+    where actual command line string is saved (utf-8 encoded)...BUT
+    see below.
 
     RJLRJL: Because of the joy of python2 -> python3, but more because nobody
     bothered to make a class for bencoded, we have to fanny about with bytes
     and strings - what larks!. So, one day, we'll make bencoded a class.
     Strictly, bencoded (python3) *should* be bytes, but you never can tell.
     Particularly in this code. And don't get me started on rev_ids.
+
+    Also, the 'starts with @' means it's **NOT BENCODED** (sometimes).
+    How can you tell?
+    Try passing cmd to bdecode: you'll probably get an error about 'identifier 64'.
+    You *can* strip off the leading '@' but what's left behind might or might not
+    be bencoded.
+
+    Standards, we've heard of them. I've fixed some of the passing code so that it
+    actually passes bencoded('@'+filename) not '@'+filename, but don't know if I've
+    found it all.
 
     Breezy's ``run_bzr`` says we should pass 'valid' strings so we need to
     get rid of any lurking bytes. Unfortunately, we can no longer trust the
@@ -988,7 +1007,9 @@ def run_subprocess_command(cmd, bencoded=False):
     # and bencoded might be actually true (it's bytes) or just
     # pretending (it's not bytes but is bencoded). Also, the cmd might
     # result in a list once decoded, even though this is not supposed to
-    # be called with one
+    # be called with one.
+    # Eventually, we need a string as would be used at the command-line
+    # to call brz itself.
     s_cmd = cmd
     if bencoded:
         # if we are bytes AND bencoded (perhaps), decode properly
@@ -996,8 +1017,10 @@ def run_subprocess_command(cmd, bencoded=False):
             s_cmd = bencode.bdecode(cmd)
         elif isinstance(cmd, str):
             # Force to bytes to decode it properly from bencoded format
-            # s_cmd = bittorrent_b_decode_prompt(b)
-            s_cmd = bencode.bdecode(bytes(cmd, 'utf-8'))
+            # SOMETIMES it's NOT really bencoded, even when it says it is
+            # in which case we will probably get a ValueError
+            b = bytes(cmd, 'utf-8')
+            s_cmd = bencode.bdecode(b)
     else:
         if isinstance(cmd, bytes):
             s_cmd = cmd.decode('utf-8')
@@ -1009,14 +1032,27 @@ def run_subprocess_command(cmd, bencoded=False):
                 s_cmd[i] = s.decode('utf-8')
         s_cmd = ' '.join(s_cmd)
 
-    if s_cmd.startswith('@'):
+    # Right, now we need a string...
+    if isinstance(s_cmd, bytes):
+        s_cmd = s_cmd.decode('utf-8')
+    if s_cmd[0] == '@':
         fname = s_cmd[1:]
-        f = open(fname, 'r', encoding='utf-8')
+        # Changed this: it's written in 'b' so must be read that way too
+        f = open(fname, 'rb')
         try:
             s_cmd = f.read()
         finally:
             f.close()
-    # We use shlex.split() to work like the shell...
+        # We stored a bencoded string like b'l6:ignore18:qbrz-setup-iss.loge', so...:
+        s_cmd = bencode.bdecode(s_cmd)
+        # ...and again, sometimes we get a list like [b'ignore', b'qbrz-setup-iss.log'], so...
+        if isinstance(s_cmd, list):
+            for i, s in enumerate(s_cmd):
+                if isinstance(s, bytes):
+                    s_cmd[i] = s.decode('utf-8')
+            s_cmd = ' '.join(s_cmd)
+
+    # We use shlex.split() to work like the shell to split (finally) the string
     argv = shlex.split(s_cmd)
 
     try:
@@ -1123,15 +1159,20 @@ if MS_WINDOWS:
 #
 #     is a dictionary where key ``test`` has value ``42`` and key ``zzz`` has value ``junk``.
 
-def bittorrent_b_encode_unicode(args):
+
+def bittorrent_b_encode_unicode(args: list) -> bytes:
     """
     Bencode list of unicode strings as list of utf-8 strings and converting
     resulting string to unicode.
+    Bencode will only accept bytes
     """
-    args_utf8 = bencode.bencode([str(a).encode('utf-8') for a in args])
-    return str(args_utf8, 'utf-8')
+    if isinstance(args, str) or isinstance(args, bytes):
+        raise TypeError('bittorrent_b_encode_unicode only accepts an iterable got ', type(args))
+    args_utf8 = bencode.bencode([a.encode('utf-8') for a in args])
+    return args_utf8
 
-def bittorrent_b_encode_prompt(utf_string: str) -> bytes:
+
+def bittorrent_b_encode_prompt(utf_string: str or bytes) -> bytes:
     # The brz.bencode returns bytes but can be passed
     # integer, list, bytes, and dictionaries
     # BUT only those (so NO strings, even in dictionaries)
@@ -1139,10 +1180,10 @@ def bittorrent_b_encode_prompt(utf_string: str) -> bytes:
     #
     # ``bencode.bencode(arg.encode('unicode-escape'))``
     #
-    # ...and you can only do encode() with strings
+    # ...and you can only do encode() with bytes
     # What we *can* do is insist we only get strings sent to us
-    if not isinstance(utf_string, str):
-        raise TypeError('bittorrent_b_encode_prompt accepts only strings')
+    if not isinstance(utf_string, str) and not isinstance(utf_string, bytes):
+        raise TypeError('bittorrent_b_encode_prompt accepts only strings or bytes')
     return bencode.bencode(utf_string.encode('utf-8'))
 
 
@@ -1162,11 +1203,13 @@ def bittorrent_b_encode_choose_args(msg, choices, default):
         default = -1
     return bencode.bencode([msg.encode('utf-8'), choices.encode('utf-8'), default])
 
+
 def bittorrent_b_decode_choose_args(s):
     msg, choices, default = bencode.bdecode(s)
     msg = msg.decode('utf-8')
     choices = choices.decode('utf-8')
     return msg, choices, default
+
 
 def bittorrent_b_encode_exception_instance(e: Exception) -> bytes:
     """
