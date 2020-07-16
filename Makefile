@@ -21,7 +21,7 @@ all:
 # 	python3 setup.py build_pot -N -d.
 
 .check-env-vars:
-	@test $${RELEASE?RELEASE is undefined. To To build release run make release with RELEASE=X.Y.Z}
+	@test $${RELEASE?RELEASE is undefined. To build release run make release with RELEASE=X.Y.Z}
 
 mo:
 	python3 setup.py build_mo -f --verbose
