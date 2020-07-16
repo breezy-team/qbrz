@@ -24,6 +24,9 @@ mo:
 	python3 setup.py build_mo -f --verbose
 
 tarball:
+	ifndev RELEASE
+		$(error RELEASE is undefined. To To build release run make release with RELEASE=X.Y.Z)
+	endif
 	brz export --root=qbrz qbrz-$(RELEASE).tar.gz
 	gpg2 -ab qbrz-$(RELEASE).tar.gz
 
@@ -32,11 +35,14 @@ tarball:
 # 	./iscc installer/qbrz-setup.iss
 # 	gpg -ab qbrz-setup-$(RELEASE).exe
 inno:
+	ifndev RELEASE
+		$(error RELEASE is undefined. To To build release run make release with RELEASE=X.Y.Z)
+	endif
 	./iscc installer/qbrz-setup.iss
 	gpg2 -ab qbrz-setup-$(RELEASE).exe
 
 # release: tarball inno
-release: tarball
+release: tarball inno
 
 clean:
 	python3 setup.py clean -a
