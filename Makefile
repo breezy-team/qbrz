@@ -1,3 +1,4 @@
+
 all:
 	@echo Targets:
 	@echo   test   - run tests
@@ -74,7 +75,7 @@ checkspecific: test
 qtest:
 # You can test on qbrz itself like this (qlog in this example):
 #
-	 BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qignore
+	 BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qdiff
 #
 # If you have a test directory you wish to use, you can cd to it, run the code, cd back from it.
 # In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` - we have
@@ -141,4 +142,120 @@ test:
 # NOT working
 # qinit-workspace, qnew also unknown - they appear to be from the 'explorer' plugin
 
+
+# === Literate documentation, etc ===
+
+# This uses pycco to generate the literal documentation.
+# To rebuild all of it, with an index.html file, use:
+#
+#  make literate_index
+#
+# To just update (although new files won't be added to index.html), use:
+#
+#  make literate_docs
+#
+# otherwise, you can just make the base, lib, or whatever using (for example):
+#
+#  make widget_docs
+#
+# Output goes into docs/literate/... mirroring the source-code locations (e.g.
+# lib/widgets/... go into docs/literate/lib/widgets
+#
+# pycco isn't brilliant, but it tries its best
+
+# We build or rebuild the documentation with pycco - shorthand for the command here in PYCCO_ALL variable
+# This one builds the index.html file
+PYCCO_ALL := pycco --generate_index --paths -s --directory
+
+# This one does NOT build the index file - otherwise, if you pass a single file
+# it will be the ONLY one in the index. Do'h!
+PYCCO_ONE := pycco --paths -s --directory
+
+# We want to look at all the .py files in the Code directory (where we start)
+# in case any have changed. The makefile is in /Code so we just use './'
+# the shell for 'this directory that we are in' - so the following means
+# 'all the files ending in "py" in this directory'
+PYMAINSOURCES=$(wildcard ./*.py)
+# The lib sources
+PYLIBSOURCES=$(wildcard ./lib/*.py)
+# extras and tests
+PYEXTRASOURCES=$(wildcard ./lib/extra/*.py)
+PYEXTRASSOURCES=$(wildcard ./extras/*.py)
+PYTESTSSOURCES=$(wildcard ./lib/tests/*.py)
+PYWIDGETSOURCES=$(wildcard ./lib/widgets/*.py)
+
+# So now add them all together
+PYSOURCES=$(PYMAINSOURCES) $(PYLIBSOURCES) $(PYEXTRASOURCES) $(PYEXTRASSOURCES) $(PYTESTSSOURCES) $(PYWIDGETSOURCES)
+
+# This is how we extract an html file-name for each changed python file-name
+# It basically reads: for each .py file in the source directory (PYSOURCES),
+# there should be a matching .html file in Code_Documentation.
+# The % means the stem, for example world.py has a stem of 'world' so we
+# make world.html from world.py
+DOCUMENTS_NEEDED_BASE=$(PYSOURCES:%.py=docs/literate/%.html)
+
+# For subdirectories, we'll get the subdirectory as a prefix
+# for example, svrsub/svrconfig
+DOCUMENTS_NEEDED_LIB=$(PYLIBSOURCES:%.py=docs/literate/%.html)
+DOCUMENTS_NEEDED_EXTRA=$(PYEXTRASOURCES:%.py=docs/literate/%.html)
+DOCUMENTS_NEEDED_EXTRAS=$(PYEXTRASSOURCES:%.py=docs/literate/%.html)
+DOCUMENTS_NEEDED_TEST=$(PYTESTSSOURCES:%.py=docs/literate/%.html)
+DOCUMENTS_NEEDED_WIDGETS=$(PYWIDGETSOURCES:%.py=docs/literate/%.html)
+
+.PHONY: literate_docs
+# No such file as all so mark it as a phony
+.PHONY: base_docs
+.PHONY: lib_docs
+.PHONY: extra_docs
+.PHONY: extras_docs
+.PHONY: test_docs
+.PHONY: widget_docs
+
+base_docs: $(DOCUMENTS_NEEDED_BASE)
+lib_docs: $(DOCUMENTS_NEEDED_LIB)
+extra_docs: $(DOCUMENTS_NEEDED_EXTRA)
+extras_docs: $(DOCUMENTS_NEEDED_EXTRAS)
+test_docs: $(DOCUMENTS_NEEDED_TEST)
+widget_docs: $(DOCUMENTS_NEEDED_WIDGETS)
+
+literate_docs: base_docs lib_docs extra_docs extras_docs test_docs widget_docs
+
+# The html file in docs/literate (and its cousins) depends upon the py file of the same name
+# If the html file is missing or older than the python one, run the pycco command
+# for the file (in $<)
+
+
+
+docs/literate/%.html: %.py
+	$(PYCCO_ONE) ./docs/literate $<
+
+
+docs/literate/extras/%.html: %.py
+	$(PYCCO_ONE) ./docs/literate $<
+
+docs/literate/lib/%.html: %.py
+	$(PYCCO_ONE) ./docs/literate $<
+
+
+docs/literate/lib/data/%.html: %.py
+	$(PYCCO_ONE) ./docs/literate $<
+
+docs/literate/lib/extra/%.html: %.py
+	$(PYCCO_ONE) ./docs/literate $<
+
+docs/literate/lib/test/%.html: %.py
+	$(PYCCO_ONE) ./docs/literate $<
+
+docs/literate/lib/widgets/%.html: %.py
+	$(PYCCO_ONE) ./docs/literate $<
+
+# Call 'make index' to make the full documentation
+.PHONY: literate_index
+literate_index:
+	make literate_clean
+	$(PYCCO_ALL) ./docs/literate $(PYSOURCES)
+
+.PHONY: literate_clean
+literate_clean:
+	rm -rf docs/literate/
 

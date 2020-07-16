@@ -938,7 +938,8 @@ class SubprocessUIFactory(TextUIFactory):
 
 # [bialix 2010/02/04] body of cmd_qsubprocess has moved from commands.py
 # to see annotation of cmd_qsubprocess before move use:
-#     bzr qannotate commands.py -r1117
+#
+#  bzr qannotate commands.py -r1117
 
 @contextmanager
 def watch_conflicts(on_conflicted):
