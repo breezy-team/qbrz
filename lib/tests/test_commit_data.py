@@ -114,6 +114,10 @@ class TestCommitDataWithTree(TestCaseWithTransport):
                           'new_revid': revid1,
                          }, d.as_dict())
 
+    # RJL: unfortunately, this test is flawed - not in its own right but because
+    # the test version of run_bzr is more forgiving than the 'real' version:
+    # it will accept strings whereas the actual version needs an array.
+    # The test version is in breezy/tests/__init__.py
     def test_set_data_on_uncommit_bugids(self):
         wt = self.make_branch_and_tree('.')
         self.run_bzr('commit --unchanged -m foo --fixes lp:12345 --fixes lp:67890')
@@ -121,6 +125,18 @@ class TestCommitDataWithTree(TestCaseWithTransport):
         d = CommitData(branch=wt.branch)
         d.set_data_on_uncommit(revid1, None)
         self.assertEqual({'message': 'foo',
+                          'bugs': 'lp:12345 lp:67890',
+                          'old_revid': revid1,
+                          'new_revid': b'null:',
+                         }, d.as_dict())
+
+    def test_set_data_on_uncommit_bugids_with_message(self):
+        wt = self.make_branch_and_tree('.')
+        self.run_bzr('commit --unchanged -m "foo with spaces" --fixes lp:12345 --fixes lp:67890')
+        revid1 = wt.last_revision()
+        d = CommitData(branch=wt.branch)
+        d.set_data_on_uncommit(revid1, None)
+        self.assertEqual({'message': 'foo with spaces',
                           'bugs': 'lp:12345 lp:67890',
                           'old_revid': revid1,
                           'new_revid': b'null:',
@@ -140,6 +156,18 @@ class TestCommitDataWithTree(TestCaseWithTransport):
         # check branch.conf
         cfg = wt.branch.get_config()
         self.assertEqual({'message': 'spam',
+                          'old_revid': 'foo',
+                          'new_revid': 'bar',
+                          }, cfg.get_user_option('commit_data'))
+
+    def test_save_message_with_spaces(self):
+        wt = self.make_branch_and_tree('.')
+        d = CommitData(tree=wt)
+        d.set_data(message='spam with spaces', old_revid='foo', new_revid='bar')
+        d.save()
+        # check branch.conf
+        cfg = wt.branch.get_config()
+        self.assertEqual({'message': 'spam with spaces',
                           'old_revid': 'foo',
                           'new_revid': 'bar',
                           }, cfg.get_user_option('commit_data'))

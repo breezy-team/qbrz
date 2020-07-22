@@ -272,15 +272,12 @@ class CommitWindow(SubProcessDialog):
                 "until a normal commit is performed"))
             branch_layout.addWidget(self.local_checkbox, 0, 0, 1, 2)
             branch_layout.addWidget(self.branch_location, 1, 0, 1, 2)
-            branch_layout.addWidget(QtGui.QLabel(gettext('Description:')), 2, 0,
-                QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+            branch_layout.addWidget(QtGui.QLabel(gettext('Description:')), 2, 0, QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
             self.commit_type_description = QtGui.QLabel()
             self.commit_type_description.setWordWrap(True)
             branch_layout.addWidget(self.commit_type_description, 2, 1)
             branch_layout.setColumnStretch(1,10)
-            self.connect(self.local_checkbox,
-                QtCore.SIGNAL("stateChanged(int)"),
-                self.update_branch_groupbox)
+            self.connect(self.local_checkbox, QtCore.SIGNAL("stateChanged(int)"), self.update_branch_groupbox)
             if local:
                 self.local_checkbox.setChecked(True)
             self.update_branch_groupbox()
@@ -354,8 +351,7 @@ class CommitWindow(SubProcessDialog):
         # Equivalent for 'bzr commit --message'
         self.message = TextEdit(spell_checker, message_groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the commit message"))
-        self.connect(self.message, QtCore.SIGNAL("messageEntered()"),
-                     self.do_accept)
+        self.connect(self.message, QtCore.SIGNAL("messageEntered()"), self.do_accept)
         self.completer = QtGui.QCompleter()
         self.completer_model = QtGui.QStringListModel(self.completer)
         self.completer.setModel(self.completer_model)
@@ -368,8 +364,7 @@ class CommitWindow(SubProcessDialog):
 
         # Equivalent for 'bzr commit --fixes'
         self.bugsCheckBox = QtGui.QCheckBox(gettext("&Fixed bugs:"))
-        self.bugsCheckBox.setToolTip(gettext("Set the IDs of bugs fixed by "
-                                     "this commit"))
+        self.bugsCheckBox.setToolTip(gettext("Set the IDs of bugs fixed by this commit"))
         self.bugs = QtGui.QLineEdit()
         self.bugs.setToolTip(gettext("Enter the list of bug IDs in format "
                              "<i>tag:id</i> separated by a space, "
@@ -459,10 +454,7 @@ class CommitWindow(SubProcessDialog):
         # groupbox and tabbox signals handling.
         for w in (message_groupbox, files_tab):
             # when operation started we need to disable widgets
-            QtCore.QObject.connect(self,
-                QtCore.SIGNAL("disableUi(bool)"),
-                w,
-                QtCore.SLOT("setDisabled(bool)"))
+            QtCore.QObject.connect(self, QtCore.SIGNAL("disableUi(bool)"), w, QtCore.SLOT("setDisabled(bool)"))
 
         self.restore_commit_data()
         if message:
@@ -674,6 +666,7 @@ class CommitWindow(SubProcessDialog):
         args = ["commit"]
 
         message = self._get_message()
+        # AND we need to quote it...
         args.extend(['-m', message])    # keep them separated to avoid bug #297606
 
         has_files_to_commit, files_to_commit, files_to_add = self._get_selected_files()

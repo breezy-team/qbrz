@@ -550,6 +550,8 @@ class SubProcessWidget(QtGui.QWidget):
         directory, args = self.commands.pop(0)
 
         # Log the command we about to execute
+        # Interestingly, this puts quotes around any strings in r
+        # but this is not done in the body of the kirk, for some reason
         def format_args_for_log(args):
             # r = ['bzr']
             r = ['brz']
@@ -971,6 +973,10 @@ def run_subprocess_command(cmd, bencoded=False):
     @param cmd: string with command line to run.
     @param bencoded: either cmd_str is bencoded list or not.
 
+    (RJL: No, I don't know if that means it's always a list that's
+    either bencoded or a list that's not, or it's either a bencoded-list
+    or something else bencoded, or something else not bencoded.)
+
     NOTE: if cmd starts with @ sign then it used as name of the file
     where actual command line string is saved (utf-8 encoded)...BUT
     see below.
@@ -993,7 +999,12 @@ def run_subprocess_command(cmd, bencoded=False):
 
     Breezy's ``run_bzr`` says we should pass 'valid' strings so we need to
     get rid of any lurking bytes. Unfortunately, we can no longer trust the
-    bencoded flag as passed
+    bencoded flag as passed. Also, run_bzr is lying: if you read the code it actually calls
+    ``_specified_or_unicode_argv()`` which will:
+
+      raise errors.BzrError("argv should be list of unicode strings.")
+
+    so it *actually wants a list of strings*. Grr.
     """
     if MS_WINDOWS:
         thread.start_new_thread(windows_emulate_ctrl_c, ())
@@ -1008,10 +1019,9 @@ def run_subprocess_command(cmd, bencoded=False):
     # and bencoded might be actually true (it's bytes) or just
     # pretending (it's not bytes but is bencoded). Also, the cmd might
     # result in a list once decoded, even though this is not supposed to
-    # be called with one.
-    # Eventually, we need a string as would be used at the command-line
-    # to call brz itself.
-    s_cmd = cmd
+    # be called with one... or perhaps it is (it seems to vary)
+    # Eventually, we need a list in argv to pass to breezy's run_bzr
+    argv = []
     if bencoded:
         # if we are bytes AND bencoded (perhaps), decode properly
         if isinstance(cmd, bytes):
@@ -1026,17 +1036,18 @@ def run_subprocess_command(cmd, bencoded=False):
         if isinstance(cmd, bytes):
             s_cmd = cmd.decode('utf-8')
 
-    # Sometimes we get a list
+    # Sometimes we get a list, decode each line
+    # Note that each LINE might be bencoded too
     if isinstance(s_cmd, list):
         for i, s in enumerate(s_cmd):
             if isinstance(s, bytes):
-                s_cmd[i] = s.decode('utf-8')
-        s_cmd = ' '.join(s_cmd)
+                argv.append(s.decode('utf-8'))
+    else:
+        # just put the string into it
+        argv.append(s_cmd)
 
-    # Right, now we need a string...
-    if isinstance(s_cmd, bytes):
-        s_cmd = s_cmd.decode('utf-8')
-    if s_cmd[0] == '@':
+    # Now we are looking for '@' at the start
+    if s_cmd[0][0] == '@':
         fname = s_cmd[1:]
         # Changed this: it's written in 'b' so must be read that way too
         f = open(fname, 'rb')
@@ -1047,22 +1058,27 @@ def run_subprocess_command(cmd, bencoded=False):
         # We stored a bencoded string like b'l6:ignore18:qbrz-setup-iss.loge', so...:
         s_cmd = bencode.bdecode(s_cmd)
         # ...and again, sometimes we get a list like [b'ignore', b'qbrz-setup-iss.log'], so...
+        argv = []
         if isinstance(s_cmd, list):
             for i, s in enumerate(s_cmd):
                 if isinstance(s, bytes):
-                    s_cmd[i] = s.decode('utf-8')
-            s_cmd = ' '.join(s_cmd)
-
-    # We use shlex.split() to work like the shell to split (finally) the string
-    argv = shlex.split(s_cmd)
+                    argv.append(s.decode('utf-8'))
+        else:
+            # just put the string into it
+            argv.append(s_cmd)
 
     try:
         def on_conflicted(wtpath):
             # See comment re: frankenstrings below for why we cast to string
             print("%s%s%s" % (SUB_NOTIFY, NOTIFY_CONFLICT, str(bittorrent_b_encode_prompt(wtpath), 'utf-8')))
         with watch_conflicts(on_conflicted):
+            # _specified_or_unicode_argv should raise a BzrError here
+            # if we pass a string
             return commands.run_bzr(argv)
     except (KeyboardInterrupt, SystemExit):
+        raise
+    except errors.BzrError as e:
+        print("%s%s" % (SUB_ERROR, str(bittorrent_b_encode_exception_instance(e), 'utf-8')))
         raise
     except Exception as e:
         # The problem with the original code is that it sends a Frankenstring, for example:

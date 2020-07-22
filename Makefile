@@ -66,27 +66,29 @@ check: test
 
 # Stop on first error, ignore TestTreeFilterProxyModel for now
 
-checkone: test
+checkone:
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x  TestTreeFilterProxyModel
 
 # Test specific item - e.g. for internationalisation, use:
 #
 #  BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestI18n
-checkspecific: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestBencode
+checkspecific:
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz -v TestCommitDataWithTree
 
 # Rather than running the test_ suite, this lets you run the actual plugin - note
 # that the tests can often pass but the code fails in actual use.
 qtest:
 # You can test on qbrz itself like this (qlog in this example):
 #
-	 BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qdiff
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qdiff
 #
 # If you have a test directory you wish to use, you can cd to it, run the code, cd back from it.
 # In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` - we have
 # to ``cd`` to it (note the semi-colon) THEN execute the plugin code we want:
 #
-#  cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qdiff
+# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qadd
+
+# cd ~/pythonstuff/brz; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
 
 test:
 	brz selftest -s bp.qbrz
