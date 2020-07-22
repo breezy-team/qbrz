@@ -76,6 +76,19 @@ RJL 2020:
 This is the updated version for QBrz
 """
 
+import sys
+
+from quixote.server.scgi_server import run
+from quixote.util import import_object
+
+if sys.version_info < (3,4,0):
+    sys.stderr.write("You need python 3.4.0 or later to run this script\n")
+    exit(1)
+if sys.flags.bytes_warning < 2:
+    sys.stderr.write("You must run the script with at least the -bb flag\n")
+    exit(1)
+
+
 # RJL to speed development, retain Qt4 for now: use ``sip.setapi`` to request
 # version 1 behaviour for ``QVariant`` (otherwise it's not available for python3)
 import sip
