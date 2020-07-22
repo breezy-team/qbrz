@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
+import sys
+
+if sys.version_info < (3,4,0):
+    sys.stderr.write("You need python 3.4.0 or later to run this setup script\n")
+    exit(1)
+
 from distutils.core import setup
 
 # RJL Patched out temporarily
