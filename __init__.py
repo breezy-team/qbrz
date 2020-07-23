@@ -1,4 +1,3 @@
-#!/usr/bin/python3 -bb
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands
@@ -80,9 +79,6 @@ import sys
 
 if sys.version_info < (3,4,0):
     sys.stderr.write("You need python 3.4.0 or later to run this script\n")
-    exit(1)
-if sys.flags.bytes_warning < 2:
-    sys.stderr.write("You must run the script with at least the -bb flag\n")
     exit(1)
 
 

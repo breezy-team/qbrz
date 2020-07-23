@@ -1,4 +1,3 @@
-#!/usr/bin/python3 -bb
 # # -*- coding: utf-8 -*-
 
 #
@@ -21,6 +20,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os, sys
+
+if sys.version_info < (3,4,0):
+    sys.stderr.write("You need python 3.4.0 or later to run this script\n")
+    exit(1)
 
 # XXX maybe extract this into compatibility.py ?
 if sys.version_info < (2, 5):
