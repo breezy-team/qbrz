@@ -78,9 +78,6 @@ This is the updated version for QBrz
 
 import sys
 
-from quixote.server.scgi_server import run
-from quixote.util import import_object
-
 if sys.version_info < (3,4,0):
     sys.stderr.write("You need python 3.4.0 or later to run this script\n")
     exit(1)
