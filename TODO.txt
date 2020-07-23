@@ -20,3 +20,19 @@ Todo items, feature requests, wishes, and wild ideas.
          * possible values: ``auto`` (default, require content check),
            ``yes`` (force binary mode, no need to check content),
            ``no`` (force text mode, no need to check content)
+
+
+
+python3 hello_pyside.py 
+qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
+This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+
+Available platform plugins are: eglfs, linuxfb, minimal, minimalegl, offscreen, vnc, wayland-egl, wayland, wayland-xcomposite-egl, wayland-xcomposite-glx, webgl, xcb.
+
+might need libxcb-xinerama0
+
+
+Qt 5 extra widget styles
+qt5-style-plugins
+python3-qt5
+libxcb-xinerama0
