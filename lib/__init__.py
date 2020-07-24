@@ -25,23 +25,6 @@ if sys.version_info < (3,4,0):
     sys.stderr.write("You need python 3.4.0 or later to run this script\n")
     exit(1)
 
-# XXX maybe extract this into compatibility.py ?
-if sys.version_info < (2, 5):
-    def _all_2_4_compat(iterable):
-        for element in iterable:
-            if not element:
-                return False
-        return True
-
-    def _any_2_4_compat(iterable):
-        for element in iterable:
-            if element:
-                return True
-        return False
-
-    import builtins
-    builtins.all = _all_2_4_compat
-    builtins.any = _any_2_4_compat
 
 # Special constant
 MS_WINDOWS = (sys.platform == 'win32')

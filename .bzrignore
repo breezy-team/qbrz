@@ -10,3 +10,5 @@ tags
 qbrz-setup-iss.log
 *.exe
 *.exe.asc
+./dist
+./qbrz.egg-info

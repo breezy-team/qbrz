@@ -1035,6 +1035,8 @@ def run_subprocess_command(cmd, bencoded=False):
     else:
         if isinstance(cmd, bytes):
             s_cmd = cmd.decode('utf-8')
+        else:
+            s_cmd = cmd
 
     # Sometimes we get a list, decode each line
     # Note that each LINE might be bencoded too

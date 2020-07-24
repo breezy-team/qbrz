@@ -22,6 +22,8 @@ except ValueError:
         cmdclass = {}
 
 # RJLRJL: patiencediff and dulwich also needed
+# Dulwich is installed with breezy and you cannot use this without breezy anyway
+#
 # https://katastrophos.net/andre/blog/2009/03/16/setting-up-the-inno-setup-compiler-on-debian/
 # ... is needed for inno setup
 
