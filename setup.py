@@ -52,6 +52,6 @@ setup(name='qbrz',
                 ],
       ext_modules=ext_modules,
       cmdclass=cmdclass,
-      install_requires = ['patiencediff', 'breezy==3.1.0'],
+      install_requires = ['patiencediff', 'breezy'],
 
 )
