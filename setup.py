@@ -7,7 +7,8 @@ if sys.version_info < (3,4,0):
     sys.stderr.write("You need python 3.4.0 or later to run this setup script\n")
     exit(1)
 
-from distutils.core import setup
+# from distutils.core import setup
+from setuptools import setup
 
 # RJL Patched out temporarily
 try:
@@ -49,4 +50,6 @@ setup(name='qbrz',
                 ],
       ext_modules=ext_modules,
       cmdclass=cmdclass,
+      install_requires = ['patiencediff', 'breezy==3.1.0'],
+
 )
