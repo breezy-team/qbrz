@@ -26,7 +26,7 @@ all:
 RELEASE:=$(shell cat version.txt)
 
 .check-env-vars:
-	$(info ${RELEASE})
+	$(info Building QBzr version ${RELEASE})
 
 mo:
 	python3 setup.py build_mo -f --verbose
@@ -85,13 +85,13 @@ checkspecific:
 qtest:
 # You can test on qbrz itself like this (qlog in this example):
 #
-# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qmain
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qplugins
 #
 # If you have a test directory you wish to use, you can cd to it, run the code, cd back from it.
 # In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` - we have
 # to ``cd`` to it (note the semi-colon) THEN execute the plugin code we want:
 #
-	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
+# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
 
 # cd ~/.local/share/nemo/actions; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
 

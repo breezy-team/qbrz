@@ -7,10 +7,6 @@ if sys.version_info < (3,4,0):
     sys.stderr.write("You need python 3.4.0 or later to run this setup script\n")
     exit(1)
 
-# Get the version number from version.txt
-with open('version.txt', encoding='utf-8') as f:
-    version_str = f.read().strip()
-
 # from distutils.core import setup
 from setuptools import setup
 
@@ -33,6 +29,9 @@ except ValueError:
 
 from extras import cmdclass
 
+# Get the version number from version.txt
+with open('version.txt', encoding='utf-8') as f:
+    version_str = f.read().strip()
 
 ext_modules = []
 

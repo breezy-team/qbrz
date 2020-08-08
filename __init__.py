@@ -88,12 +88,15 @@ import sip
 sip.setapi('QVariant', 2)
 
 # Get the version number from version.txt
-with open('version.txt', 'r') as f:
+# We have to find it relative to ourselves...
+import os
+base_path = os.path.dirname(os.path.abspath(__file__))
+version_file_path = os.path.join(base_path, 'version.txt')
+with open(version_file_path, 'r') as f:
     v_version, v_major, v_minor = f.read().strip().split('.')
 
-# RJL: set to 0,3,1 to match br
-# version_info = (0,23,2,'final',0)
-version_info = (v_version, v_major, v_minor,'dev',0)
+# RJL: Breezy's _format_version_tuple expects integers, not strings
+version_info = (int(v_version), int(v_major), int(v_minor),'dev',0)
 __version__ = '.'.join(map(str, version_info))
 
 
