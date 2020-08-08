@@ -487,12 +487,12 @@ class TreeModel(QtCore.QAbstractItemModel):
                 basis_tree = self.tree.basis_tree()
                 basis_tree.lock_read()
                 try:
-                    # print(':::->>second try block')
+                    print(':::->>second try block')
                     for the_change in self.tree.iter_changes(basis_tree, want_unversioned=want_unversioned):
                         # iter_changes now seems to appear to return a TreeChange type See Jelmer's 7390.
                         # Handily, it has an as_tuple() function, so we'll cheat for now
                         change = ChangeDesc(the_change)
-                        # print(change.dump())
+                        print(change.dump())
                         path = change.old_or_new_path()
                         fileid = change.fileid()
 
@@ -550,23 +550,27 @@ class TreeModel(QtCore.QAbstractItemModel):
                                         self.inventory_data_by_id[fileid] = item_data
 
                     def get_name(dir_fileid, dir_path, path, change):
-                        # print('\n --> get_name', dir_fileid, '#', dir_path, '#', path, '#', change, '\n-----\n')
+                        print('\n --> get_name', dir_fileid, '#', dir_path, '#', path, '#', change, '\n-----\n')
                         # If we've a name like 'somedir/thisname' then dirpath will be non-empty ('somedir')
                         # remove it from the name
                         if dir_path:
+                            print('It had a dirpath so we are removing it', path, path[len(dir_path) + 1:])
                             name = path[len(dir_path) + 1:]
                         else:
                             name = path
+                            print('No path, so name = ', path)
                         if change and change.is_renamed():
-                            # print('\n\tChange Detected:', change, '\n\tbasis', basis_tree, '\n\tchange_fileid', change.fileid(), '\n\tname:', name)
+                            print('\n\tRenamed Change Detected:', change, '\n\t\tbasis', basis_tree,
+                                '\n\t\tchange_fileid', change.fileid(), '\n\t\tNAME:', name)
                             old_inventory_item = self._get_entry(basis_tree, change.fileid())
                             old_names = [old_inventory_item.name]
-                            # print('\n\t\t old_inv, old_name', old_inventory_item, old_names)
+                            print('\n\t\t old_inv, old_name', old_inventory_item, old_names)
                             while old_inventory_item.parent_id:
                                 if old_inventory_item.parent_id == dir_fileid:
                                     break
                                 old_inventory_item = self._get_entry(basis_tree, old_inventory_item.parent_id)
                                 old_names.append(old_inventory_item.name)
+                                print('old_names in loop', old_names)
                             old_names.reverse()
                             old_path = "/".join(old_names)
                             name = "%s => %s" % (old_path, name)
@@ -603,7 +607,9 @@ class TreeModel(QtCore.QAbstractItemModel):
                                              item_data.path)
 
                         # Name setting
+                        print('\nNAME SETTING')
                         for item_data in self.inventory_data_by_path.values():
+                            print('\tname setting gave ', item_data, item_data.path)
                             dir_path, name = os.path.split(item_data.path)
                             dir_fileid = self.tree.path2id(dir_path)
                             item_data.item.name = get_name(dir_fileid, dir_path, item_data.path, item_data.change)
@@ -731,7 +737,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         # print('\n\t FINISHED load_dir\n')
 
     def _get_entry(self, tree, file_id):
-        for _, entry in tree.iter_entries_by_dir([self.tree.id2path(file_id)]):
+        # print('\n^^^ _get_entry', tree, file_id, type(file_id))
+        # print('\n\tid2path of ={0}='.format(file_id), 'gives: --> ', self.tree.id2path(file_id))
+        # for _, entry in tree.iter_entries_by_dir(recurse_nested=True):
+        #     print('\n\t -> ', _, 'entry:', entry)
+
+        for _, entry in tree.iter_entries_by_dir(specific_files=[self.tree.id2path(file_id),], recurse_nested=True):
             return entry
         raise errors.NoSuchId(tree, file_id)
 

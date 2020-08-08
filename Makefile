@@ -1,4 +1,5 @@
 
+
 all:
 	@echo Targets:
 	@echo   test   - run tests
@@ -12,16 +13,20 @@ all:
 	@echo   inno   - compile exe (pass RELEASE=X.Y.Z)
 	@echo
 	@echo To build release run:
-	@echo    make release RELEASE=X.Y.Z
+	@echo    make release
+	@echo (the version will be picked up from version.txt)
+
+# We'll read the RELEASE number from version.txt
 
 .PHONY: test pot mo clean tags docs ui
 
 # Making pot files is disabled for now - no translators!
 # pot:
 # 	python3 setup.py build_pot -N -d.
+RELEASE:=$(shell cat version.txt)
 
 .check-env-vars:
-	@test $${RELEASE?RELEASE is undefined. To build release run make release with RELEASE=X.Y.Z}
+	$(info ${RELEASE})
 
 mo:
 	python3 setup.py build_mo -f --verbose
@@ -36,7 +41,7 @@ tarball: .check-env-vars
 # 	./iscc installer/qbrz-setup.iss
 # 	gpg -ab qbrz-setup-$(RELEASE).exe
 inno: .check-env-vars
-	./iscc installer/qbrz-setup.iss
+	./iscc installer/qbrz-setup.iss /DVersion=$(RELEASE)
 	rm -f qbrz-setup-$(RELEASE).exe.asc
 	gpg2 -ab qbrz-setup-$(RELEASE).exe
 
@@ -73,20 +78,22 @@ checkone:
 #
 #  BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestI18n
 checkspecific:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz -v TestCommitDataWithTree
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz -v TestTreeWidget
 
 # Rather than running the test_ suite, this lets you run the actual plugin - note
 # that the tests can often pass but the code fails in actual use.
 qtest:
 # You can test on qbrz itself like this (qlog in this example):
 #
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qdiff
+# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qdiff
 #
 # If you have a test directory you wish to use, you can cd to it, run the code, cd back from it.
 # In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` - we have
 # to ``cd`` to it (note the semi-colon) THEN execute the plugin code we want:
 #
-# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qadd
+	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
+
+	# cd ~/.local/share/nemo/actions; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
 
 # cd ~/pythonstuff/brz; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
 

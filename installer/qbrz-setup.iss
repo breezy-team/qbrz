@@ -5,11 +5,14 @@
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
+
 AppId=QBrz
 
 AppName=                 QBrz
-AppVerName=              QBrz 0.3.1
-OutputBaseFilename=qbrz-setup-0.3.1
+AppVerName=              QBrz {#Version}
+OutputBaseFilename=qbrz-setup-{#Version}
+; AppVerName=              QBrz 0.3.1
+; OutputBaseFilename=qbrz-setup-0.3.1
 
 SourceDir="..\"
 OutputDir="."

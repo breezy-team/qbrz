@@ -87,9 +87,13 @@ if sys.version_info < (3,4,0):
 import sip
 sip.setapi('QVariant', 2)
 
+# Get the version number from version.txt
+with open('version.txt', encoding='utf-8') as f:
+    v_version, v_major, v_minor = f.read().strip().split()
+
 # RJL: set to 0,3,1 to match br
 # version_info = (0,23,2,'final',0)
-version_info = (0,3,1,'dev',0)
+version_info = (v_version, v_major, v_minor,'dev',0)
 __version__ = '.'.join(map(str, version_info))
 
 

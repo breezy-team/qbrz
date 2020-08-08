@@ -7,6 +7,10 @@ if sys.version_info < (3,4,0):
     sys.stderr.write("You need python 3.4.0 or later to run this setup script\n")
     exit(1)
 
+# Get the version number from version.txt
+with open('version.txt', encoding='utf-8') as f:
+    version_str = f.read().strip()
+
 # from distutils.core import setup
 from setuptools import setup
 
@@ -35,7 +39,7 @@ ext_modules = []
 setup(name='qbrz',
       description='Qt4 frontend for Breezy',
       keywords='plugin brz qt qbrz',
-      version='0.3.1',
+      version=version_str,
       url='https://www.breezy-vcs.org/',
       license='GPL',
       author='QBrz Developers',

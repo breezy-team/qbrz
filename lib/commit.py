@@ -247,9 +247,7 @@ class CommitWindow(SubProcessDialog):
         self.windows = []
         self.initial_selected_list = selected_list
 
-        self.connect(self.process_widget,
-            QtCore.SIGNAL("failed(QString)"),
-            self.on_failed)
+        self.connect(self.process_widget, QtCore.SIGNAL("failed(QString)"), self.on_failed)
 
         self.throbber = ThrobberWidget(self)
 
@@ -265,11 +263,8 @@ class CommitWindow(SubProcessDialog):
             self.branch_location.setText(branch_base)
             branch_layout.addWidget(self.branch_location, 0, 0, 1, 2)
         else:
-            self.local_checkbox = QtGui.QCheckBox(gettext(
-                "&Local commit"))
-            self.local_checkbox.setToolTip(gettext(
-                "Local commits are not pushed to the master branch "
-                "until a normal commit is performed"))
+            self.local_checkbox = QtGui.QCheckBox(gettext("&Local commit"))
+            self.local_checkbox.setToolTip(gettext("Local commits are not pushed to the master branch until a normal commit is performed"))
             branch_layout.addWidget(self.local_checkbox, 0, 0, 1, 2)
             branch_layout.addWidget(self.branch_location, 1, 0, 1, 2)
             branch_layout.addWidget(QtGui.QLabel(gettext('Description:')), 2, 0, QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
@@ -303,8 +298,7 @@ class CommitWindow(SubProcessDialog):
         not_uptodate_layout.addWidget(self.not_uptodate_label, 2)
 
         update_button = QtGui.QPushButton(gettext('Update'))
-        self.connect(update_button, QtCore.SIGNAL("clicked(bool)"),
-                     self.open_update_win)
+        self.connect(update_button, QtCore.SIGNAL("clicked(bool)"), self.open_update_win)
 
         not_uptodate_layout.addWidget(update_button)
 
@@ -322,8 +316,7 @@ class CommitWindow(SubProcessDialog):
 
         grid = QtGui.QGridLayout(message_groupbox)
 
-        self.show_nonversioned_checkbox = QtGui.QCheckBox(
-            gettext("Show non-versioned files"))
+        self.show_nonversioned_checkbox = QtGui.QCheckBox(gettext("Show non-versioned files"))
         show_nonversioned = get_qbrz_config().get_option_as_bool(self._window_name + "_show_nonversioned")
         if show_nonversioned:
             self.show_nonversioned_checkbox.setChecked(QtCore.Qt.Checked)
