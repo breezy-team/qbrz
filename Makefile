@@ -85,7 +85,7 @@ checkspecific:
 qtest:
 # You can test on qbrz itself like this (qlog in this example):
 #
-# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qdiff
+# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qmain
 #
 # If you have a test directory you wish to use, you can cd to it, run the code, cd back from it.
 # In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` - we have
@@ -93,7 +93,7 @@ qtest:
 #
 	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
 
-	# cd ~/.local/share/nemo/actions; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
+# cd ~/.local/share/nemo/actions; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
 
 # cd ~/pythonstuff/brz; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
 

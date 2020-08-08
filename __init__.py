@@ -88,8 +88,8 @@ import sip
 sip.setapi('QVariant', 2)
 
 # Get the version number from version.txt
-with open('version.txt', encoding='utf-8') as f:
-    v_version, v_major, v_minor = f.read().strip().split()
+with open('version.txt', 'r') as f:
+    v_version, v_major, v_minor = f.read().strip().split('.')
 
 # RJL: set to 0,3,1 to match br
 # version_info = (0,23,2,'final',0)
