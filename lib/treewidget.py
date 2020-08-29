@@ -70,7 +70,7 @@ def group_large_dirs(paths):
     # deep paths.
 
     all_paths_expanded = {'':('', 0, set([]))}
-    """Dict of all paths expaned, and their depth, and a set of decendents
+    """Dict of all paths expanded, and their depth, and a set of decendents
     they contain.
 
     The key is the path
@@ -79,7 +79,9 @@ def group_large_dirs(paths):
     if not paths:
         paths = frozenset(('',))
 
+    print('group_large_dirs...all_paths', all_paths_expanded, paths)
     for path in paths:
+        print('\t--:path:', path)
         if path == '':
             continue
 
@@ -102,8 +104,7 @@ def group_large_dirs(paths):
     container_dirs = {}
     """Dict of a container dir path, with a set of it's decendents"""
 
-    paths_deep_first = sorted(iter(all_paths_expanded.values()),
-                              key=lambda x: -x[1])
+    paths_deep_first = sorted(iter(all_paths_expanded.values()), key=lambda x: -x[1])
 
     def set_dir_as_container(path):
         decendents = all_paths_expanded[path][2]
@@ -125,7 +126,7 @@ def group_large_dirs(paths):
     for path, depth, decendents in paths_deep_first:
         len_decendents = len(decendents)
         # Config?
-        if len_decendents>=4 and path not in container_dirs:
+        if len_decendents >= 4 and path not in container_dirs:
             has_ansestor_with_others = False
             dir_path = path
             while dir_path:
@@ -221,7 +222,7 @@ class ChangeDesc:
     description tuple, and provides additional helper methods.
 
     iter_changes return tuple with info about changed entry:
-    [0]: file_id         -> ascii string
+    [0]: file_id         -> ascii string <-- RJL this is actually now a b'yte string
     [1]: paths           -> 2-tuple (old, new) fullpaths unicode/None
     [2]: changed_content -> bool
     [3]: versioned       -> 2-tuple (bool, bool)
@@ -342,11 +343,11 @@ class ChangeDesc:
 
     def dump(self):
         c = self.change
-        s = "file_id {0} (Path: old [{1}], new [{2}])".format(self.fileid(), c.path[0], c.path[1])
-        s += "changed? {0}, (Versioned old {1}, new {2})".format(c.changed_content, c.versioned[0], c.versioned[1])
-        s += "(parent_id old[{0}], new[{1}]), (name: old[{2}], new[{3}])".format(c.parent_id[0], c.parent_id[1], c.name[0], c.name[1])
-        s += "(kind: old {0}, new {1})".format(c.kind[0], c.kind[1])
-        s += "(exec old {0}, new {1}), ?? copied / ignore?? {2}".format(c.executable[0], c.executable[1], c.copied)
+        s = "Change: file_id {0} (Path: old [{1}], new [{2}])\n".format(self.fileid(), c.path[0], c.path[1])
+        s += "\tchanged? {0}, (Versioned? old {1}, new {2})\n".format(c.changed_content, c.versioned[0], c.versioned[1])
+        s += "\t(parent_id old[{0}], new[{1}]), (name: old[{2}], new[{3}])\n".format(c.parent_id[0], c.parent_id[1], c.name[0], c.name[1])
+        s += "\t(kind: old {0}, new {1})".format(c.kind[0], c.kind[1])
+        s += " (exec old {0}, new {1}), ?? copied / ignore?? {2}\n".format(c.executable[0], c.executable[1], c.copied)
         return s
 
     def status(self):
@@ -492,9 +493,11 @@ class TreeModel(QtCore.QAbstractItemModel):
                         # iter_changes now seems to appear to return a TreeChange type See Jelmer's 7390.
                         # Handily, it has an as_tuple() function, so we'll cheat for now
                         change = ChangeDesc(the_change)
-                        print(change.dump())
+                        print('\n\nthe_change', change.dump())
                         path = change.old_or_new_path()
                         fileid = change.fileid()
+                        # RJLRJL
+                        print('*** WARNING OLD_OR_NEW_PATH ***', path)
 
                         # print('::::change was', change, 'with path and file id of', path, fileid)
                         # if change.old_or_new_path() == 'wibble.txt':
@@ -502,22 +505,28 @@ class TreeModel(QtCore.QAbstractItemModel):
                         # RJLRJL Removed
                         # if fileid is None: # HOGEHOGE WORKAROUND
                         #     continue       # HOGEHOGE
+                        print('root_id, file_id', root_id, fileid,'same?', fileid == root_id)
                         if fileid == root_id:
+                            print('====>> CONTINUING! <<=====')
                             continue
                         is_ignored = self.tree.is_ignored(path)
                         # change = ChangeDesc(change + (is_ignored,))
                         change._is_ignored = is_ignored
+                        print('Change: is_ignored is ', is_ignored, 'filter:', self.change_load_filter, self.tree)
 
                         if (self.change_load_filter is not None and not self.change_load_filter(change)):
+                            print('^^^^ Continuing! ^^^^')
                             continue
 
                         item = InternalItem("", change.old_or_new_kind(), fileid)
                         item_data = ModelItemData(path, change=change, item=item)
+                        print('item', item, 'item_data', item_data)
 
                         self.inventory_data_by_path[path] = item_data
                         if fileid:
                             self.inventory_data_by_id[fileid] = item_data
 
+                    print('\n::: CHANGE LOOP FINISHED: ...conflicts')
                     for conflict in self.tree.conflicts():
                         path = conflict.path
                         if path in self.inventory_data_by_path:
@@ -535,6 +544,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                             if fileid:
                                 self.inventory_data_by_id[fileid] = item_data
 
+                    print('\nCONFLICTS FINISHED: initial_checked_paths', initial_checked_paths)
                     if initial_checked_paths:
                         # Add versioned directories so that we can easily check them.
                         for path in initial_checked_paths:
@@ -548,6 +558,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                                         item_data = ModelItemData(path, item=item)
                                         self.inventory_data_by_path[path] = item_data
                                         self.inventory_data_by_id[fileid] = item_data
+
+                    print('\nInventory: by path', self.inventory_data_by_path, 'by id', self.inventory_data_by_id)
 
                     def get_name(dir_fileid, dir_path, path, change):
                         print('\n --> get_name', dir_fileid, '#', dir_path, '#', path, '#', change, '\n-----\n')
@@ -577,12 +589,15 @@ class TreeModel(QtCore.QAbstractItemModel):
                         return name
 
                     if changes_mode:
-                        self.unver_by_parent = group_large_dirs(
-                            frozenset(iter(self.inventory_data_by_path.keys())))
+                        print('CHANGES MODE -- COULD BE HERE: iter')
+                        self.unver_by_parent = group_large_dirs(frozenset(iter(self.inventory_data_by_path.keys())))
+                        print('unver:', self.unver_by_parent)
 
                         # Add items for directories added
                         for path in self.unver_by_parent.keys():
+                            print('\tstepping: ={0}='.format(path))
                             if path not in self.inventory_data_by_path:
+                                print('\t', path,'not in inventory_data_by_path')
                                 kind = "directory"
                                 file_id = self.tree.path2id(path)
                                 item = InternalItem("", kind, file_id)
@@ -599,19 +614,22 @@ class TreeModel(QtCore.QAbstractItemModel):
                                 item_data.item.name = get_name(dir_fileid, dir_path, path, item_data.change)
                     else:
                         # record the unversioned items
+                        print('NOT in changes_mode')
                         for item_data in self.inventory_data_by_path.values():
-                            if (item_data.change and
-                                not item_data.change.is_versioned() or not item_data.change):
+                            print('\titem_data', item_data, '\tchange', item_data.change, '\tis_versioned', item_data.change.is_versioned())
+                            if (item_data.change and not item_data.change.is_versioned() or not item_data.change):
                                 parent_path, name = os.path.split(item_data.path)
-                                dict_set_add(self.unver_by_parent, parent_path,
-                                             item_data.path)
+                                print('\t\tadding ', parent_path, item_data.path, ' to unver_by_partent but name is ={0}='.format(name))
+                                dict_set_add(self.unver_by_parent, parent_path, item_data.path)
+                        print('unver_by_parent', self.unver_by_parent)
 
                         # Name setting
                         print('\nNAME SETTING')
                         for item_data in self.inventory_data_by_path.values():
-                            print('\tname setting gave ', item_data, item_data.path)
+                            print('\titem_data', item_data, '\tchange', item_data.change, '\tis_versioned', item_data.change.is_versioned())
                             dir_path, name = os.path.split(item_data.path)
                             dir_fileid = self.tree.path2id(dir_path)
+                            print('\tname setting gave ', item_data, item_data.path, dir_path, name, dir_fileid)
                             item_data.item.name = get_name(dir_fileid, dir_path, item_data.path, item_data.change)
                 finally:
                     basis_tree.unlock()
@@ -737,10 +755,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         # print('\n\t FINISHED load_dir\n')
 
     def _get_entry(self, tree, file_id):
-        # print('\n^^^ _get_entry', tree, file_id, type(file_id))
-        # print('\n\tid2path of ={0}='.format(file_id), 'gives: --> ', self.tree.id2path(file_id))
-        # for _, entry in tree.iter_entries_by_dir(recurse_nested=True):
-        #     print('\n\t -> ', _, 'entry:', entry)
+        # RJLRJL BUGBUG it looks like requesting specific_files must NOT pass any
+        # actual paths (e.g. dir/movedandrenamed should be stripped to movedandrenamed)
+        print('\n^^^ _get_entry', tree, file_id, type(file_id))
+        print('\n\tid2path of ={0}='.format(file_id), 'gives: --> ', self.tree.id2path(file_id))
+        for _, entry in tree.iter_entries_by_dir(recurse_nested=True):
+            print('\n\t -> ', _, 'entry:', entry)
 
         for _, entry in tree.iter_entries_by_dir(specific_files=[self.tree.id2path(file_id),], recurse_nested=True):
             return entry
