@@ -343,7 +343,7 @@ class CommitWindow(SubProcessDialog):
         self.message.setToolTip(gettext("Enter the commit message"))
         self.message.messageEntered.connect(self.do_accept)
         self.completer = QtWidgets.QCompleter()
-        self.completer_model = QStringListModel(self.completer)
+        self.completer_model = QtCore.QStringListModel(self.completer)
         self.completer.setModel(self.completer_model)
         self.message.setCompleter(self.completer)
         self.message.setAcceptRichText(False)
@@ -420,9 +420,8 @@ class CommitWindow(SubProcessDialog):
 
         # Diff button to view changes in files selected to commit
         self.diffbuttons = DiffButtons(self)
-        self.diffbuttons.setToolTip(
-            gettext("View changes in files selected to commit"))
-        self.diffbuttons.triggered['QString'].connect(self.show_diff_for_checked)
+        self.diffbuttons.setToolTip(gettext("View changes in files selected to commit"))
+        self.diffbuttons._triggered['QString'].connect(self.show_diff_for_checked)
 
         self.refresh_button = StandardButton(BTN_REFRESH)
         self.refresh_button.clicked.connect(self.refresh)

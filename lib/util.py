@@ -90,8 +90,7 @@ class StandardButton(QtWidgets.QPushButton):
                 icon = QtGui.QIcon(':/16x16/view-refresh.png')
                 new_args = [icon, label]
             elif hasattr(QtWidgets.QStyle, iconname):
-                icon = QtWidgets.QApplication.style().standardIcon(
-                    getattr(QtWidgets.QStyle, iconname))
+                icon = QtWidgets.QApplication.style().standardIcon(getattr(QtWidgets.QStyle, iconname))
                 new_args = [icon, label]
         new_args.extend(args)
         QtWidgets.QPushButton.__init__(self, *new_args)

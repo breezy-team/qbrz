@@ -126,7 +126,6 @@ class GuideBar(QtWidgets.QWidget):
         self.edit = edit
         self._helper = get_edit_helper(edit)
         self.block_count = 0
-        print('*** GuideBar:__init__ ***', type(edit))
 
         edit.documentChangeFinished.connect(self.reset_gui)
         edit.verticalScrollBar().rangeChanged[int, int].connect(self.vscroll_rangeChanged)

@@ -433,7 +433,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent is not None:
             # TreeModel is subclass of QtCore.QAbstractItemModel,
             # the latter can have parent in constructor
-            # as instance of QModelIndex and the latter does not have style()
+            # as instance of QtCore.QModelIndex and the latter does not have style()
             style = parent.style()
             self.file_icon = style.standardIcon(QtWidgets.QStyle.SP_FileIcon)
             self.dir_icon = style.standardIcon(QtWidgets.QStyle.SP_DirIcon)
@@ -1488,17 +1488,17 @@ class TreeWidget(RevisionTreeView):
         self.set_header_width_settings()
         self.setItemDelegateForColumn(self.tree_model.REVNO, self.revno_item_delegate)
         self.create_context_menu()
-        self.doubleClicked[QModelIndex].connect(self.do_default_action)
+        self.doubleClicked[QtCore.QModelIndex].connect(self.do_default_action)
 
     def set_header_width_settings(self):
         header = self.header()
         header.setStretchLastSection(False)
-        header.setResizeMode(self.tree_model.NAME, QtWidgets.QHeaderView.ResizeToContents)
-        header.setResizeMode(self.tree_model.DATE, QtWidgets.QHeaderView.Interactive)
-        header.setResizeMode(self.tree_model.REVNO, QtWidgets.QHeaderView.Interactive)
-        header.setResizeMode(self.tree_model.MESSAGE, QtWidgets.QHeaderView.Stretch)
-        header.setResizeMode(self.tree_model.AUTHOR, QtWidgets.QHeaderView.Interactive)
-        header.setResizeMode(self.tree_model.STATUS, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(self.tree_model.NAME, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(self.tree_model.DATE, QtWidgets.QHeaderView.Interactive)
+        header.setSectionResizeMode(self.tree_model.REVNO, QtWidgets.QHeaderView.Interactive)
+        header.setSectionResizeMode(self.tree_model.MESSAGE, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(self.tree_model.AUTHOR, QtWidgets.QHeaderView.Interactive)
+        header.setSectionResizeMode(self.tree_model.STATUS, QtWidgets.QHeaderView.Stretch)
         fm = self.fontMetrics()
         # XXX Make this dynamic.
         col_margin = (self.style().pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1) *2
@@ -1508,8 +1508,8 @@ class TreeWidget(RevisionTreeView):
         header.resizeSection(self.tree_model.DATE, fm.width("88-88-8888 88:88") + col_margin)
         header.resizeSection(self.tree_model.AUTHOR, fm.width("Joe I have a Long Name") + col_margin)
         if self.tree and isinstance(self.tree, WorkingTree):
-            header.setResizeMode(self.tree_model.NAME, QtWidgets.QHeaderView.Stretch)
-            header.setResizeMode(self.tree_model.STATUS, QtWidgets.QHeaderView.ResizeToContents)
+            header.setSectionResizeMode(self.tree_model.NAME, QtWidgets.QHeaderView.Stretch)
+            header.setSectionResizeMode(self.tree_model.STATUS, QtWidgets.QHeaderView.ResizeToContents)
 
     def set_visible_headers(self):
         header = self.header()
@@ -1523,8 +1523,8 @@ class TreeWidget(RevisionTreeView):
             header.hideSection(self.tree_model.MESSAGE)
             header.hideSection(self.tree_model.AUTHOR)
             header.showSection(self.tree_model.STATUS)
-            header.setResizeMode(self.tree_model.NAME, QtWidgets.QHeaderView.Stretch)
-            header.setResizeMode(self.tree_model.STATUS, QtWidgets.QHeaderView.ResizeToContents)
+            header.setSectionResizeMode(self.tree_model.NAME, QtWidgets.QHeaderView.Stretch)
+            header.setSectionResizeMode(self.tree_model.STATUS, QtWidgets.QHeaderView.ResizeToContents)
 
             self.context_menu.setDefaultAction(self.action_open_file)
         else:
@@ -1533,8 +1533,8 @@ class TreeWidget(RevisionTreeView):
             header.showSection(self.tree_model.MESSAGE)
             header.showSection(self.tree_model.AUTHOR)
             header.hideSection(self.tree_model.STATUS)
-            header.setResizeMode(self.tree_model.NAME, QtWidgets.QHeaderView.ResizeToContents)
-            header.setResizeMode(self.tree_model.STATUS, QtWidgets.QHeaderView.Stretch)
+            header.setSectionResizeMode(self.tree_model.NAME, QtWidgets.QHeaderView.ResizeToContents)
+            header.setSectionResizeMode(self.tree_model.STATUS, QtWidgets.QHeaderView.Stretch)
 
             self.context_menu.setDefaultAction(self.action_show_file)
 
@@ -2200,15 +2200,17 @@ class TreeWidget(RevisionTreeView):
 
 class SelectAllCheckBox(QtWidgets.QCheckBox):
 
+    clicked = QtCore.pyqtSignal(bool)
+
     def __init__(self, tree_widget, parent=None):
         QtWidgets.QCheckBox.__init__(self, gettext("Select / deselect all"), parent)
 
         self.tree_widget = tree_widget
         #self.setTristate(True)
 
-        tree_widget.tree_model.dataChanged[QModelIndex, QModelIndex].connect(self.on_data_changed)
+        tree_widget.tree_model.dataChanged[QtCore.QModelIndex, QtCore.QModelIndex].connect(self.on_data_changed)
 
-        self.clicked[bool].connect(self.clicked)
+        self.clicked[bool].connect(self._clicked)
 
     def on_data_changed(self, start_index, end_index):
         self.update_state()
@@ -2216,11 +2218,10 @@ class SelectAllCheckBox(QtWidgets.QCheckBox):
     def update_state(self):
         model = self.tree_widget.tree_model
         root_index = model._index_from_id(0, model.NAME)
-
         state = model.data(root_index, QtCore.Qt.CheckStateRole)
         self.setCheckState(QtCore.Qt.CheckState(state))
 
-    def clicked(self, state):
+    def _clicked(self, state):
         model = self.tree_widget.tree_model
         root_index = model._index_from_id(0, model.NAME)
         if state:
@@ -2228,5 +2229,4 @@ class SelectAllCheckBox(QtWidgets.QCheckBox):
         else:
             state = QtCore.Qt.Unchecked
 
-        model.setData(root_index, state,
-                      QtCore.Qt.CheckStateRole)
+        model.setData(root_index, state, QtCore.Qt.CheckStateRole)

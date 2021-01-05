@@ -191,7 +191,7 @@ class SubProcessWindowBase(object):
         self.subprocessFinished[bool].connect(self.okButton.setHidden)
 
         # close button gets shown when we finish.
-        self.subprocessFinished[bool].connect(self.closeButton.setShown)
+        self.subprocessFinished[bool].connect(self.closeButton.setVisible)
 
         # cancel button gets disabled when finished.
         self.subprocessFinished[bool].connect(self.cancelButton.setDisabled)
@@ -310,14 +310,14 @@ class SubProcessWindowBase(object):
         self.subprocessFailed.emit(False)
         self.disableUi.emit(False)
 
-        if error=='UncommittedChanges':
+        if error == 'UncommittedChanges':
             self.action_url = self.process_widget.error_data['display_url']
             self.infowidget.setup_for_uncommitted(self.open_commit_win,
                                                   self.open_revert_win,
                                                   self.open_shelve_win)
             self.infowidget.show()
 
-        elif error=='LockContention':
+        elif error == 'LockContention':
             self.infowidget.setup_for_locked(self.do_accept)
             self.infowidget.show()
 
@@ -474,6 +474,12 @@ class SimpleSubProcessDialog(SubProcessDialog):
 
 
 class SubProcessWidget(QtWidgets.QWidget):
+    # RJLRJL moved to class members to handle connects to Qt5
+    #  'a signal needs to be defined on class level'
+    failed = QtCore.pyqtSignal('QString')
+    conflicted = QtCore.pyqtSignal('QString')
+    finished = QtCore.pyqtSignal(bool)
+    error = QtCore.pyqtSignal(bool)
 
     def __init__(self, ui_mode, parent=None, hide_progress=False):
         QtWidgets.QGroupBox.__init__(self, parent)
@@ -508,12 +514,13 @@ class SubProcessWidget(QtWidgets.QWidget):
         self.process = QtCore.QProcess()
         self.process.readyReadStandardOutput.connect(self.readStdout)
         self.process.readyReadStandardError.connect(self.readStderr)
-        self.process.error[QProcess.ProcessError].connect(self.reportProcessError)
-        self.process.finished[int, QProcess.ExitStatus].connect(self.onFinished)
+        self.process.error[QtCore.QProcess.ProcessError].connect(self.reportProcessError)
+        self.process.finished[int, QtCore.QProcess.ExitStatus].connect(self.onFinished)
 
         self.defaultWorkingDir = self.process.workingDirectory()
 
-        self.finished = False
+        # RJLRJL commented out
+        # self.finished = False
         self.aborting = False
 
         self.messageFormat = QtGui.QTextCharFormat()
@@ -529,7 +536,8 @@ class SubProcessWidget(QtWidgets.QWidget):
         self._args_file = None  # temp file to pass arguments to qsubprocess
         self.error_class = ''
         self.error_data = {}
-        self.conflicted = False
+        # RJLRJL Commented out
+        # self.conflicted = False
 
     def hide_progress(self):
         self.progressMessage.setHidden(True)
@@ -620,9 +628,9 @@ class SubProcessWidget(QtWidgets.QWidget):
             directory = self.defaultWorkingDir
 
         self.error_class = ''
-        failed = QtCore.pyqtSignal('QString')
-        conflicted = QtCore.pyqtSignal('QString')
-        finished = QtCore.pyqtSignal()
+        # failed = QtCore.pyqtSignal('QString')
+        # conflicted = QtCore.pyqtSignal('QString')
+        # finished = QtCore.pyqtSignal()
         self.error_data = {}
 
         self.process.setWorkingDirectory(directory)
@@ -863,8 +871,8 @@ class SubprocessProgressView (TextProgressView):
     def __init__(self, term_file):
         TextProgressView.__init__(self, term_file)
         # The TextProgressView does not show the transport activity untill
-        # there was a progress update. This changed becuse showing the
-        # transport activity before a progress update would cause artifactes to
+        # there was a progress update. This changed because showing the
+        # transport activity before a progress update would cause artifacts to
         # remain on the screen. We don't have to worry about that
         self._have_output = True
 
@@ -915,7 +923,7 @@ class SubprocessUIFactory(TextUIFactory):
         line = self.stdin.readline()
         if line.startswith(name):
             return bencode.bdecode(line[len(name):].rstrip('\r\n'))
-        raise Exception("Did not recive a answer from the main process.")
+        raise Exception("Did not receive a answer from the main process.")
 
     def _choose_from_main(self, msg, choices, default):
         name = SUB_CHOOSE
@@ -924,7 +932,7 @@ class SubprocessUIFactory(TextUIFactory):
         line = self.stdin.readline()
         if line.startswith(name):
             return bencode.bdecode(line[len(name):].rstrip('\r\n'))
-        raise Exception("Did not recive a answer from the main process.")
+        raise Exception("Did not receive a answer from the main process.")
 
     def get_password(self, prompt='', **kwargs):
         prompt = prompt % kwargs

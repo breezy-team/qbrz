@@ -134,7 +134,7 @@ class QBzrRunDialog(SubProcessDialog):
         self.subprocessFailed[bool].disconnect(self.editButton.setHidden)
         self.ui.run_container.show()
         self.ui.help_browser.show()
-        self.okButton.setShown(True)
+        self.okButton.setVisible(True)
 
     def set_default_help(self):
         """Set default text in help widget."""
