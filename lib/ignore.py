@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from breezy.globbing import Globster
 from breezy.plugins.qbrz.lib.i18n import gettext, N_, ngettext
 from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
@@ -46,13 +46,13 @@ class IgnoreWindow(SubProcessDialog):
         self.wt = tree
         self.unknowns = {}
 
-        groupbox = QtGui.QGroupBox(gettext("Unknown Files"), self)
-        vbox = QtGui.QVBoxLayout(groupbox)
+        groupbox = QtWidgets.QGroupBox(gettext("Unknown Files"), self)
+        vbox = QtWidgets.QVBoxLayout(groupbox)
 
-        self.unknowns_list = QtGui.QTreeWidget(groupbox)
+        self.unknowns_list = QtWidgets.QTreeWidget(groupbox)
         self.unknowns_list.setRootIsDecorated(False)
         self.unknowns_list.setUniformRowHeights(True)
-        self.unknowns_list.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.unknowns_list.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.unknowns_list.setHeaderLabels([
             gettext("File"),
             gettext("Extension"),
@@ -60,24 +60,22 @@ class IgnoreWindow(SubProcessDialog):
             ])
         self.unknowns_list.setSortingEnabled(True)
         self.unknowns_list.sortByColumn(0, QtCore.Qt.AscendingOrder)
-        self.connect(self.unknowns_list,
-            QtCore.SIGNAL("itemClicked(QTreeWidgetItem*, int)"),
-            self.item_clicked)
+        self.unknowns_list.itemClicked[QTreeWidgetItem, int].connect(self.item_clicked)
 
-        self.no_action = QtGui.QRadioButton(gettext('No action'), groupbox)
+        self.no_action = QtWidgets.QRadioButton(gettext('No action'), groupbox)
         self.no_action.setChecked(True)
-        self.connect(self.no_action, QtCore.SIGNAL('clicked(bool)'), self.select_no_action)
-        self.by_extension = QtGui.QRadioButton(gettext('Ignore all files with this extension'), groupbox)
-        self.connect(self.by_extension, QtCore.SIGNAL('clicked(bool)'), self.select_by_extension)
-        hbox = QtGui.QHBoxLayout()
+        self.no_action.clicked[bool].connect(self.select_no_action)
+        self.by_extension = QtWidgets.QRadioButton(gettext('Ignore all files with this extension'), groupbox)
+        self.by_extension.clicked[bool].connect(self.select_by_extension)
+        hbox = QtWidgets.QHBoxLayout()
         hbox.insertSpacing(0, 20)
-        self.case_insensitive = QtGui.QCheckBox(gettext('Case-insensitive pattern'), groupbox)
-        self.connect(self.case_insensitive, QtCore.SIGNAL('clicked(bool)'), self.select_case_insensitive)
+        self.case_insensitive = QtWidgets.QCheckBox(gettext('Case-insensitive pattern'), groupbox)
+        self.case_insensitive.clicked[bool].connect(self.select_case_insensitive)
         hbox.addWidget(self.case_insensitive)
-        self.by_basename = QtGui.QRadioButton(gettext('Ignore by basename'), groupbox)
-        self.connect(self.by_basename, QtCore.SIGNAL('clicked(bool)'), self.select_by_basename)
-        self.by_fullname = QtGui.QRadioButton(gettext('Ignore by fullname'), groupbox)
-        self.connect(self.by_fullname, QtCore.SIGNAL('clicked(bool)'), self.select_by_fullname)
+        self.by_basename = QtWidgets.QRadioButton(gettext('Ignore by basename'), groupbox)
+        self.by_basename.clicked[bool].connect(self.select_by_basename)
+        self.by_fullname = QtWidgets.QRadioButton(gettext('Ignore by fullname'), groupbox)
+        self.by_fullname.clicked[bool].connect(self.select_by_fullname)
         self._disable_actions()
 
         vbox.addWidget(self.unknowns_list)
@@ -87,7 +85,7 @@ class IgnoreWindow(SubProcessDialog):
         vbox.addWidget(self.by_basename)
         vbox.addWidget(self.by_fullname)
 
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(groupbox)
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
@@ -113,7 +111,7 @@ class IgnoreWindow(SubProcessDialog):
         self.set_title([gettext("Ignore"), self.wt.basedir])
         items = []
         for i in self.wt.unknowns():
-            item = QtGui.QTreeWidgetItem()
+            item = QtWidgets.QTreeWidgetItem()
             item.setText(0, i)
             item.setText(1, file_extension(i))
             item.setData(0, QtCore.Qt.UserRole, i)

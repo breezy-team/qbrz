@@ -24,7 +24,7 @@
 # 7513 of 2020-06-11
 
 from breezy.tests import TestCase, TestCaseWithTransport
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore
 from breezy import conflicts
 from breezy.plugins.qbrz.lib import tests as qtests
 from breezy.plugins.qbrz.lib.annotate import AnnotateWindow

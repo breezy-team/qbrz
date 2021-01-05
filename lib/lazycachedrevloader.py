@@ -20,7 +20,7 @@
 #import weakref
 import time
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 from breezy.transport.local import LocalTransport
 from breezy.repository import Repository

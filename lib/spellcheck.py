@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtGui
+from PyQt5 import QtGui
 
 # TODO Enchant supports OpenOffice dictionaries, make it easy to use them on Windows
 # TODO custom words

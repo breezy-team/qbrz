@@ -6,79 +6,73 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
-
-try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
+    _encoding = QtWidgets.QApplication.UnicodeUTF8
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+        return QtCore.QCoreApplication.translate(context, text, disambig)
 
 class Ui_UpdateCheckoutForm(object):
     def setupUi(self, UpdateCheckoutForm):
-        UpdateCheckoutForm.setObjectName(_fromUtf8("UpdateCheckoutForm"))
+        UpdateCheckoutForm.setObjectName("UpdateCheckoutForm")
         UpdateCheckoutForm.resize(317, 170)
-        self.verticalLayout = QtGui.QVBoxLayout(UpdateCheckoutForm)
-        self.verticalLayout.setMargin(9)
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.label = QtGui.QLabel(UpdateCheckoutForm)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
+        self.verticalLayout = QtWidgets.QVBoxLayout(UpdateCheckoutForm)
+        self.verticalLayout.setContentsMargins(9, 9, 9, 9)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.label = QtWidgets.QLabel(UpdateCheckoutForm)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
-        self.label.setObjectName(_fromUtf8("label"))
+        self.label.setObjectName("label")
         self.verticalLayout.addWidget(self.label)
-        self.groupBox = QtGui.QGroupBox(UpdateCheckoutForm)
-        self.groupBox.setObjectName(_fromUtf8("groupBox"))
-        self.gridLayout = QtGui.QGridLayout(self.groupBox)
-        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.but_update = QtGui.QRadioButton(self.groupBox)
+        self.groupBox = QtWidgets.QGroupBox(UpdateCheckoutForm)
+        self.groupBox.setObjectName("groupBox")
+        self.gridLayout = QtWidgets.QGridLayout(self.groupBox)
+        self.gridLayout.setObjectName("gridLayout")
+        self.but_update = QtWidgets.QRadioButton(self.groupBox)
         self.but_update.setChecked(True)
-        self.but_update.setObjectName(_fromUtf8("but_update"))
+        self.but_update.setObjectName("but_update")
         self.gridLayout.addWidget(self.but_update, 0, 0, 1, 3)
-        self.but_pull = QtGui.QRadioButton(self.groupBox)
+        self.but_pull = QtWidgets.QRadioButton(self.groupBox)
         self.but_pull.setEnabled(True)
-        self.but_pull.setObjectName(_fromUtf8("but_pull"))
+        self.but_pull.setObjectName("but_pull")
         self.gridLayout.addWidget(self.but_pull, 1, 0, 1, 3)
-        spacerItem = QtGui.QSpacerItem(18, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(18, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem, 2, 0, 1, 1)
-        self.location = QtGui.QComboBox(self.groupBox)
+        self.location = QtWidgets.QComboBox(self.groupBox)
         self.location.setEnabled(False)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.location.sizePolicy().hasHeightForWidth())
         self.location.setSizePolicy(sizePolicy)
         self.location.setEditable(True)
-        self.location.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToMinimumContentsLength)
-        self.location.setObjectName(_fromUtf8("location"))
+        self.location.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToMinimumContentsLength)
+        self.location.setObjectName("location")
         self.gridLayout.addWidget(self.location, 2, 1, 1, 1)
-        self.location_picker = QtGui.QPushButton(self.groupBox)
+        self.location_picker = QtWidgets.QPushButton(self.groupBox)
         self.location_picker.setEnabled(False)
-        self.location_picker.setObjectName(_fromUtf8("location_picker"))
+        self.location_picker.setObjectName("location_picker")
         self.gridLayout.addWidget(self.location_picker, 2, 2, 1, 1)
-        spacerItem1 = QtGui.QSpacerItem(18, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        spacerItem1 = QtWidgets.QSpacerItem(18, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem1, 3, 0, 1, 1)
-        self.but_pull_overwrite = QtGui.QCheckBox(self.groupBox)
+        self.but_pull_overwrite = QtWidgets.QCheckBox(self.groupBox)
         self.but_pull_overwrite.setEnabled(False)
-        self.but_pull_overwrite.setObjectName(_fromUtf8("but_pull_overwrite"))
+        self.but_pull_overwrite.setObjectName("but_pull_overwrite")
         self.gridLayout.addWidget(self.but_pull_overwrite, 3, 1, 1, 2)
         self.verticalLayout.addWidget(self.groupBox)
 
         self.retranslateUi(UpdateCheckoutForm)
-        QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.location.setEnabled)
-        QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.location_picker.setEnabled)
-        QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), self.but_pull_overwrite.setEnabled)
-        QtCore.QObject.connect(UpdateCheckoutForm, QtCore.SIGNAL(_fromUtf8("disableUi(bool)")), self.groupBox.setDisabled)
+        self.but_pull.toggled[bool].connect(self.location.setEnabled)
+        self.but_pull.toggled[bool].connect(self.location_picker.setEnabled)
+        self.but_pull.toggled[bool].connect(self.but_pull_overwrite.setEnabled)
+        UpdateCheckoutForm.disableUi[bool].connect(self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(UpdateCheckoutForm)
 
     def retranslateUi(self, UpdateCheckoutForm):

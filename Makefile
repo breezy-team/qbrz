@@ -91,7 +91,9 @@ qtest:
 # In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` - we have
 # to ``cd`` to it (note the semi-colon) THEN execute the plugin code we want:
 #
-	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
+# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
+	QT_PREFERRED_BINDING=PyQt4
+	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qinfo
 
 # cd ~/.local/share/nemo/actions; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
 

@@ -19,7 +19,7 @@
 
 import re
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.revision import CURRENT_REVISION
 from breezy import (
@@ -106,7 +106,7 @@ def format_signature_validity(rev_id, repository, gpg_strategy):
         return "no signature"
 
 
-class RevisionMessageBrowser(QtGui.QTextBrowser):
+class RevisionMessageBrowser(QtWidgets.QTextBrowser):
     """Widget to display revision metadata and messages."""
 
     def __init__(self, parent=None):
@@ -140,7 +140,8 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             self.document().addResource(QtGui.QTextDocument.ImageResource, QtCore.QUrl("dot%d" % color), image)
             self.images.append(image)
 
-        self.props_back_color_str = ("#%02X%02X%02X" % self.palette().background().color().getRgb()[:3])
+        # TODO: RJLRJL - put this back in
+        # self.props_back_color_str = ("#%02X%02X%02X" % self.palette().background().color().getRgb()[:3])
 
     def get_act_color(self, color, back):
         qcolor = QtGui.QColor()
@@ -167,29 +168,24 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             revids_to_load.update(set(self.get_parents(revid)))
             revids_to_load.update(set(self.get_children(revid)))
 
-        load_revisions(list(revids_to_load), repo,
-                       revisions_loaded=self.revisions_loaded,
-                       pass_prev_loaded_rev=True)
+        load_revisions(list(revids_to_load), repo, revisions_loaded=self.revisions_loaded, pass_prev_loaded_rev=True)
 
     def revisions_loaded(self, revs_loaded, last_call):
         self._all_loaded_revs.update(revs_loaded)
 
         rev_html = []
-        min_merge_depth = min([self.get_merge_depth(revid)
-                               for revid in self._display_revids])
+        min_merge_depth = min([self.get_merge_depth(revid) for revid in self._display_revids])
         for revid in self._display_revids:
             props = []
             message = ""
-            props.append((gettext("Revision:"),
-                          "%s revid:%s" % (self.get_revno(revid),
-                                           revid.decode('ascii'))))
+            props.append((gettext("Revision:"), "%s revid:%s" % (self.get_revno(revid), revid.decode('ascii'))))
 
             parents = self.get_parents(revid)
             children = self.get_children(revid)
 
             def short_text(summary, length):
                 if len(summary) > length:
-                    return summary[:length-1] + "\u2026"
+                    return summary[:length - 1] + "\u2026"
                 else:
                     return summary
 
@@ -199,33 +195,26 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                     revno = self.get_revno(revid)
                     color = self.get_color(revid)
                     if color is not None:
-                        color = '<img src="dot%d" width="%d" height="%d">' % (
-                            color % 6, self.imagesize, self.imagesize)
+                        color = '<img src="dot%d" width="%d" height="%d">' % (color % 6, self.imagesize, self.imagesize)
                     else:
                         color = ""
                     if revid in self._all_loaded_revs:
                         summary = get_summary(self._all_loaded_revs[revid])
-                        revs.append(
-                            '<a href="qlog-revid:%s" title="%s">%s%s: %s</a>' %
+                        revs.append('<a href="qlog-revid:%s" title="%s">%s%s: %s</a>' %
                             (revid.decode('ascii'), htmlencode(summary), color, revno,
                              htmlencode((short_text(summary, 60)))))
                     else:
-                        revs.append(
-                            '<a href="qlog-revid:%s">%s%srevid: %s</a>' %
-                            (revid.decode('ascii'), color, revno, revid))
+                        revs.append('<a href="qlog-revid:%s">%s%srevid: %s</a>' % (revid.decode('ascii'), color, revno, revid))
                 return '<br>'.join(revs)
 
             if parents:
-                props.append((gettext("Parents:"),
-                              revision_list_html(parents)))
+                props.append((gettext("Parents:"), revision_list_html(parents)))
             if children:
-                props.append((gettext("Children:"),
-                              revision_list_html(children)))
+                props.append((gettext("Children:"), revision_list_html(children)))
 
             if gpg_verify_available_func():
                 try:
-                    signature_result_text = format_signature_validity(
-                            revid, cached_revisions[revid].repository, self._gpg_strategy)
+                    signature_result_text = format_signature_validity(revid, cached_revisions[revid].repository, self._gpg_strategy)
                     props.append((gettext("Signature:"), signature_result_text))
                 except KeyError:
                     #can't get Repository object for uncached revisions
@@ -250,8 +239,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
 
             margin_left = (self.get_merge_depth(revid)-min_merge_depth)*20
             text = []
-            text.append('<table style="background:%s; margin-left:%dpx;">'
-                        % (self.props_back_color_str, margin_left))
+            text.append('<table style="background:%s; margin-left:%dpx;">' % (self.props_back_color_str, margin_left))
             for prop in props:
                 # white-space: pre is needed because in some languaged, some
                 # prop labels have more than 1 word. white-space: nowrap
@@ -265,18 +253,14 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                              '</tr>') % prop)
             text.append('</table>')
 
-            text.append('<div style="margin-top:0.5em; '
-                                    'margin-left:%spx;">%s</div>'
-                        % (margin_left + 2 , message))
+            text.append('<div style="margin-top:0.5em; margin-left:%spx;">%s</div>' % (margin_left + 2 , message))
             rev_html.append("".join(text))
 
         self.setHtml("<br>".join(rev_html))
 
         # setHtml creates a new document, so we have to re add the images.
         for color, image in enumerate(self.images):
-            self.document().addResource(QtGui.QTextDocument.ImageResource,
-                                        QtCore.QUrl("dot%d" % color),
-                                        image)
+            self.document().addResource(QtGui.QTextDocument.ImageResource, QtCore.QUrl("dot%d" % color), image)
 
     def loaded_revision_props(self, rev):
         props = []
@@ -305,8 +289,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             if bug:
                 try:
                     url, status = bug.split(' ', 1)
-                    bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
-                                   dict(url=url, status=gettext(status))))
+                    bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (dict(url=url, status=gettext(status))))
                 except ValueError:
                     bugs.append(bug)  # show it "as is"
         if bugs:
@@ -314,16 +297,11 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
 
         foreign_attribs = None
         if isinstance(rev, foreign.ForeignRevision):
-            foreign_attribs = \
-                rev.mapping.vcs.show_foreign_revid(rev.foreign_revid)
+            foreign_attribs = rev.mapping.vcs.show_foreign_revid(rev.foreign_revid)
         elif b":" in rev.revision_id:
             try:
-                foreign_revid, mapping = \
-                    foreign.foreign_vcs_registry.parse_revision_id(
-                        rev.revision_id)
-
-                foreign_attribs = \
-                    mapping.vcs.show_foreign_revid(foreign_revid)
+                foreign_revid, mapping = foreign.foreign_vcs_registry.parse_revision_id(rev.revision_id)
+                foreign_attribs = mapping.vcs.show_foreign_revid(foreign_revid)
             except errors.InvalidRevisionId:
                 pass
 
@@ -372,12 +350,8 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
         super(LogListRevisionMessageBrowser, self).__init__(parent)
         self.log_list = log_list
 
-        self.connect(self.log_list.selectionModel(),
-                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
-                     self.update_selection)
-        self.connect(self,
-                     QtCore.SIGNAL("anchorClicked(QUrl)"),
-                     self.link_clicked)
+        self.log_list.selectionModel().selectionChanged[QtCore.QItemSelection, QtCore.QItemSelection].connect(self.update_selection)
+        self.anchorClicked[QtCore.QUrl].connect(self.link_clicked)
         self.throbber = parent.throbber
 
     @runs_in_loading_queue
@@ -387,8 +361,7 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
         if not indexes:
             self.setHtml("")
         else:
-            revids = [index.data(logmodel.RevIdRole)
-                      for index in indexes]
+            revids = [index.data(logmodel.RevIdRole) for index in indexes]
             self.set_display_revids(
                 revids, self.log_list.log_model.graph_viz.get_repo_revids)
 

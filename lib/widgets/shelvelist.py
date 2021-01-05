@@ -18,8 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys, time
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import QKeySequence
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QKeySequence
 
 from breezy.revision import CURRENT_REVISION
 from breezy.errors import (
@@ -67,6 +67,8 @@ import sip
 
 
 class ShelveListWidget(ToolbarPanel):
+    documentChangeFinished = QtCore.pyqtSignal()
+    unshelved = QtCore.pyqtSignal(int, 'QString')
 
     def __init__(self, directory=None, complete=False, ignore_whitespace=False, 
                  encoding=None, splitters=None, parent=None):
@@ -82,19 +84,19 @@ class ShelveListWidget(ToolbarPanel):
         self.load_settings()
 
         # build main widgets
-        self.shelve_view = QtGui.QTreeWidget(self)
+        self.shelve_view = QtWidgets.QTreeWidget(self)
         self.shelve_view.setHeaderLabels([gettext("Id"), gettext("Message")])
         header = self.shelve_view.header()
-        header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
 
-        self.file_view = QtGui.QTreeWidget(self)
+        self.file_view = QtWidgets.QTreeWidget(self)
         self.file_view.setHeaderLabels([gettext("File Name"), gettext("Status")])
-        self.file_view.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.file_view.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         header = self.file_view.header()
         header.setStretchLastSection(False)
-        header.setResizeMode(0, QtGui.QHeaderView.Stretch)
-        header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
-        self.stack = QtGui.QStackedWidget(self)
+        header.setResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        header.setResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        self.stack = QtWidgets.QStackedWidget(self)
         self.diffviews = (SidebySideDiffView(self), SimpleDiffView(self))
         for view in self.diffviews:
             self.stack.addWidget(view)
@@ -111,7 +113,7 @@ class ShelveListWidget(ToolbarPanel):
         diff_panel.add_toolbar_button(N_("Unidiff"), icon_name="unidiff", 
                 checkable=True, shortcut="Ctrl+U", onclick=self.unidiff_toggled)
 
-        view_menu = QtGui.QMenu(gettext('View Options'), self)
+        view_menu = QtWidgets.QMenu(gettext('View Options'), self)
         view_menu.addAction(
                 diff_panel.create_button(N_("&Complete"), icon_name="complete", 
                     checkable=True, checked=complete, onclick=self.complete_toggled)
@@ -140,14 +142,14 @@ class ShelveListWidget(ToolbarPanel):
         setup_guidebar_for_find(self.diffviews[1], self.find_toolbar, 1)
 
         # Layout widgets
-        self.splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        self.splitter1 = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self.splitter1.addWidget(self.shelve_view)
 
-        self.splitter2 = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        self.splitter2 = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self.splitter2.addWidget(self.file_view)
         self.splitter2.addWidget(diff_panel)
 
-        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        self.splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.splitter.addWidget(self.splitter1)
         self.splitter.addWidget(self.splitter2)
         self.splitter.setStretchFactor(0, 1)
@@ -166,13 +168,13 @@ class ShelveListWidget(ToolbarPanel):
         pal.setColor(QtGui.QPalette.Window, QtGui.QColor(0,0,0,0))
         self.splitter.setPalette(pal)
 
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(10)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(10, 10, 10, 10)
         layout.addWidget(self.splitter)
         self.add_layout(layout)
         
         # build main toolbar
-        unshelve_menu = QtGui.QMenu(gettext("Unshelve"), self)
+        unshelve_menu = QtWidgets.QMenu(gettext("Unshelve"), self)
         unshelve_menu.addAction(self.create_button(N_("Dry run"), 
                                     onclick=lambda:self.do_unshelve('dry-run')))
         unshelve_menu.addAction(self.create_button(N_("Keep"),
@@ -208,10 +210,8 @@ class ShelveListWidget(ToolbarPanel):
         self.set_layout()
 
         # set signals
-        self.connect(self.shelve_view, QtCore.SIGNAL("itemSelectionChanged()"),
-                self.selected_shelve_changed)
-        self.connect(self.file_view, QtCore.SIGNAL("itemSelectionChanged()"),
-                self.selected_files_changed)
+        self.shelve_view.itemSelectionChanged.connect(self.selected_shelve_changed)
+        self.file_view.itemSelectionChanged.connect(self.selected_files_changed)
 
         self.loaded = False
         self._interrupt_switch = False
@@ -280,7 +280,7 @@ class ShelveListWidget(ToolbarPanel):
             shelves = manager.active_shelves()
             for shelf_id in reversed(shelves):
                 message = manager.get_metadata(shelf_id).get('message')
-                item = QtGui.QTreeWidgetItem()
+                item = QtWidgets.QTreeWidgetItem()
                 item.setText(0, str(shelf_id))
                 item.setText(1, message or gettext('<no message>'))
                 item.setIcon(0, get_icon("folder", 16))
@@ -352,7 +352,7 @@ class ShelveListWidget(ToolbarPanel):
             else:
                 text = old_path
                 
-            item = QtGui.QTreeWidgetItem()
+            item = QtWidgets.QTreeWidgetItem()
             item.setText(0, text)
             item.setText(1, gettext(di.status))
             if (di.kind[1] or di.kind[0]) == 'directory':
@@ -407,7 +407,7 @@ class ShelveListWidget(ToolbarPanel):
         finally:
             self._interrupt_switch = False
             for view in self.diffviews[0].browsers + (self.diffviews[1],):
-                view.emit(QtCore.SIGNAL("documentChangeFinished()"))
+                view.documentChangeFinished.emit()
 
     def selected_shelve_changed(self):
         self._change_current_shelve()
@@ -472,12 +472,12 @@ class ShelveListWidget(ToolbarPanel):
 
     def prompt_bool(self, prompt, warning=False):
         if warning:
-            func = QtGui.QMessageBox.warning
+            func = QtWidgets.QMessageBox.warning
         else:
-            func = QtGui.QMessageBox.question
+            func = QtWidgets.QMessageBox.question
         ret = func(self, gettext('Shelve'), gettext(prompt), 
-                    QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-        return (ret == QtGui.QMessageBox.Ok)
+                    QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+        return (ret == QtWidgets.QMessageBox.Ok)
 
     prompts = {
         "apply" :
@@ -511,10 +511,9 @@ class ShelveListWidget(ToolbarPanel):
                                         parent=self.window())
         def finished(result):
             if result:
-                self.emit(QtCore.SIGNAL("unshelved(int, QString*)"), 
-                          self.shelf_id, action)
+                self.unshelved.emit(self.shelf_id, action)
 
-        self.connect(window, QtCore.SIGNAL("subprocessFinished(bool)"), finished)
+        window.subprocessFinished[bool].connect(finished)
 
         window.exec_()
         self.refresh()

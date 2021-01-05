@@ -26,8 +26,8 @@ from breezy.controldir import ControlDir
 from breezy.conflicts import TextConflict, ConflictList
 from breezy import ignores
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtTest import QTest
+from PyQt5 import QtCore
+from PyQt5.QtTest import QTest
 from breezy.plugins.qbrz.lib import tests as qtests
 from breezy.plugins.qbrz.lib.treewidget import (
     TreeWidget,

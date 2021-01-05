@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from breezy.tests import TestCase, TestCaseWithTransport
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 from breezy.plugins.qbrz.lib import tests as qtests
 from breezy.plugins.qbrz.lib.commit import CommitWindow
 

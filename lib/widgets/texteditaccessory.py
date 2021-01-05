@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 GBAR_LEFT  = 1
 GBAR_RIGHT = 2
@@ -44,17 +44,18 @@ class PlainTextEditHelper(QtCore.QObject):
     """
     Helper class to encapsulate gap between QPlainTextEdit and QTextEdit
     """
+    updateRequest = QtCore.pyqtSignal()
+
     def __init__(self, edit):
         QtCore.QObject.__init__(self)
-        if not isinstance(edit, QtGui.QPlainTextEdit):
+        if not isinstance(edit, QtWidgets.QPlainTextEdit):
             raise ValueError('edit must be QPlainTextEdit')
         self.edit = edit
 
-        self.connect(edit, QtCore.SIGNAL("updateRequest(const QRect&, int)"),
-                     self.onUpdateRequest)
+        edit.updateRequest[QtCore.QRect, int].connect(self.onUpdateRequest)
 
     def onUpdateRequest(self, rect, dy):
-        self.emit(QtCore.SIGNAL("updateRequest()"))
+        self.updateRequest.emit()
 
     def center_block(self, block):
         """
@@ -80,17 +81,18 @@ class TextEditHelper(QtCore.QObject):
     """
     Helper class to encapsulate gap between QPlainTextEdit and QTextEdit
     """
+    updateRequest = QtCore.pyqtSignal()
+
     def __init__(self, edit):
         QtCore.QObject.__init__(self)
-        if not isinstance(edit, QtGui.QTextEdit):
+        if not isinstance(edit, QtWidgets.QTextEdit):
             raise ValueError('edit must be QTextEdit')
         self.edit = edit
 
-        self.connect(edit.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"),
-                     self.onVerticalScroll)
+        edit.verticalScrollBar().valueChanged[int].connect(self.onVerticalScroll)
 
     def onVerticalScroll(self, value):
-        self.emit(QtCore.SIGNAL("updateRequest()"))
+        self.updateRequest.emit()
 
     def center_block(self, block):
         """
@@ -101,13 +103,13 @@ class TextEditHelper(QtCore.QObject):
         vscroll.setValue(y - vscroll.pageStep() / 2)
 
 def get_edit_helper(edit):
-    if isinstance(edit, QtGui.QPlainTextEdit):
+    if isinstance(edit, QtWidgets.QPlainTextEdit):
         return PlainTextEditHelper(edit)
-    if isinstance(edit, QtGui.QTextEdit):
+    if isinstance(edit, QtWidgets.QTextEdit):
         return TextEditHelper(edit)
     raise ValueError("edit is unsupported type.")
 
-class GuideBar(QtGui.QWidget):
+class GuideBar(QtWidgets.QWidget):
     """
     Vertical bar attached to TextEdit.
     This shows that where changed or highlighted lines are.
@@ -119,18 +121,17 @@ class GuideBar(QtGui.QWidget):
         :edit:          target widget, must be QPlainTextEdit or QTextEdit
         :base_width:    width of each column.
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.base_width = base_width
         self.edit = edit
         self._helper = get_edit_helper(edit)
         self.block_count = 0
+        print('*** GuideBar:__init__ ***', type(edit))
 
-        self.connect(edit, QtCore.SIGNAL("documentChangeFinished()"), 
-                     self.reset_gui)
-        self.connect(edit.verticalScrollBar(), QtCore.SIGNAL("rangeChanged(int, int)"),
-                     self.vscroll_rangeChanged)
+        edit.documentChangeFinished.connect(self.reset_gui)
+        edit.verticalScrollBar().rangeChanged[int, int].connect(self.vscroll_rangeChanged)
 
-        self.connect(self._helper, QtCore.SIGNAL("updateRequest()"), self.update)
+        self._helper.updateRequest.connect(self.update)
 
         self.entries = {}
         self.vscroll_visible = None
@@ -203,7 +204,7 @@ class GuideBar(QtGui.QWidget):
         return first_visible_block, visible_blocks
 
     def paintEvent(self, event):
-        QtGui.QWidget.paintEvent(self, event)
+        QtWidgets.QWidget.paintEvent(self, event)
         painter = QtGui.QPainter(self)
         painter.fillRect(event.rect(), QtCore.Qt.white)
         if self.block_count == 0:
@@ -222,7 +223,7 @@ class GuideBar(QtGui.QWidget):
         x_origin = 2
         index = -1
         prev_index = -1
-        for e in sorted(iter(self.entries.values()), 
+        for e in sorted(iter(self.entries.values()),
                         key=lambda x:x.index if x.index >= 0 else 999):
             if not e.data:
                 continue
@@ -244,12 +245,12 @@ class GuideBar(QtGui.QWidget):
         painter.fillRect(QtCore.QRectF(x, y, width, height), QtGui.QColor(0, 0, 0, 24))
 
     def mousePressEvent(self, event):
-        QtGui.QWidget.mousePressEvent(self, event)
+        QtWidgets.QWidget.mousePressEvent(self, event)
         if event.button() == QtCore.Qt.LeftButton:
             self.scroll_to_pos(event.y())
 
     def mouseMoveEvent(self, event):
-        QtGui.QWidget.mouseMoveEvent(self, event)
+        QtWidgets.QWidget.mouseMoveEvent(self, event)
         self.scroll_to_pos(event.y())
 
     def scroll_to_pos(self, y):
@@ -259,15 +260,15 @@ class GuideBar(QtGui.QWidget):
             return
         self._helper.center_block(block)
 
-class GuideBarPanel(QtGui.QWidget):
+class GuideBarPanel(QtWidgets.QWidget):
     """
     Composite widget of TextEdit and GuideBar
     """
     def __init__(self, edit, base_width=10, align=GBAR_RIGHT, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        hbox = QtGui.QHBoxLayout(self)
+        QtWidgets.QWidget.__init__(self, parent)
+        hbox = QtWidgets.QHBoxLayout(self)
         hbox.setSpacing(0)
-        hbox.setMargin(0)
+        hbox.setContentsMargins(0, 0, 0, 0)
         self.bar = GuideBar(edit, base_width=base_width, parent=parent)
         self.edit = edit
         if align == GBAR_RIGHT:
@@ -296,5 +297,4 @@ def setup_guidebar_for_find(guidebar, find_toolbar, index=0):
                 find=[(n, 1) for n in guidebar.edit.highlight_lines]
             )
     guidebar.add_entry('find', QtGui.QColor(255, 196, 0), index) # Gold
-    guidebar.connect(find_toolbar, QtCore.SIGNAL("highlightChanged()"),
-                     on_highlight_changed)
+    find_toolbar.highlightChanged.connect(on_highlight_changed)

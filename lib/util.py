@@ -24,7 +24,7 @@ import sys
 import itertools
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.revision import Revision
 
@@ -71,7 +71,7 @@ from breezy.plugins.qbrz.lib.compatibility import configobj
 BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP, BTN_REFRESH = list(range(5))
 
 
-class StandardButton(QtGui.QPushButton):
+class StandardButton(QtWidgets.QPushButton):
 
     __types = {
         BTN_OK: (N_('&OK'), 'SP_DialogOkButton'),
@@ -89,12 +89,12 @@ class StandardButton(QtGui.QPushButton):
             if iconname == 'view-refresh':
                 icon = QtGui.QIcon(':/16x16/view-refresh.png')
                 new_args = [icon, label]
-            elif hasattr(QtGui.QStyle, iconname):
-                icon = QtGui.QApplication.style().standardIcon(
-                    getattr(QtGui.QStyle, iconname))
+            elif hasattr(QtWidgets.QStyle, iconname):
+                icon = QtWidgets.QApplication.style().standardIcon(
+                    getattr(QtWidgets.QStyle, iconname))
                 new_args = [icon, label]
         new_args.extend(args)
-        QtGui.QPushButton.__init__(self, *new_args)
+        QtWidgets.QPushButton.__init__(self, *new_args)
 
 
 def config_filename():
@@ -300,27 +300,47 @@ class _QBzrWindowBase(object):
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
 
+    # def x_create_button_box(self, *buttons):
+    #     """Create and return button box with pseudo-standard buttons
+    #     @param  buttons:    any from BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP
+    #     @return:    QtGui.QDialogButtonBox with attached buttons and signals
+    #     """
+    #     ROLES = {
+    #         BTN_OK: (QtWidgets.QDialogButtonBox.AcceptRole, "accepted()", "do_accept"),
+    #         BTN_CANCEL: (QtWidgets.QDialogButtonBox.RejectRole, "rejected()", "do_reject"),
+    #         BTN_CLOSE: (QtWidgets.QDialogButtonBox.RejectRole, "rejected()", "do_close"),
+    #         # XXX support for HelpRole
+    #         }
+    #     buttonbox = QtWidgets.QDialogButtonBox(self)
+    #     for i in buttons:
+    #         btn = StandardButton(i)
+    #         role, signal_name, method_name = ROLES[i]
+    #         buttonbox.addButton(btn, role)
+    #         buttonbox.signal_name.connect(getattr(self, method_name))
+    #         buttonbox.Signal(signal_name).connect(getattr(self, method_name))
+    #     return buttonbox
+
     def create_button_box(self, *buttons):
         """Create and return button box with pseudo-standard buttons
-        @param  buttons:    any from BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP
+        @param  buttons:    any from BTN_OK, BTN_CANCEL, BTN_CLOSE
         @return:    QtGui.QDialogButtonBox with attached buttons and signals
+
+        RJLRJL: modified this to not do the dictionary dance every time and
+        to work with PyQt5
         """
-        ROLES = {
-            BTN_OK: (QtGui.QDialogButtonBox.AcceptRole,
-                "accepted()", "do_accept"),
-            BTN_CANCEL: (QtGui.QDialogButtonBox.RejectRole,
-                "rejected()", "do_reject"),
-            BTN_CLOSE: (QtGui.QDialogButtonBox.RejectRole,
-                "rejected()", "do_close"),
-            # XXX support for HelpRole
-            }
-        buttonbox = QtGui.QDialogButtonBox(self)
-        for i in buttons:
-            btn = StandardButton(i)
-            role, signal_name, method_name = ROLES[i]
-            buttonbox.addButton(btn, role)
-            self.connect(buttonbox,
-                QtCore.SIGNAL(signal_name), getattr(self, method_name))
+        buttonbox = QtWidgets.QDialogButtonBox(self)
+        if BTN_OK in buttons:
+            btn = StandardButton(BTN_OK)
+            buttonbox.addButton(btn, QtWidgets.QDialogButtonBox.AcceptRole)
+            buttonbox.accepted.connect(self.do_accept)
+        if BTN_CANCEL in buttons:
+            btn = StandardButton(BTN_CANCEL)
+            buttonbox.addButton(btn, QtWidgets.QDialogButtonBox.RejectRole)
+            buttonbox.accepted.connect(self.do_reject)
+        if BTN_CLOSE in buttons:
+            btn = StandardButton(BTN_CLOSE)
+            buttonbox.addButton(btn, QtWidgets.QDialogButtonBox.RejectRole)
+            buttonbox.accepted.connect(self.do_close)
         return buttonbox
 
     def _saveSize(self, config):
@@ -423,12 +443,12 @@ class _QBzrWindowBase(object):
         self.show_warning(message)
 
     def show_error(self, message):
-        QtGui.QMessageBox.critical(self,
+        QtWidgets.QMessageBox.critical(self,
             gettext("Error"),
             message)
 
     def show_warning(self, message):
-        QtGui.QMessageBox.warning(self,
+        QtWidgets.QMessageBox.warning(self,
             gettext("Warning"),
             message)
 
@@ -436,45 +456,45 @@ class _QBzrWindowBase(object):
         """Return True if user selected Yes.
         Optional parameter type selects dialog type. Valid values: question, warning.
         """
-        klass = QtGui.QMessageBox.question
+        klass = QtWidgets.QMessageBox.question
         if type == 'warning':
-            klass = QtGui.QMessageBox.warning
+            klass = QtWidgets.QMessageBox.warning
         button = klass(self,
             gettext("Confirm"),
             message,
-            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-            QtGui.QMessageBox.No)
-        if button == QtGui.QMessageBox.Yes:
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No)
+        if button == QtWidgets.QMessageBox.Yes:
             return True
         else:
             return False
 
 
-class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
+class QBzrWindow(QtWidgets.QMainWindow, _QBzrWindowBase):
 
     def __init__(self, title=None, parent=None, centralwidget=None, ui_mode=True):
-        QtGui.QMainWindow.__init__(self, parent)
+        QtWidgets.QMainWindow.__init__(self, parent)
         self.ui_mode = ui_mode
 
         self.set_title_and_icon(title)
 
         if centralwidget is None:
-            centralwidget = QtGui.QWidget(self)
+            centralwidget = QtWidgets.QWidget(self)
         self.centralwidget = centralwidget
         self.setCentralWidget(self.centralwidget)
         self.windows = []
         self.closing = False
 
     def show(self):
-        QtGui.QMainWindow.show(self)
+        QtWidgets.QMainWindow.show(self)
         self.raise_()	# Make sure it displays in the foreground
 
 
-class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
+class QBzrDialog(QtWidgets.QDialog, _QBzrWindowBase):
 
     def __init__(self, title=None, parent=None, ui_mode=True):
         self.ui_mode = ui_mode
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
 
         self.set_title_and_icon(title)
 
@@ -495,33 +515,33 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
 
     def reject(self):
         self.saveSize()
-        QtGui.QDialog.reject(self)
+        QtWidgets.QDialog.reject(self)
 
     def show(self):
-        QtGui.QMainWindow.show(self)
+        QtWidgets.QMainWindow.show(self)
         self.raise_()	# Make sure it displays in the foreground
 
 throber_movie = None
 
-class ThrobberWidget(QtGui.QWidget):
+class ThrobberWidget(QtWidgets.QWidget):
     """A widget that indicates activity."""
 
     def __init__(self, parent, timeout=500):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         global throber_movie
         if not throber_movie:
             throber_movie = QtGui.QMovie(":/16x16/process-working.gif")
             throber_movie.start()
 
-        self.spinner = QtGui.QLabel("", self)
+        self.spinner = QtWidgets.QLabel("", self)
         self.spinner.setMovie(throber_movie)
 
-        self.message = QtGui.QLabel(gettext("Loading..."), self)
+        self.message = QtWidgets.QLabel(gettext("Loading..."), self)
         #self.progress = QtGui.QProgressBar(self)
         #self.progress.setTextVisible (False)
         #self.progress.hide()
         #self.progress.setMaximum(sys.maxint)
-        self.transport = QtGui.QLabel("", self)
+        self.transport = QtWidgets.QLabel("", self)
         for widget in (self.spinner,
                        self.message,
                        #self.progress,
@@ -533,7 +553,7 @@ class ThrobberWidget(QtGui.QWidget):
         self.num_show = 0
 
     def set_layout(self):
-        layout = QtGui.QHBoxLayout(self)
+        layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
         layout.addWidget(self.spinner)
@@ -552,7 +572,7 @@ class ThrobberWidget(QtGui.QWidget):
         self.num_show -= 1
         if self.num_show <= 0:
             self.num_show = 0
-            QtGui.QWidget.hide(self)
+            QtWidgets.QWidget.hide(self)
             for widget in self.widgets:
                 widget.hide()
 
@@ -560,7 +580,7 @@ class ThrobberWidget(QtGui.QWidget):
         #QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         # and show ourselves.
         self.num_show += 1
-        QtGui.QWidget.show(self)
+        QtWidgets.QWidget.show(self)
         for widget in self.widgets:
             widget.show()
 
@@ -570,7 +590,7 @@ class ToolBarThrobberWidget(ThrobberWidget):
     for use on a toolbar."""
 
     def set_layout(self):
-        layout = QtGui.QHBoxLayout(self)
+        layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
         layout.addWidget(self.transport)
@@ -611,11 +631,11 @@ def hookup_directory_picker(dialog, chooser, target, chooser_type):
         dir = str(getter())
         if not os.path.isdir(dir):
             dir = ""
-        dir = QtGui.QFileDialog.getExistingDirectory(dlg, caption, dir)
+        dir = QtWidgets.QFileDialog.getExistingDirectory(dlg, caption, dir)
         if dir:
             setter(dir)
 
-    dialog.connect(chooser, QtCore.SIGNAL("clicked()"), click_handler)
+    chooser.clicked.connect(click_handler)
 
 
 def open_browser(url):
@@ -1005,7 +1025,7 @@ def ensure_unicode(s, encoding='ascii'):
 
 
 def open_tree(directory, ui_mode=False,
-    _critical_dialog=QtGui.QMessageBox.critical):
+    _critical_dialog=QtWidgets.QMessageBox.critical):
     """Open working tree with its root at specified directory or above
     (similar to WorkingTree.open_containing).
     If there is no working tree and ui_mode is True then show GUI dialog
@@ -1113,10 +1133,10 @@ def get_icon(name, size=22):
     return QtGui.QIcon(":/%dx%d/%s.png" % (size, size, name))
 
 
-class InfoWidget(QtGui.QFrame):
+class InfoWidget(QtWidgets.QFrame):
     def __init__(self, parent=None):
-        QtGui.QFrame.__init__(self, parent)
-        self.setFrameShape(QtGui.QFrame.StyledPanel)
+        QtWidgets.QFrame.__init__(self, parent)
+        self.setFrameShape(QtWidgets.QFrame.StyledPanel)
 
         self.setAutoFillBackground(True)
         self.setBackgroundRole(QtGui.QPalette.ToolTipBase)
@@ -1139,7 +1159,7 @@ def _get_monospace_font():
     # Maybe have our own config setting.
 
     # Get the defaul font size
-    size = QtGui.QApplication.font().pointSize()
+    size = QtWidgets.QApplication.font().pointSize()
 
     for font_family in ("Monospace", "Courier New"):
         font = QtGui.QFont(font_family, size)

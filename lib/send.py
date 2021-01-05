@@ -20,7 +20,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import re
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy import errors
 from breezy.plugins.qbrz.lib.i18n import gettext
@@ -44,14 +44,14 @@ class SendWindow(SubProcessDialog):
 
         self.branch = branch
         
-        gbMergeDirective = QtGui.QGroupBox(gettext("Merge Directive Options"), self)
-        vboxMergeDirective = QtGui.QVBoxLayout(gbMergeDirective)
+        gbMergeDirective = QtWidgets.QGroupBox(gettext("Merge Directive Options"), self)
+        vboxMergeDirective = QtWidgets.QVBoxLayout(gbMergeDirective)
         vboxMergeDirective.addStrut(0)
         
-        submit_hbox = QtGui.QHBoxLayout()
+        submit_hbox = QtWidgets.QHBoxLayout()
         
-        submit_branch_label = QtGui.QLabel(gettext("Submit Branch:"))
-        submit_branch_combo = QtGui.QComboBox()   
+        submit_branch_label = QtWidgets.QLabel(gettext("Submit Branch:"))
+        submit_branch_combo = QtWidgets.QComboBox()   
         submit_branch_combo.setEditable(True)
         
         submitbranch = branch.get_submit_branch()
@@ -59,8 +59,8 @@ class SendWindow(SubProcessDialog):
             submit_branch_combo.addItem(submitbranch)
             
         self.submit_branch_combo = submit_branch_combo # to allow access from another function     
-        browse_submit_button = QtGui.QPushButton(gettext("Browse"))
-        QtCore.QObject.connect(browse_submit_button, QtCore.SIGNAL("clicked(bool)"), self.browse_submit_clicked)
+        browse_submit_button = QtWidgets.QPushButton(gettext("Browse"))
+        browse_submit_button.clicked[bool].connect(self.browse_submit_clicked)
                     
         submit_hbox.addWidget(submit_branch_label)
         submit_hbox.addWidget(submit_branch_combo)
@@ -72,10 +72,10 @@ class SendWindow(SubProcessDialog):
         
         vboxMergeDirective.addLayout(submit_hbox)
         
-        public_hbox = QtGui.QHBoxLayout()
+        public_hbox = QtWidgets.QHBoxLayout()
         
-        public_branch_label = QtGui.QLabel(gettext("Public Branch:"))
-        public_branch_combo = QtGui.QComboBox()   
+        public_branch_label = QtWidgets.QLabel(gettext("Public Branch:"))
+        public_branch_combo = QtWidgets.QComboBox()   
         public_branch_combo.setEditable(True)
         
         publicbranch = branch.get_public_branch()
@@ -83,8 +83,8 @@ class SendWindow(SubProcessDialog):
             public_branch_combo.addItem(publicbranch)
                 
         self.public_branch_combo = public_branch_combo # to allow access from another function      
-        browse_public_button = QtGui.QPushButton(gettext("Browse"))
-        QtCore.QObject.connect(browse_public_button, QtCore.SIGNAL("clicked(bool)"), self.browse_public_clicked)
+        browse_public_button = QtWidgets.QPushButton(gettext("Browse"))
+        browse_public_button.clicked[bool].connect(self.browse_public_clicked)
                     
         public_hbox.addWidget(public_branch_label)
         public_hbox.addWidget(public_branch_combo)
@@ -96,31 +96,31 @@ class SendWindow(SubProcessDialog):
         
         vboxMergeDirective.addLayout(public_hbox)
         
-        remember_check = QtGui.QCheckBox(gettext("Remember these locations as defaults"))
+        remember_check = QtWidgets.QCheckBox(gettext("Remember these locations as defaults"))
         self.remember_check = remember_check
         vboxMergeDirective.addWidget(remember_check)
 
-        bundle_check = QtGui.QCheckBox(gettext("Include a bundle in the merge directive"))
+        bundle_check = QtWidgets.QCheckBox(gettext("Include a bundle in the merge directive"))
         bundle_check.setChecked(True)
         self.bundle_check = bundle_check
         vboxMergeDirective.addWidget(bundle_check)
-        patch_check = QtGui.QCheckBox(gettext("Include a preview patch in the merge directive"))
+        patch_check = QtWidgets.QCheckBox(gettext("Include a preview patch in the merge directive"))
         patch_check.setChecked(True)
         self.patch_check = patch_check
         vboxMergeDirective.addWidget(patch_check)
         
-        gbAction = QtGui.QGroupBox(gettext("Action"), self)
-        vboxAction = QtGui.QVBoxLayout(gbAction)
+        gbAction = QtWidgets.QGroupBox(gettext("Action"), self)
+        vboxAction = QtWidgets.QVBoxLayout(gbAction)
         
-        submit_email_radio = QtGui.QRadioButton("Send e-mail")
+        submit_email_radio = QtWidgets.QRadioButton("Send e-mail")
         submit_email_radio.toggle()
         self.submit_email_radio = submit_email_radio
         vboxAction.addWidget(submit_email_radio)
         
-        mailto_hbox = QtGui.QHBoxLayout()
+        mailto_hbox = QtWidgets.QHBoxLayout()
         
-        mailto_label = QtGui.QLabel(gettext("Address:"))
-        mailto_edit = QtGui.QLineEdit()
+        mailto_label = QtWidgets.QLabel(gettext("Address:"))
+        mailto_edit = QtWidgets.QLineEdit()
         self.mailto_edit = mailto_edit
         mailto_hbox.insertSpacing(0,50)
         mailto_hbox.addWidget(mailto_label)
@@ -128,9 +128,9 @@ class SendWindow(SubProcessDialog):
         
         vboxAction.addLayout(mailto_hbox)
         
-        message_hbox = QtGui.QHBoxLayout()
-        message_label = QtGui.QLabel(gettext("Message:"))
-        message_edit = QtGui.QLineEdit()
+        message_hbox = QtWidgets.QHBoxLayout()
+        message_label = QtWidgets.QLabel(gettext("Message:"))
+        message_edit = QtWidgets.QLineEdit()
         self.message_edit = message_edit
         
         message_hbox.insertSpacing(0,50)
@@ -139,18 +139,18 @@ class SendWindow(SubProcessDialog):
 
         vboxAction.addLayout(message_hbox)
         
-        save_file_radio = QtGui.QRadioButton("Save to file")
+        save_file_radio = QtWidgets.QRadioButton("Save to file")
         self.save_file_radio = save_file_radio
         
         vboxAction.addWidget(save_file_radio)
         
-        savefile_hbox = QtGui.QHBoxLayout()
+        savefile_hbox = QtWidgets.QHBoxLayout()
         
-        savefile_label = QtGui.QLabel(gettext("Filename:"))
-        savefile_edit = QtGui.QLineEdit()
+        savefile_label = QtWidgets.QLabel(gettext("Filename:"))
+        savefile_edit = QtWidgets.QLineEdit()
         self.savefile_edit = savefile_edit # to allow access from callback function
-        savefile_button = QtGui.QPushButton(gettext("Browse"))
-        QtCore.QObject.connect(savefile_button, QtCore.SIGNAL("clicked(bool)"), self.savefile_button_clicked)
+        savefile_button = QtWidgets.QPushButton(gettext("Browse"))
+        savefile_button.clicked[bool].connect(self.savefile_button_clicked)
         
         savefile_hbox.insertSpacing(0,50)
         savefile_hbox.addWidget(savefile_label)
@@ -159,9 +159,9 @@ class SendWindow(SubProcessDialog):
         
         vboxAction.addLayout(savefile_hbox)
                 
-        revisions_hbox = QtGui.QHBoxLayout()
-        revisions_label = QtGui.QLabel(gettext("Revisions:"))
-        revisions_edit = QtGui.QLineEdit()
+        revisions_hbox = QtWidgets.QHBoxLayout()
+        revisions_label = QtWidgets.QLabel(gettext("Revisions:"))
+        revisions_edit = QtWidgets.QLineEdit()
         self.revisions_edit = revisions_edit
         
         revisions_hbox.addWidget(revisions_label)
@@ -169,9 +169,9 @@ class SendWindow(SubProcessDialog):
 
         vboxAction.addLayout(revisions_hbox)
         
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         
-        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        self.splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.splitter.addWidget(gbAction)
         self.splitter.addWidget(gbMergeDirective)
         
@@ -184,18 +184,18 @@ class SendWindow(SubProcessDialog):
         layout.addWidget(self.buttonbox)
        
     def savefile_button_clicked(self):
-        fileName = QtGui.QFileDialog.getSaveFileName(self, ("Select save location"));
+        fileName = QtWidgets.QFileDialog.getSaveFileName(self, ("Select save location"));[0]
         if fileName != '':
             self.savefile_edit.setText(fileName)
                 
     def browse_submit_clicked(self):
-        fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select Submit branch"));
+        fileName = QtWidgets.QFileDialog.getExistingDirectory(self, ("Select Submit branch"));
         if fileName != '':
             self.submit_branch_combo.insertItem(0,fileName)
             self.submit_branch_combo.setCurrentIndex(0)
 
     def browse_public_clicked(self):
-        fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select Public branch"));
+        fileName = QtWidgets.QFileDialog.getExistingDirectory(self, ("Select Public branch"));
         if fileName != '':
             self.public_branch_combo.insertItem(0,fileName)
             self.public_branch_combo.setCurrentIndex(0)

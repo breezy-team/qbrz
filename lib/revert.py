@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy import errors
 from breezy.plugins.qbrz.lib.diff import (
@@ -62,7 +62,7 @@ class RevertWindow(SubProcessDialog):
         self.throbber = ThrobberWidget(self)
 
         # Display the list of changed files
-        self.file_groupbox = QtGui.QGroupBox(gettext("Select changes to revert"), self)
+        self.file_groupbox = QtWidgets.QGroupBox(gettext("Select changes to revert"), self)
 
         self.filelist = TreeWidget(self.file_groupbox)
         self.filelist.throbber = self.throbber
@@ -77,20 +77,20 @@ class RevertWindow(SubProcessDialog):
         self.selectall_checkbox = SelectAllCheckBox(self.filelist, self.file_groupbox)
         self.selectall_checkbox.setEnabled(True)
 
-        self.no_backup_checkbox = QtGui.QCheckBox(
+        self.no_backup_checkbox = QtWidgets.QCheckBox(
             gettext('Do not save backups of reverted files'))
         if not backup:
             self.no_backup_checkbox.setCheckState(QtCore.Qt.Checked)
         self.no_backup_checkbox.setEnabled(True)
 
-        filesbox = QtGui.QVBoxLayout(self.file_groupbox)
+        filesbox = QtWidgets.QVBoxLayout(self.file_groupbox)
         filesbox.addWidget(self.filelist)
         filesbox.addWidget(self.selectall_checkbox)
         filesbox.addWidget(self.no_backup_checkbox)
 
         if self.has_pending_merges:
             self.file_groupbox.setCheckable(True)
-            self.merges_groupbox = QtGui.QGroupBox(gettext("Forget pending merges"))
+            self.merges_groupbox = QtWidgets.QGroupBox(gettext("Forget pending merges"))
             self.merges_groupbox.setCheckable(True)
             # This keeps track of what the merges_groupbox was before the
             # select all changes it, so that it can put it back to the state
@@ -98,30 +98,19 @@ class RevertWindow(SubProcessDialog):
             self.merges_base_checked = True
             self.pending_merges = PendingMergesList(
                 self.processEvents, self.throbber, self)
-            merges_box = QtGui.QVBoxLayout(self.merges_groupbox)
+            merges_box = QtWidgets.QVBoxLayout(self.merges_groupbox)
             merges_box.addWidget(self.pending_merges)
 
-            self.connect(self.selectall_checkbox,
-                         QtCore.SIGNAL("stateChanged(int)"),
-                         self.selectall_state_changed)
-            self.connect(self.merges_groupbox,
-                         QtCore.SIGNAL("clicked(bool)"),
-                         self.merges_clicked)
-            self.connect(self.file_groupbox,
-                         QtCore.SIGNAL("clicked(bool)"),
-                         self.file_groupbox_clicked)
-            self.connect(self.filelist.tree_model,
-                         QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                         self.filelist_data_changed)
+            self.selectall_checkbox.stateChanged[int].connect(self.selectall_state_changed)
+            self.merges_groupbox.clicked[bool].connect(self.merges_clicked)
+            self.file_groupbox.clicked[bool].connect(self.file_groupbox_clicked)
+            self.filelist.tree_model.dataChanged[QModelIndex, QModelIndex].connect(self.filelist_data_changed)
 
 
         # groupbox gets disabled as we are executing.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("disableUi(bool)"),
-                               self.file_groupbox,
-                               QtCore.SLOT("setDisabled(bool)"))
+        self.disableUi[bool].connect(self.file_groupbox.setDisabled)
 
-        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        self.splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.splitter.addWidget(self.file_groupbox)
         if self.has_pending_merges:
             self.splitter.addWidget(self.merges_groupbox)
@@ -130,7 +119,7 @@ class RevertWindow(SubProcessDialog):
         self.splitter.setStretchFactor(0, 10)
         self.restoreSplitterSizes([150, 150])
 
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.throbber)
         layout.addWidget(self.splitter)
 
@@ -138,9 +127,8 @@ class RevertWindow(SubProcessDialog):
         self.diffbuttons = DiffButtons(self)
         self.diffbuttons.setToolTip(
             gettext("View changes in files selected to revert"))
-        self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
-                     self.show_diff_for_checked)
-        hbox = QtGui.QHBoxLayout()
+        self.diffbuttons.triggered['QString'].connect(self.show_diff_for_checked)
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.diffbuttons)
         hbox.addWidget(self.buttonbox)
         layout.addLayout(hbox)
@@ -296,4 +284,4 @@ class RevertWindow(SubProcessDialog):
 
         else:
             msg = "No changes selected to " + dialog_action
-            QtGui.QMessageBox.warning(self, "QBrz - " + gettext("Diff"), gettext(msg), QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, "QBrz - " + gettext("Diff"), gettext(msg), QtWidgets.QMessageBox.Ok)

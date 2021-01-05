@@ -6,55 +6,49 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
-
-try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
+    _encoding = QtWidgets.QApplication.UnicodeUTF8
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+        return QtCore.QCoreApplication.translate(context, text, disambig)
 
 class Ui_BookmarkDialog(object):
     def setupUi(self, BookmarkDialog):
-        BookmarkDialog.setObjectName(_fromUtf8("BookmarkDialog"))
+        BookmarkDialog.setObjectName("BookmarkDialog")
         BookmarkDialog.resize(354, 90)
-        self.vboxlayout = QtGui.QVBoxLayout(BookmarkDialog)
-        self.vboxlayout.setObjectName(_fromUtf8("vboxlayout"))
-        self.gridlayout = QtGui.QGridLayout()
-        self.gridlayout.setObjectName(_fromUtf8("gridlayout"))
-        self.label = QtGui.QLabel(BookmarkDialog)
-        self.label.setObjectName(_fromUtf8("label"))
+        self.vboxlayout = QtWidgets.QVBoxLayout(BookmarkDialog)
+        self.vboxlayout.setObjectName("vboxlayout")
+        self.gridlayout = QtWidgets.QGridLayout()
+        self.gridlayout.setObjectName("gridlayout")
+        self.label = QtWidgets.QLabel(BookmarkDialog)
+        self.label.setObjectName("label")
         self.gridlayout.addWidget(self.label, 0, 0, 1, 1)
-        self.name = QtGui.QLineEdit(BookmarkDialog)
-        self.name.setObjectName(_fromUtf8("name"))
+        self.name = QtWidgets.QLineEdit(BookmarkDialog)
+        self.name.setObjectName("name")
         self.gridlayout.addWidget(self.name, 0, 1, 1, 1)
-        self.label_2 = QtGui.QLabel(BookmarkDialog)
-        self.label_2.setObjectName(_fromUtf8("label_2"))
+        self.label_2 = QtWidgets.QLabel(BookmarkDialog)
+        self.label_2.setObjectName("label_2")
         self.gridlayout.addWidget(self.label_2, 1, 0, 1, 1)
-        self.location = QtGui.QLineEdit(BookmarkDialog)
-        self.location.setObjectName(_fromUtf8("location"))
+        self.location = QtWidgets.QLineEdit(BookmarkDialog)
+        self.location.setObjectName("location")
         self.gridlayout.addWidget(self.location, 1, 1, 1, 1)
         self.vboxlayout.addLayout(self.gridlayout)
-        spacerItem = QtGui.QSpacerItem(336, 16, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(336, 16, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.vboxlayout.addItem(spacerItem)
-        self.buttonBox = QtGui.QDialogButtonBox(BookmarkDialog)
+        self.buttonBox = QtWidgets.QDialogButtonBox(BookmarkDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
+        self.buttonBox.setObjectName("buttonBox")
         self.vboxlayout.addWidget(self.buttonBox)
         self.label.setBuddy(self.name)
         self.label_2.setBuddy(self.location)
 
         self.retranslateUi(BookmarkDialog)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), BookmarkDialog.accept)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), BookmarkDialog.reject)
+        self.buttonBox.accepted.connect(BookmarkDialog.accept)
+        self.buttonBox.rejected.connect(BookmarkDialog.reject)
         QtCore.QMetaObject.connectSlotsByName(BookmarkDialog)
 
     def retranslateUi(self, BookmarkDialog):

@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy import errors, osutils
 from breezy.branch import Branch
@@ -90,11 +90,11 @@ class QBzrCatWindow(QBzrWindow):
         self.buttonbox = self.create_button_box(BTN_CLOSE)
         self.encoding_selector = self._create_encoding_selector()
 
-        self.vbox = QtGui.QVBoxLayout(self.centralwidget)
+        self.vbox = QtWidgets.QVBoxLayout(self.centralwidget)
         self.vbox.addWidget(self.throbber)
         self.vbox.addStretch()
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.encoding_selector)
         hbox.addWidget(self.buttonbox)
         self.vbox.addLayout(hbox)
@@ -239,7 +239,7 @@ class QBzrCatWindow(QBzrWindow):
 
     def _create_simple_text_browser(self):
         """Create and return simple widget to show text-like content."""
-        browser = QtGui.QPlainTextEdit(self)
+        browser = QtWidgets.QPlainTextEdit(self)
         browser.setReadOnly(True)
         browser.document().setDefaultFont(get_monospace_font())
         return browser
@@ -266,10 +266,10 @@ class QBzrCatWindow(QBzrWindow):
         """
         self.pixmap = QtGui.QPixmap()
         self.pixmap.loadFromData(data)
-        self.item = QtGui.QGraphicsPixmapItem(self.pixmap)
-        self.scene = QtGui.QGraphicsScene(self.item.boundingRect())
+        self.item = QtWidgets.QGraphicsPixmapItem(self.pixmap)
+        self.scene = QtWidgets.QGraphicsScene(self.item.boundingRect())
         self.scene.addItem(self.item)
-        return QtGui.QGraphicsView(self.scene)
+        return QtWidgets.QGraphicsView(self.scene)
 
 
 class QBzrViewWindow(QBzrCatWindow):
@@ -293,9 +293,9 @@ class QBzrViewWindow(QBzrCatWindow):
         self.encoding_selector = self._create_encoding_selector()
         self.branch = FakeBranch()
 
-        self.vbox = QtGui.QVBoxLayout(self.centralwidget)
+        self.vbox = QtWidgets.QVBoxLayout(self.centralwidget)
         self.vbox.addStretch()
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.encoding_selector)
         hbox.addWidget(self.buttonbox)
         self.vbox.addLayout(hbox)

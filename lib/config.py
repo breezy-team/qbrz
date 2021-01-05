@@ -19,7 +19,7 @@
 
 import re
 import os.path
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from breezy.config import extract_email_address
 from breezy.bedding import ensure_config_dir_exists
 from breezy import cmdline, errors, trace
@@ -58,16 +58,16 @@ _mail_clients = [
 _bug_tracker_re = re.compile('bugtracker_(.+?)_url')
 
 
-class QRadioCheckItemDelegate(QtGui.QItemDelegate):
+class QRadioCheckItemDelegate(QtWidgets.QItemDelegate):
 
     def drawCheck(self, painter, option, rect, state):
         style = self.parent().style()
-        radioOption = QtGui.QStyleOptionButton()
+        radioOption = QtWidgets.QStyleOptionButton()
         radioOption.rect = option.rect
         radioOption.state = option.state
         if state:
-            radioOption.state = radioOption.state | QtGui.QStyle.State_On
-        style.drawControl(QtGui.QStyle.CE_RadioButton, radioOption, painter)
+            radioOption.state = radioOption.state | QtWidgets.QStyle.State_On
+        style.drawControl(QtWidgets.QStyle.CE_RadioButton, radioOption, painter)
 
 
 class QBzrConfigWindow(QBzrDialog):
@@ -76,135 +76,126 @@ class QBzrConfigWindow(QBzrDialog):
         QBzrDialog.__init__(self, [gettext("Configuration")], parent)
         self.restoreSize("config", (400, 300))
 
-        self.tabwidget = QtGui.QTabWidget()
+        self.tabwidget = QtWidgets.QTabWidget()
 
-        generalWidget = QtGui.QWidget()
-        generalVBox = QtGui.QVBoxLayout(generalWidget)
-        generalGrid = QtGui.QGridLayout()
+        generalWidget = QtWidgets.QWidget()
+        generalVBox = QtWidgets.QVBoxLayout(generalWidget)
+        generalGrid = QtWidgets.QGridLayout()
 
-        self.nameEdit = QtGui.QLineEdit()
-        label = QtGui.QLabel(gettext("&Name:"))
+        self.nameEdit = QtWidgets.QLineEdit()
+        label = QtWidgets.QLabel(gettext("&Name:"))
         label.setBuddy(self.nameEdit)
         generalGrid.addWidget(label, 0, 0)
         generalGrid.addWidget(self.nameEdit, 0, 1)
 
-        self.emailEdit = QtGui.QLineEdit()
-        label = QtGui.QLabel(gettext("E-&mail:"))
+        self.emailEdit = QtWidgets.QLineEdit()
+        label = QtWidgets.QLabel(gettext("E-&mail:"))
         label.setBuddy(self.emailEdit)
         generalGrid.addWidget(label, 1, 0)
         generalGrid.addWidget(self.emailEdit, 1, 1)
 
-        self.editorEdit = QtGui.QLineEdit()
-        btnEditorBrowse = QtGui.QPushButton(gettext('&Browse...'))
-        self.connect(btnEditorBrowse,
-            QtCore.SIGNAL("clicked()"),
-            self.browseEditor)
-        editorHBox = QtGui.QHBoxLayout()
+        self.editorEdit = QtWidgets.QLineEdit()
+        btnEditorBrowse = QtWidgets.QPushButton(gettext('&Browse...'))
+        btnEditorBrowse.clicked.connect(self.browseEditor)
+        editorHBox = QtWidgets.QHBoxLayout()
         editorHBox.addWidget(self.editorEdit)
         editorHBox.addWidget(btnEditorBrowse)
-        label = QtGui.QLabel(gettext("&Editor:"))
+        label = QtWidgets.QLabel(gettext("&Editor:"))
         label.setBuddy(self.editorEdit)
         generalGrid.addWidget(label, 2, 0)
         generalGrid.addLayout(editorHBox, 2, 1)
 
-        self.emailClientCombo = QtGui.QComboBox()
+        self.emailClientCombo = QtWidgets.QComboBox()
         for name, label in _mail_clients:
             self.emailClientCombo.addItem(gettext(label), name)
-        label = QtGui.QLabel(gettext("E-mail &client:"))
+        label = QtWidgets.QLabel(gettext("E-mail &client:"))
         label.setBuddy(self.emailClientCombo)
         generalGrid.addWidget(label, 3, 0)
         generalGrid.addWidget(self.emailClientCombo, 3, 1)
 
-        self.tabWidthSpinner = QtGui.QSpinBox()
+        self.tabWidthSpinner = QtWidgets.QSpinBox()
         self.tabWidthSpinner.setRange(1, 20)
         self.tabWidthSpinner.setToolTip(gettext("Tab width in characters\n"
             "option is used in qdiff, qannotate and qcat windows"))
-        label = QtGui.QLabel(gettext("Tab &Width:"))
+        label = QtWidgets.QLabel(gettext("Tab &Width:"))
         label.setBuddy(self.tabWidthSpinner)
         generalGrid.addWidget(label, 4, 0)
-        _hb = QtGui.QHBoxLayout()
+        _hb = QtWidgets.QHBoxLayout()
         _hb.addWidget(self.tabWidthSpinner)
         _hb.addStretch(10)
         generalGrid.addLayout(_hb, 4, 1)
         generalVBox.addLayout(generalGrid)
         generalVBox.addStretch()
 
-        self.aliasesList = QtGui.QTreeWidget()
+        self.aliasesList = QtWidgets.QTreeWidget()
         self.aliasesList.setRootIsDecorated(False)
         self.aliasesList.setHeaderLabels([gettext("Alias"), gettext("Command")])
 
-        addAliasButton = QtGui.QPushButton(gettext("Add"))
-        self.connect(addAliasButton, QtCore.SIGNAL("clicked()"),
-                     self.addAlias)
-        removeAliasButton = QtGui.QPushButton(gettext("Remove"))
-        self.connect(removeAliasButton, QtCore.SIGNAL("clicked()"),
-                     self.removeAlias)
+        addAliasButton = QtWidgets.QPushButton(gettext("Add"))
+        addAliasButton.clicked.connect(self.addAlias)
+        removeAliasButton = QtWidgets.QPushButton(gettext("Remove"))
+        removeAliasButton.clicked.connect(self.removeAlias)
 
-        aliasesHBox = QtGui.QHBoxLayout()
+        aliasesHBox = QtWidgets.QHBoxLayout()
         aliasesHBox.addWidget(addAliasButton)
         aliasesHBox.addWidget(removeAliasButton)
         aliasesHBox.addStretch()
 
-        aliasesWidget = QtGui.QWidget()
-        aliasesVBox = QtGui.QVBoxLayout(aliasesWidget)
+        aliasesWidget = QtWidgets.QWidget()
+        aliasesVBox = QtWidgets.QVBoxLayout(aliasesWidget)
         aliasesVBox.addWidget(self.aliasesList)
         aliasesVBox.addLayout(aliasesHBox)
 
-        self.bugTrackersList = QtGui.QTreeWidget()
+        self.bugTrackersList = QtWidgets.QTreeWidget()
         self.bugTrackersList.setRootIsDecorated(False)
         self.bugTrackersList.setHeaderLabels([gettext("Abbreviation"), gettext("URL")])
 
-        addBugTrackerButton = QtGui.QPushButton(gettext("Add"))
-        self.connect(addBugTrackerButton, QtCore.SIGNAL("clicked()"),
-                     self.addBugTracker)
-        removeBugTrackerButton = QtGui.QPushButton(gettext("Remove"))
-        self.connect(removeBugTrackerButton, QtCore.SIGNAL("clicked()"),
-                     self.removeBugTracker)
+        addBugTrackerButton = QtWidgets.QPushButton(gettext("Add"))
+        addBugTrackerButton.clicked.connect(self.addBugTracker)
+        removeBugTrackerButton = QtWidgets.QPushButton(gettext("Remove"))
+        removeBugTrackerButton.clicked.connect(self.removeBugTracker)
 
-        bugTrackersHBox = QtGui.QHBoxLayout()
+        bugTrackersHBox = QtWidgets.QHBoxLayout()
         bugTrackersHBox.addWidget(addBugTrackerButton)
         bugTrackersHBox.addWidget(removeBugTrackerButton)
         bugTrackersHBox.addStretch()
 
-        bugTrackersWidget = QtGui.QWidget()
-        bugTrackersVBox = QtGui.QVBoxLayout(bugTrackersWidget)
+        bugTrackersWidget = QtWidgets.QWidget()
+        bugTrackersVBox = QtWidgets.QVBoxLayout(bugTrackersWidget)
         bugTrackersVBox.addWidget(self.bugTrackersList)
         bugTrackersVBox.addLayout(bugTrackersHBox)
 
-        diffWidget = QtGui.QWidget()
+        diffWidget = QtWidgets.QWidget()
 
-        self.diffShowIntergroupColors = QtGui.QCheckBox(gettext("Show inter-group inserts and deletes in green and red"), diffWidget)
+        self.diffShowIntergroupColors = QtWidgets.QCheckBox(gettext("Show inter-group inserts and deletes in green and red"), diffWidget)
 
-        label = QtGui.QLabel(gettext("External Diff Apps:"))
-        self.extDiffList = QtGui.QTreeWidget(diffWidget)
+        label = QtWidgets.QLabel(gettext("External Diff Apps:"))
+        self.extDiffList = QtWidgets.QTreeWidget(diffWidget)
         self.extDiffList.setRootIsDecorated(False)
         self.extDiffList.setHeaderLabels([gettext("Name"),
                                           gettext("Command")])
         self.extDiffList.setItemDelegateForColumn(0,
             QRadioCheckItemDelegate(self.extDiffList))
-        self.connect(self.extDiffList, QtCore.SIGNAL("itemChanged (QTreeWidgetItem *,int)"),
-                     self.extDiffListItemChanged)
+        self.extDiffList.itemChanged [QTreeWidgetItem, int].connect(self.extDiffListItemChanged)
 
-        addExtDiffButton = QtGui.QPushButton(gettext("Add"), diffWidget)
-        self.connect(addExtDiffButton, QtCore.SIGNAL("clicked()"),
-                     self.addExtDiff)
-        removeExtDiffButton = QtGui.QPushButton(gettext("Remove"), diffWidget)
-        self.connect(removeExtDiffButton, QtCore.SIGNAL("clicked()"),
-                     self.removeExtDiff)
+        addExtDiffButton = QtWidgets.QPushButton(gettext("Add"), diffWidget)
+        addExtDiffButton.clicked.connect(self.addExtDiff)
+        removeExtDiffButton = QtWidgets.QPushButton(gettext("Remove"), diffWidget)
+        removeExtDiffButton.clicked.connect(self.removeExtDiff)
 
-        extDiffButtonsLayout = QtGui.QHBoxLayout()
+        extDiffButtonsLayout = QtWidgets.QHBoxLayout()
         extDiffButtonsLayout.addWidget(addExtDiffButton)
         extDiffButtonsLayout.addWidget(removeExtDiffButton)
         extDiffButtonsLayout.addStretch()
 
-        diffLayout = QtGui.QVBoxLayout(diffWidget)
+        diffLayout = QtWidgets.QVBoxLayout(diffWidget)
         diffLayout.addWidget(self.diffShowIntergroupColors)
         diffLayout.addWidget(label)
         diffLayout.addWidget(self.extDiffList)
         diffLayout.addLayout(extDiffButtonsLayout)
 
         if mergetools is not None:
-            mergeWidget = QtGui.QWidget()
+            mergeWidget = QtWidgets.QWidget()
             self.merge_ui = ui_merge_config.Ui_MergeConfig()
             self.merge_ui.setupUi(mergeWidget)
             self.merge_ui.tools.sortByColumn(0, QtCore.Qt.AscendingOrder)
@@ -214,25 +205,15 @@ class QBzrConfigWindow(QBzrDialog):
             self.merge_tools_model = MergeToolsTableModel()
             self.merge_ui.tools.setModel(self.merge_tools_model)
 
-            self.connect(self.merge_tools_model,
-                         QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                         self.merge_tools_data_changed)
+            self.merge_tools_model.dataChanged[QModelIndex, QModelIndex].connect(self.merge_tools_data_changed)
 
-            self.connect(self.merge_ui.tools.selectionModel(),
-                         QtCore.SIGNAL("selectionChanged(QItemSelection,QItemSelection)"),
-                         self.merge_tools_selectionChanged)
+            self.merge_ui.tools.selectionModel().selectionChanged[QItemSelection, QItemSelection].connect(self.merge_tools_selectionChanged)
 
-            self.connect(self.merge_ui.add,
-                         QtCore.SIGNAL("clicked()"),
-                         self.merge_tools_add_clicked)
-            self.connect(self.merge_ui.remove,
-                         QtCore.SIGNAL("clicked()"),
-                         self.merge_tools_remove_clicked)
-            self.connect(self.merge_ui.set_default,
-                         QtCore.SIGNAL("clicked()"),
-                         self.merge_tools_set_default_clicked)
+            self.merge_ui.add.clicked.connect(self.merge_tools_add_clicked)
+            self.merge_ui.remove.clicked.connect(self.merge_tools_remove_clicked)
+            self.merge_ui.set_default.clicked.connect(self.merge_tools_set_default_clicked)
         else:
-            mergeWidget = QtGui.QLabel(gettext("Bazaar 2.4 or newer is required to configure mergetools."))
+            mergeWidget = QtWidgets.QLabel(gettext("Bazaar 2.4 or newer is required to configure mergetools."))
             mergeWidget.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
 
         self.tabwidget.addTab(generalWidget, gettext("General"))
@@ -244,7 +225,7 @@ class QBzrConfigWindow(QBzrDialog):
 
         buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
-        vbox = QtGui.QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         vbox.addWidget(self.tabwidget)
         vbox.addWidget(buttonbox)
         self.load()
@@ -253,48 +234,44 @@ class QBzrConfigWindow(QBzrDialog):
         """
         Returns the widget for the GUI tab.
         """
-        tabwidget = QtGui.QWidget()
-        grid = QtGui.QGridLayout()
-        vbox = QtGui.QVBoxLayout(tabwidget)
+        tabwidget = QtWidgets.QWidget()
+        grid = QtWidgets.QGridLayout()
+        vbox = QtWidgets.QVBoxLayout(tabwidget)
         vbox.addLayout(grid)
         vbox.addStretch()
 
-        self.spellcheck_language_combo = QtGui.QComboBox()
+        self.spellcheck_language_combo = QtWidgets.QComboBox()
         languages = sorted(SpellChecker.list_languages())
         for name in languages:
             self.spellcheck_language_combo.addItem(gettext(name), name)
         if not languages:
             self.spellcheck_language_combo.setEnabled(False)
-        label = QtGui.QLabel(gettext("Spell check &language:"))
+        label = QtWidgets.QLabel(gettext("Spell check &language:"))
         label.setBuddy(self.spellcheck_language_combo)
-        label.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)
+        label.setSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Minimum)
         grid.addWidget(label, 0, 0)
         grid.addWidget(self.spellcheck_language_combo, 0, 1)
 
-        self.branchsourceBasedirEdit = QtGui.QLineEdit()
+        self.branchsourceBasedirEdit = QtWidgets.QLineEdit()
         self.branchsourceBasedirEdit.setToolTip(gettext("This directory will be automatically filled in your branch source input field"))
-        btnBranchsourceBasedirBrowse = QtGui.QPushButton(gettext('Browse...'))
-        self.connect(btnBranchsourceBasedirBrowse,
-            QtCore.SIGNAL("clicked()"),
-            self.browseBranchsourceBasedir)
-        branchsourceBasedirHBox = QtGui.QHBoxLayout()
+        btnBranchsourceBasedirBrowse = QtWidgets.QPushButton(gettext('Browse...'))
+        btnBranchsourceBasedirBrowse.clicked.connect(self.browseBranchsourceBasedir)
+        branchsourceBasedirHBox = QtWidgets.QHBoxLayout()
         branchsourceBasedirHBox.addWidget(self.branchsourceBasedirEdit)
         branchsourceBasedirHBox.addWidget(btnBranchsourceBasedirBrowse)
-        label = QtGui.QLabel(gettext("Base directory\nfor &branch sources:"))
+        label = QtWidgets.QLabel(gettext("Base directory\nfor &branch sources:"))
         label.setBuddy(self.branchsourceBasedirEdit)
         grid.addWidget(label, 1, 0)
         grid.addLayout(branchsourceBasedirHBox, 1, 1)
 
-        self.checkoutBasedirEdit = QtGui.QLineEdit()
+        self.checkoutBasedirEdit = QtWidgets.QLineEdit()
         self.checkoutBasedirEdit.setToolTip(gettext("This directory will be automatically filled in your checkout destination input field"))
-        btnCheckoutBasedirBrowse = QtGui.QPushButton(gettext('Browse...'))
-        self.connect(btnCheckoutBasedirBrowse,
-            QtCore.SIGNAL("clicked()"),
-            self.browseCheckoutBasedir)
-        checkoutBasedirHBox = QtGui.QHBoxLayout()
+        btnCheckoutBasedirBrowse = QtWidgets.QPushButton(gettext('Browse...'))
+        btnCheckoutBasedirBrowse.clicked.connect(self.browseCheckoutBasedir)
+        checkoutBasedirHBox = QtWidgets.QHBoxLayout()
         checkoutBasedirHBox.addWidget(self.checkoutBasedirEdit)
         checkoutBasedirHBox.addWidget(btnCheckoutBasedirBrowse)
-        label = QtGui.QLabel(gettext("Base directory\nfor &checkouts:"))
+        label = QtWidgets.QLabel(gettext("Base directory\nfor &checkouts:"))
         label.setBuddy(self.checkoutBasedirEdit)
         grid.addWidget(label, 2, 0)
         grid.addLayout(checkoutBasedirHBox, 2, 1)
@@ -361,7 +338,7 @@ class QBzrConfigWindow(QBzrDialog):
         # Aliases
         aliases = parser.get('ALIASES', {})
         for alias, command in list(aliases.items()):
-            item = QtGui.QTreeWidgetItem(self.aliasesList)
+            item = QtWidgets.QTreeWidgetItem(self.aliasesList)
             item.setFlags(QtCore.Qt.ItemIsSelectable |
                           QtCore.Qt.ItemIsEditable |
                           QtCore.Qt.ItemIsEnabled)
@@ -375,7 +352,7 @@ class QBzrConfigWindow(QBzrDialog):
             if not m:
                 continue
             abbreviation = m.group(1)
-            item = QtGui.QTreeWidgetItem(self.bugTrackersList)
+            item = QtWidgets.QTreeWidgetItem(self.bugTrackersList)
             item.setFlags(QtCore.Qt.ItemIsSelectable |
                           QtCore.Qt.ItemIsEditable |
                           QtCore.Qt.ItemIsEnabled)
@@ -390,7 +367,7 @@ class QBzrConfigWindow(QBzrDialog):
 
         self.extDiffListIgnore = True
         def create_ext_diff_item(name, command):
-            item = QtGui.QTreeWidgetItem(self.extDiffList)
+            item = QtWidgets.QTreeWidgetItem(self.extDiffList)
             item.setFlags(QtCore.Qt.ItemIsSelectable |
                           QtCore.Qt.ItemIsEditable |
                           QtCore.Qt.ItemIsEnabled |
@@ -443,7 +420,7 @@ class QBzrConfigWindow(QBzrDialog):
             QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
             QtGui.QMessageBox.Yes
         )
-        if answer == QtGui.QMessageBox.Yes:
+        if answer == QtWidgets.QMessageBox.Yes:
             if name in mergetools.known_merge_tools:
                 name = name + '-NEW'
             user_merge_tools[name] = new_cmdline
@@ -599,7 +576,7 @@ class QBzrConfigWindow(QBzrDialog):
         _name = str(self.nameEdit.text()).strip()
         _email = str(self.emailEdit.text()).strip()
         if (_name, _email) == ('', ''):
-            if QtGui.QMessageBox.warning(self, "Configuration",
+            if QtWidgets.QMessageBox.warning(self, "Configuration",
                 "Name and E-mail settings should not be empty",
                 gettext("&Ignore and proceed"),
                 gettext("&Change the values")) != 0:
@@ -610,7 +587,7 @@ class QBzrConfigWindow(QBzrDialog):
         return True
 
     def addAlias(self):
-        item = QtGui.QTreeWidgetItem(self.aliasesList)
+        item = QtWidgets.QTreeWidgetItem(self.aliasesList)
         item.setFlags(QtCore.Qt.ItemIsSelectable |
                       QtCore.Qt.ItemIsEditable |
                       QtCore.Qt.ItemIsEnabled)
@@ -624,7 +601,7 @@ class QBzrConfigWindow(QBzrDialog):
                 self.aliasesList.takeTopLevelItem(index)
 
     def addBugTracker(self):
-        item = QtGui.QTreeWidgetItem(self.bugTrackersList)
+        item = QtWidgets.QTreeWidgetItem(self.bugTrackersList)
         item.setFlags(QtCore.Qt.ItemIsSelectable |
                       QtCore.Qt.ItemIsEditable |
                       QtCore.Qt.ItemIsEnabled)
@@ -638,7 +615,7 @@ class QBzrConfigWindow(QBzrDialog):
                 self.bugTrackersList.takeTopLevelItem(index)
 
     def addExtDiff(self):
-        item = QtGui.QTreeWidgetItem(self.extDiffList)
+        item = QtWidgets.QTreeWidgetItem(self.extDiffList)
         item.setFlags(QtCore.Qt.ItemIsSelectable |
                       QtCore.Qt.ItemIsEditable |
                       QtCore.Qt.ItemIsEnabled |
@@ -697,7 +674,7 @@ class QBzrConfigWindow(QBzrDialog):
     def merge_tools_add_clicked(self):
         index = self.merge_tools_model.new_merge_tool()
         sel_model = self.merge_ui.tools.selectionModel()
-        sel_model.select(index, QtGui.QItemSelectionModel.ClearAndSelect)
+        sel_model.select(index, QtCore.QItemSelectionModel.ClearAndSelect)
         self.merge_ui.tools.edit(index)
 
     def merge_tools_remove_clicked(self):
@@ -711,21 +688,21 @@ class QBzrConfigWindow(QBzrDialog):
         self.merge_tools_model.set_default(self.get_selected_merge_tool())
 
     def browseEditor(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self,
+        filename = QtWidgets.QFileDialog.getOpenFileName(self,
             gettext('Select editor executable'),
-            '/')
+            '/')[0]
         if filename:
             self.editorEdit.setText(filename)
 
     def browseCheckoutBasedir(self):
-        filename = QtGui.QFileDialog.getExistingDirectory(self,
+        filename = QtWidgets.QFileDialog.getExistingDirectory(self,
             gettext('Select base directory for checkouts'),
             '/')
         if filename:
             self.checkoutBasedirEdit.setText(filename)
 
     def browseBranchsourceBasedir(self):
-        filename = QtGui.QFileDialog.getExistingDirectory(self,
+        filename = QtWidgets.QFileDialog.getExistingDirectory(self,
             gettext('Select default directory for branch sources'),
             '/')
         if filename:
@@ -807,6 +784,9 @@ def get_user_id_from_os():
 
 
 class MergeToolsTableModel(QtCore.QAbstractTableModel):
+    dataChanged = QtCore.pyqtSignal(QtCore.QModelIndex, QtCore.QModelIndex)
+    layoutAboutToBeChanged = QtCore.pyqtSignal()
+    layoutChanged = QtCore.pyqtSignal()
     COL_NAME = 0
     COL_COMMANDLINE = 1
     COL_COUNT = 2
@@ -844,13 +824,9 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         else:
             self._default = None
         if old_row is not None:
-            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                      self.index(old_row, self.COL_NAME),
-                      self.index(old_row, self.COL_NAME))
+            self.dataChanged.emit(self.index(old_row, self.COL_NAME), self.index(old_row, self.COL_NAME))
         if new_row is not None:
-            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                      self.index(new_row, self.COL_NAME),
-                      self.index(new_row, self.COL_NAME))
+            self.dataChanged.emit(self.index(new_row, self.COL_NAME), self.index(new_row, self.COL_NAME))
 
     def get_removed_merge_tools(self):
         return self._removed
@@ -909,7 +885,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                 return self._default == name and QtCore.Qt.Checked or QtCore.Qt.Unchecked
         elif role == QtCore.Qt.BackgroundRole:
             if name in self._known:
-                palette = QtGui.QApplication.palette()
+                palette = QtWidgets.QApplication.palette()
                 return palette.alternateBase()
         return None
 
@@ -929,14 +905,12 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                 self._user[new_name] = cmdline
                 if self._default == name:
                     self._default = new_name
-                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                          index, index)
+                self.dataChanged.emit(index, index)
                 self.sort(self.COL_NAME, QtCore.Qt.AscendingOrder)
                 return True
             elif index.column() == self.COL_COMMANDLINE:
                 self._user[name] = str(value)
-                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                          index, index)
+                self.dataChanged.emit(index, index)
                 return True
         elif role == QtCore.Qt.CheckStateRole:
             if index.column() == self.COL_NAME:
@@ -971,7 +945,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         return None
 
     def sort(self, column, sortOrder):
-        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        self.layoutAboutToBeChanged.emit()
         index_map = self._order[:]  # copy
 
         def tool_cmp(a, b):
@@ -990,4 +964,4 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
             from_list.extend([self.index(i, col) for i in index_map])
             to_list.extend([self.index(i, col) for i in range(0, len(index_map))])
         self.changePersistentIndexList(from_list, to_list)
-        self.emit(QtCore.SIGNAL("layoutChanged()"))
+        self.layoutChanged.emit()

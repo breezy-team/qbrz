@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands
-# Copyright (C) 2006-2007 Gary van der Merwe <garyvdm@gmail.com> 
+# Copyright (C) 2006-2007 Gary van der Merwe <garyvdm@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 from time import (strftime, localtime)
 import time
 import re
@@ -56,7 +56,7 @@ header_labels = (gettext("Rev"),
 class WorkingTreeRevision(Revision):
     def __init__(self, revid, tree):
         super(WorkingTreeRevision, self).__init__(revid)
-        
+
         self.parent_ids = tree.get_parent_ids()
         self.committer = tree.branch.get_config().username()
         self.message = "" # todo: try load saved commit message
@@ -64,23 +64,23 @@ class WorkingTreeRevision(Revision):
         self.tree = tree
 
 class GraphVizLoader(loggraphviz.GraphVizLoader):
-    
+
     def __init__(self, branches, primary_bi, no_graph,
                  processEvents,  throbber):
         self.processEvents = processEvents
         self.throbber = throbber
         loggraphviz.GraphVizLoader.__init__(
             self, branches, primary_bi, no_graph)
-    
+
     def update_ui(self):
         self.processEvents()
-    
+
     def throbber_show(self):
         self.throbber.show()
-    
+
     def throbber_hide(self):
         self.throbber.hide()
-    
+
     def revisions_filter_changed(self):
         self.on_filter_changed()
 
@@ -96,10 +96,10 @@ class PendingMergesGraphVizLoader(
 class WithWorkingTreeGraphVizLoader(
         loggraphviz.WithWorkingTreeGraphVizLoader,
         GraphVizLoader):
-    
+
     def load(self):
         super(WithWorkingTreeGraphVizLoader, self).load()
-        
+
         for wt_revid, tree in self.working_trees.items():
             # bla - nasty hack.
             cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, tree)
@@ -123,7 +123,7 @@ class FilterScheduler(object):
         self.last_run_time = 0
         self.last_call_time = 0
         self.filter_changed_callback = filter_changed_callback
-    
+
     def filter_changed(self, revs, last_call=True):
         if revs is None:
             self.pending_revs = None
@@ -135,26 +135,30 @@ class FilterScheduler(object):
         # to update the filter cache. How often we update is bases on a ratio of
         # 10:1. If we spend 1 sec calling invaladate_filter_cache_revs, don't
         # call it again until we have spent 10 sec else where.
-        if (last_call or revs is None or 
+        if (last_call or revs is None or
             time.process_time() - self.last_call_time > self.last_run_time * 10):
-            
+
             start_time = time.process_time()
             self.filter_changed_callback(self.pending_revs, last_call)
             self.pending_revs = []
             self.last_run_time = time.process_time() - start_time
             self.last_call_time = time.process_time()
-        
+
         if last_call:
             self.last_run_time = 0
             self.last_call_time = 0
 
 class LogModel(QtCore.QAbstractTableModel):
 
+    layoutAboutToBeChanged = QtCore.pyqtSignal()
+    layoutChanged = QtCore.pyqtSignal()
+    dataChanged = QtCore.pyqtSignal(QtCore.QModelIndex, QtCore.QModelIndex)
+
     def __init__(self, processEvents, throbber, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         self.processEvents = processEvents
         self.throbber = throbber
-        
+
         self.graph_viz = GraphVizLoader((), None, False,
                                                processEvents, throbber)
         self.state = loggraphviz.GraphVizFilterState(
@@ -164,28 +168,28 @@ class LogModel(QtCore.QAbstractTableModel):
         self.clicked_f_index = None
         self.last_rev_is_placeholder = False
         self.bugtext = gettext("bug #%s")
-    
+
     def load(self, branches, primary_bi, file_ids, no_graph,
              graph_provider_type):
         self.throbber.show()
-        self.processEvents()        
+        self.processEvents()
         try:
             graph_viz = graph_provider_type(
-                branches, primary_bi, no_graph, 
+                branches, primary_bi, no_graph,
                 processEvents=self.processEvents, throbber=self.throbber)
             graph_viz.load()
             graph_viz.on_filter_changed = self.on_filter_changed
-            
+
             state = loggraphviz.GraphVizFilterState(
                 graph_viz, self.compute_lines)
             # Copy the expanded branches from the old state to the new.
             for (branch_id, value) in self.state.branch_line_state.items():
                 if branch_id in graph_viz.branch_lines:
                     state.branch_line_state[branch_id] = value
-            
+
             #for branch_id in graph_viz.branch_lines.keys():
             #    state.branch_line_state[branch_id] = None
-            
+
             scheduler = FilterScheduler(state.filter_changed)
             if file_ids:
                 file_id_filter = FileIdFilter(
@@ -193,19 +197,19 @@ class LogModel(QtCore.QAbstractTableModel):
                 state.filters.append(file_id_filter)
             else:
                 file_id_filter = None
-            
+
             if isinstance(graph_viz, WithWorkingTreeGraphVizLoader):
                 working_tree_filter = WorkingTreeHasChangeFilter(
                     graph_viz, scheduler.filter_changed, file_ids)
                 state.filters.append(working_tree_filter)
             else:
                 working_tree_filter = None
-            
+
             prop_search_filter = PropertySearchFilter(graph_viz,
                                                       scheduler.filter_changed)
             state.filters.append(prop_search_filter)
-            
-            self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+
+            self.layoutAboutToBeChanged.emit()
             self.graph_viz = graph_viz
             self.state = state
             self.file_ids = file_ids
@@ -213,8 +217,8 @@ class LogModel(QtCore.QAbstractTableModel):
             self.working_tree_filter = working_tree_filter
             self.prop_search_filter = prop_search_filter
             self.computed = loggraphviz.ComputedGraphViz(graph_viz)
-            self.emit(QtCore.SIGNAL("layoutChanged()"))
-            
+            self.layoutChanged.emit()
+
             self.compute_lines()
             # Start later so that it does not run in the loading queue.
             if self.working_tree_filter:
@@ -223,35 +227,31 @@ class LogModel(QtCore.QAbstractTableModel):
                 QtCore.QTimer.singleShot(1, self.file_id_filter.load)
         finally:
             self.throbber.hide()
-    
+
     def compute_lines(self):
         computed = self.graph_viz.compute_viz(self.state)
         if self.last_rev_is_placeholder:
             computed.filtered_revs[-1].col_index = None
-        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        self.layoutAboutToBeChanged.emit()
         self.computed = computed
-        self.emit(QtCore.SIGNAL("layoutChanged()"))
-    
+        self.layoutChanged.emit()
+
     def collapse_expand_rev(self, c_rev):
         self.clicked_f_index = c_rev.f_index
         clicked_row_index = self.createIndex (c_rev.f_index,
                                               COL_MESSAGE,
                                               QtCore.QModelIndex())
-        self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                  clicked_row_index,
-                  clicked_row_index)
+        self.dataChanged.emit(clicked_row_index, clicked_row_index)
         self.graph_viz.update_ui()
         self.clicked_f_index = None
-        
+
         self.state.collapse_expand_rev(c_rev)
-        
-        self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                  clicked_row_index,
-                  clicked_row_index)
-    
+
+        self.dataChanged.emit(clicked_row_index, clicked_row_index)
+
     def ensure_rev_visible(self, rev):
         self.state.ensure_rev_visible(rev)
-    
+
     def columnCount(self, parent):
         if parent.isValid():
             return 0
@@ -261,32 +261,32 @@ class LogModel(QtCore.QAbstractTableModel):
         if parent.isValid():
             return 0
         return len(self.computed.filtered_revs)
-    
+
     def data(self, index, role):
-        
+
         if not index.isValid():
             return None
-        
+
         def blank():
             if role == QtCore.Qt.DisplayRole:
                 return ""
             return None
-        
+
         c_rev = self.computed.filtered_revs[index.row()]
         if c_rev is None:
             return blank()
-        
+
         if c_rev.rev.revid in cached_revisions:
             revision = cached_revisions[c_rev.rev.revid]
         else:
             revision = None
-        
+
         if role == GraphDataRole:
             prev_c_rev = None
             prev_c_rev_f_index = c_rev.f_index - 1
             if prev_c_rev_f_index >= 0:
                 prev_c_rev = self.computed.filtered_revs[prev_c_rev_f_index]
-            
+
             tags = []
             # Branch labels
             tags.extend([(label,
@@ -301,7 +301,7 @@ class LogModel(QtCore.QAbstractTableModel):
                       QtGui.QColor(80, 128, 32),
                       QtGui.QColor(QtCore.Qt.white))
                      for tag in self.graph_viz.tags[c_rev.rev.revid]])
-            
+
             # Bugs
             if revision:
                 if hasattr(revision, '_qlog_bugs'):
@@ -320,32 +320,32 @@ class LogModel(QtCore.QAbstractTableModel):
                               QtGui.QColor(QtCore.Qt.white))
                              for bug in bugs])
             is_clicked = c_rev.f_index == self.clicked_f_index
-            
+
             return (c_rev, prev_c_rev, tags, is_clicked)
-        
+
         if (role == QtCore.Qt.DisplayRole and index.column() == COL_REV):
             return c_rev.rev.revno_str
-        
+
         if role == QtCore.Qt.ToolTipRole and index.column() == COL_MESSAGE:
             urls =  [branch_info.branch.base
                      for (branch_info, label) in c_rev.branch_labels
                      if label]
             return '\n'.join(urls)
-        
+
         if role == RevIdRole:
             return c_rev.rev.revid
-        
+
         #Everything from here foward will need to have the revision loaded.
         if revision is None:
             return blank()
-        
+
         if role == QtCore.Qt.DisplayRole and index.column() == COL_DATE:
             return strftime("%Y-%m-%d %H:%M", localtime(revision.timestamp))
         if role == QtCore.Qt.DisplayRole and index.column() == COL_AUTHOR:
             return extract_name(get_apparent_author(revision))
         if role == QtCore.Qt.DisplayRole and index.column() == COL_MESSAGE:
             return revision.get_summary()
-        
+
         return blank()
 
     def flags(self, index):
@@ -362,24 +362,21 @@ class LogModel(QtCore.QAbstractTableModel):
     def on_revisions_loaded(self, revisions, last_call):
         for revid in revisions.keys():
             rev = self.graph_viz.revid_rev[revid]
-            self.emit(
-                QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                self.index(rev.index, COL_MESSAGE, QtCore.QModelIndex()),
-                self.index(rev.index, COL_AUTHOR, QtCore.QModelIndex()))
-    
+            self.dataChanged.emit(self.index(rev.index, COL_MESSAGE, QtCore.QModelIndex()), self.index(rev.index, COL_AUTHOR, QtCore.QModelIndex()))
+
     def on_filter_changed(self):
         self.compute_lines()
 
     def get_repo(self):
         return self.graph_viz.get_repo_revids
-    
+
     def index_from_revid(self, revid, column=0):
         try:
             rev = self.graph_viz.revid_rev[revid]
         except KeyError:
             return
         return self.index_from_rev(rev)
-    
+
     def index_from_rev(self, rev, column=0):
         try:
             c_rev = self.computed.revisions[rev.index]
@@ -388,16 +385,16 @@ class LogModel(QtCore.QAbstractTableModel):
         if c_rev is None:
             return
         return self.index_from_c_rev(c_rev, column)
-    
+
     def index_from_c_rev(self, c_rev, column=0):
         return self.index(c_rev.f_index, column, QtCore.QModelIndex())
-    
+
     def c_rev_from_index(self, index):
         f_index = index.row()
-        try: 
+        try:
             return self.computed.filtered_revs[f_index]
         except IndexError:
-            return None    
+            return None
 
 class PropertySearchFilter (object):
     def __init__(self, graph_viz, filter_changed_callback):
@@ -408,7 +405,7 @@ class PropertySearchFilter (object):
         self.cache = None
         self.index_matched_revids = None
         self.loading_revisions = False
-    
+
     def set_search(self, str, field):
         """Set search string for specified kind of data.
         @param  str:    string to search (interpreted based on field value)
@@ -426,12 +423,12 @@ class PropertySearchFilter (object):
         (glob pattern) to search in corresponding metadata of revisions.
         """
         self.field = field
-        
+
         def revisions_loaded(revisions, last_call):
             revs = [self.graph_viz.revid_rev[revid]
                     for revid in revisions.keys()]
             self.filter_changed_callback(revs, last_call)
-        
+
         def before_batch_load(repo, revids):
             if self.filter_re is None:
                 return True
@@ -440,7 +437,7 @@ class PropertySearchFilter (object):
         def wildcard2regex(wildcard):
             """Translate shel pattern to regexp."""
             return fnmatch.translate(wildcard + '*')
-        
+
         if str is None or str == "":
             self.filter_re = None
             self.index_matched_revids = None
@@ -480,12 +477,12 @@ class PropertySearchFilter (object):
                 self.filter_re = re.compile(wildcard2regex(str),
                     re.IGNORECASE)
                 self.index_matched_revids = None
-            
+
             self.filter_changed_callback(None, True)
-            
+
             if self.filter_re is not None\
                and not self.loading_revisions:
-                
+
                 self.loading_revisions = True
                 try:
                     revids = [rev.revid
@@ -498,15 +495,15 @@ class PropertySearchFilter (object):
                                    revisions_loaded = revisions_loaded)
                 finally:
                     self.loading_revisions = False
-    
+
     def get_revision_visible(self, rev):
-        
+
         if self.filter_re:
             revid = rev.revid
             if revid not in cached_revisions:
                 return False
             revision = cached_revisions[revid]
-            
+
             filtered_str = None
             if self.field == "message":
                 filtered_str = revision.message
@@ -522,10 +519,10 @@ class PropertySearchFilter (object):
             if filtered_str is not None:
                 if self.filter_re.search(filtered_str) is None:
                     return False
-        
+
         if self.index_matched_revids is not None:
             revid = rev.revid
             if revid not in self.index_matched_revids:
                 return False
-        
+
         return True

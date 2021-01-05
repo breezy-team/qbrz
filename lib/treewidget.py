@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os, sys
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.plugins.qbrz.lib.i18n import gettext
 
@@ -405,6 +405,9 @@ class ChangeDesc:
 
 
 class TreeModel(QtCore.QAbstractItemModel):
+    layoutAboutToBeChanged = QtCore.pyqtSignal()
+    layoutChanged = QtCore.pyqtSignal()
+    dataChanged = QtCore.pyqtSignal(QtCore.QModelIndex, QtCore.QModelIndex)
 
     HEADER_LABELS = [gettext("File Name"),
                      gettext("Date"),
@@ -432,9 +435,9 @@ class TreeModel(QtCore.QAbstractItemModel):
             # the latter can have parent in constructor
             # as instance of QModelIndex and the latter does not have style()
             style = parent.style()
-            self.file_icon = style.standardIcon(QtGui.QStyle.SP_FileIcon)
-            self.dir_icon = style.standardIcon(QtGui.QStyle.SP_DirIcon)
-            self.symlink_icon = style.standardIcon(QtGui.QStyle.SP_FileLinkIcon)
+            self.file_icon = style.standardIcon(QtWidgets.QStyle.SP_FileIcon)
+            self.dir_icon = style.standardIcon(QtWidgets.QStyle.SP_DirIcon)
+            self.symlink_icon = style.standardIcon(QtWidgets.QStyle.SP_FileLinkIcon)
             self.missing_icon.addFile(':/16x16/missing.png')
         else:
             self.file_icon = QtGui.QIcon()
@@ -446,7 +449,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.inventory_data_by_path = {}
         self.inventory_data_by_id = {}  # Will not contain unversioned items.
         self.checkable = False
-        self.icon_provider = QtGui.QFileIconProvider()
+        self.icon_provider = QtWidgets.QFileIconProvider()
         self.parent_view = parent
         self._index_cache = {}
         self.set_select_all_kind()
@@ -460,7 +463,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.changes_mode = changes_mode
         self.change_load_filter = change_load_filter
 
-        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        self.layoutAboutToBeChanged.emit()
 
         # print('::: TreeMODEL.set_tree called :::', tree, 'branch', branch, 'initial', initial_checked_paths, 'change',
         #     change_load_filter, 'isinstance', isinstance(tree, WorkingTree), 'changes mode', changes_mode,
@@ -641,7 +644,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             # print('\n\t\t SECOND process_tree...', initial_checked_paths, load_dirs)
             self.process_tree(self.revision_tree_get_children, initial_checked_paths, load_dirs)
 
-        self.emit(QtCore.SIGNAL("layoutChanged()"))
+        self.layoutChanged.emit()
 
     def revision_tree_get_children(self, item_data):
         path = self.tree.id2path(item_data.item.file_id)
@@ -811,7 +814,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.revno_map = revno_map
         for item_data in self.inventory_data[1:0]:
             index = self.createIndex (item_data.row, self.REVNO, item_data.id)
-            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"), index,index)
+            self.dataChanged.emit(index, index)
 
     def columnCount(self, parent):
         return len(self.HEADER_LABELS)
@@ -986,7 +989,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 last_index = self._index_from_id(last_item_data[0].id, self.NAME)
             else:
                 last_index = first_index
-            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"), first_index,last_index)
+            self.dataChanged.emit(first_index, last_index)
 
             # Walk up the tree, and update every dir
             parent_data = item_data
@@ -1023,7 +1026,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
                 if set_checked(parent_data, checked):
                     index = self._index_from_id(parent_data.id, self.NAME)
-                    self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"), index,index)
+                    self.dataChanged.emit(index, index)
 
             return True
 
@@ -1198,9 +1201,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 continue
 
             if item_data.item.revision in revisions:
-                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                          self.createIndex (item_data.row, self.DATE, item_data.id),
-                          self.createIndex (item_data.row, self.AUTHOR, item_data.id))
+                self.dataChanged.emit(self.createIndex (item_data.row, self.DATE, item_data.id), self.createIndex (item_data.row, self.AUTHOR, item_data.id))
 
     def get_repo(self):
         # RJLRJL Check this patch line ~= 1966
@@ -1311,7 +1312,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         return QtCore.Qt.MoveAction
 
 
-class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
+class TreeFilterProxyModel(QtCore.QSortFilterProxyModel):
     source_model = None
 
     filters = [True, True, True, False]
@@ -1326,13 +1327,13 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def setSourceModel (self, source_model):
         self.source_model = source_model
-        QtGui.QSortFilterProxyModel.setSourceModel(self, source_model)
+        QtCore.QSortFilterProxyModel.setSourceModel(self, source_model)
 
     def invalidateFilter(self):
         self.filter_cache = {}
         self.source_model.start_maybe_many_loaddirs()
         try:
-            QtGui.QSortFilterProxyModel.invalidateFilter(self)
+            QtCore.QSortFilterProxyModel.invalidateFilter(self)
         finally:
             self.source_model.end_maybe_many_loaddirs()
 
@@ -1429,10 +1430,11 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         return self.source_model.hasChildren(self.mapToSource(parent))
 
 
-class TreeFilterMenu(QtGui.QMenu):
+class TreeFilterMenu(QtWidgets.QMenu):
+    triggered = QtCore.pyqtSignal(int, bool)
 
     def __init__ (self, parent=None):
-        QtGui.QMenu.__init__(self, gettext("&Filter"), parent)
+        QtWidgets.QMenu.__init__(self, gettext("&Filter"), parent)
 
         filters = (gettext("Unchanged"),
                    gettext("Changed"),
@@ -1441,20 +1443,19 @@ class TreeFilterMenu(QtGui.QMenu):
 
         self.actions = []
         for i, text in enumerate(filters):
-            action = QtGui.QAction(text, self)
+            action = QtWidgets.QAction(text, self)
             action.setData(i)
             action.setCheckable(True)
             self.addAction(action)
             self.actions.append(action)
 
-        self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
-                     self.triggered)
+        self.triggered[QAction].connect(self.triggered)
 
     def triggered(self, action):
         # filter = action.data().toInt()[0]
         filter = int(action.data())
         checked = action.isChecked()
-        self.emit(QtCore.SIGNAL("triggered(int, bool)"), filter, checked)
+        self.triggered.emit(filter, checked)
 
     def set_filters(self, filters):
         for checked, action in zip(filters, self.actions):
@@ -1462,16 +1463,17 @@ class TreeFilterMenu(QtGui.QMenu):
 
 
 class TreeWidget(RevisionTreeView):
+    dataChanged = QtCore.pyqtSignal(QtCore.QModelIndex, QtCore.QModelIndex)
 
     def __init__(self, *args):
         RevisionTreeView.__init__(self, *args)
 
-        self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setUniformRowHeights(True)
-        self.setEditTriggers(QtGui.QAbstractItemView.SelectedClicked | QtGui.QAbstractItemView.EditKeyPressed)
+        self.setEditTriggers(QtWidgets.QAbstractItemView.SelectedClicked | QtWidgets.QAbstractItemView.EditKeyPressed)
         self.viewport().setAcceptDrops(True)
         self.setDropIndicatorShown(True)
-        self.setDragDropMode(QtGui.QAbstractItemView.InternalMove);
+        self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove);
 
         self.tree = None
         self.branch = None
@@ -1486,28 +1488,28 @@ class TreeWidget(RevisionTreeView):
         self.set_header_width_settings()
         self.setItemDelegateForColumn(self.tree_model.REVNO, self.revno_item_delegate)
         self.create_context_menu()
-        self.connect(self, QtCore.SIGNAL("doubleClicked(QModelIndex)"), self.do_default_action)
+        self.doubleClicked[QModelIndex].connect(self.do_default_action)
 
     def set_header_width_settings(self):
         header = self.header()
         header.setStretchLastSection(False)
-        header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.ResizeToContents)
-        header.setResizeMode(self.tree_model.DATE, QtGui.QHeaderView.Interactive)
-        header.setResizeMode(self.tree_model.REVNO, QtGui.QHeaderView.Interactive)
-        header.setResizeMode(self.tree_model.MESSAGE, QtGui.QHeaderView.Stretch)
-        header.setResizeMode(self.tree_model.AUTHOR, QtGui.QHeaderView.Interactive)
-        header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.Stretch)
+        header.setResizeMode(self.tree_model.NAME, QtWidgets.QHeaderView.ResizeToContents)
+        header.setResizeMode(self.tree_model.DATE, QtWidgets.QHeaderView.Interactive)
+        header.setResizeMode(self.tree_model.REVNO, QtWidgets.QHeaderView.Interactive)
+        header.setResizeMode(self.tree_model.MESSAGE, QtWidgets.QHeaderView.Stretch)
+        header.setResizeMode(self.tree_model.AUTHOR, QtWidgets.QHeaderView.Interactive)
+        header.setResizeMode(self.tree_model.STATUS, QtWidgets.QHeaderView.Stretch)
         fm = self.fontMetrics()
         # XXX Make this dynamic.
-        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1) *2
+        col_margin = (self.style().pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1) *2
 
         header.resizeSection(self.tree_model.REVNO,
             fm.width("8"*self.revno_item_delegate.max_mainline_digits + ".8.888") + col_margin)
         header.resizeSection(self.tree_model.DATE, fm.width("88-88-8888 88:88") + col_margin)
         header.resizeSection(self.tree_model.AUTHOR, fm.width("Joe I have a Long Name") + col_margin)
         if self.tree and isinstance(self.tree, WorkingTree):
-            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.Stretch)
-            header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.ResizeToContents)
+            header.setResizeMode(self.tree_model.NAME, QtWidgets.QHeaderView.Stretch)
+            header.setResizeMode(self.tree_model.STATUS, QtWidgets.QHeaderView.ResizeToContents)
 
     def set_visible_headers(self):
         header = self.header()
@@ -1521,8 +1523,8 @@ class TreeWidget(RevisionTreeView):
             header.hideSection(self.tree_model.MESSAGE)
             header.hideSection(self.tree_model.AUTHOR)
             header.showSection(self.tree_model.STATUS)
-            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.Stretch)
-            header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.ResizeToContents)
+            header.setResizeMode(self.tree_model.NAME, QtWidgets.QHeaderView.Stretch)
+            header.setResizeMode(self.tree_model.STATUS, QtWidgets.QHeaderView.ResizeToContents)
 
             self.context_menu.setDefaultAction(self.action_open_file)
         else:
@@ -1531,8 +1533,8 @@ class TreeWidget(RevisionTreeView):
             header.showSection(self.tree_model.MESSAGE)
             header.showSection(self.tree_model.AUTHOR)
             header.hideSection(self.tree_model.STATUS)
-            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.ResizeToContents)
-            header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.Stretch)
+            header.setResizeMode(self.tree_model.NAME, QtWidgets.QHeaderView.ResizeToContents)
+            header.setResizeMode(self.tree_model.STATUS, QtWidgets.QHeaderView.Stretch)
 
             self.context_menu.setDefaultAction(self.action_show_file)
 
@@ -1620,7 +1622,7 @@ class TreeWidget(RevisionTreeView):
             # need to be checked.
             for row in range(len(self.tree_model.inventory_data[0].children_ids)):
                 index = self.tree_model.createIndex(row, self.tree_model.NAME, 0)
-                self.tree_model.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"), index, index)
+                self.tree_model.dataChanged.emit(index, index)
 
     def iter_expanded_indexes(self):
         parents_to_check = [QtCore.QModelIndex()]
@@ -1680,8 +1682,8 @@ class TreeWidget(RevisionTreeView):
                 # GaryvdM - 14/07/2009
                 self.selectionModel().select(
                     self.tree_filter_model.mapFromSource(index),
-                    QtGui.QItemSelectionModel.SelectCurrent |
-                    QtGui.QItemSelectionModel.Rows)
+                    QtCore.QItemSelectionModel.SelectCurrent |
+                    QtCore.QItemSelectionModel.Rows)
             self.verticalScrollBar().setValue(v_scroll)
         finally:
             self.tree.unlock()
@@ -1744,7 +1746,7 @@ class TreeWidget(RevisionTreeView):
                         break
             self.setDragEnabled(ok_selection)
 
-        QtGui.QTreeView.mousePressEvent(self, event)
+        QtWidgets.QTreeView.mousePressEvent(self, event)
 
     def dropEvent(self, event):
         if not isinstance(self.tree, WorkingTree):
@@ -1777,7 +1779,7 @@ class TreeWidget(RevisionTreeView):
         """
         e_key = event.key()
         if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
-            if not self.state() & QtGui.QAbstractItemView.EditingState:
+            if not self.state() & QtWidgets.QAbstractItemView.EditingState:
                 event.accept()
                 indexes = self.selectionModel().selectedRows(0)
                 if (len(indexes) == 1 and
@@ -1786,7 +1788,7 @@ class TreeWidget(RevisionTreeView):
                 else:
                     self.do_default_action(None)
                 return
-        QtGui.QTreeView.keyPressEvent(self, event)
+        QtWidgets.QTreeView.keyPressEvent(self, event)
 
     def get_selection_indexes(self, indexes=None):
         if indexes is None or (len(indexes) == 1 and indexes[0] is None):
@@ -1801,7 +1803,7 @@ class TreeWidget(RevisionTreeView):
         return items
 
     def create_context_menu(self):
-        self.context_menu = QtGui.QMenu(self)
+        self.context_menu = QtWidgets.QMenu(self)
         self.action_open_file = self.context_menu.addAction(
                                     gettext("&Open"),
                                     self.open_file)
@@ -1817,9 +1819,7 @@ class TreeWidget(RevisionTreeView):
         if has_ext_diff():
             diff_menu = ExtDiffMenu(self)
             self.action_show_diff = self.context_menu.addMenu(diff_menu)
-            self.connect(diff_menu,
-                         QtCore.SIGNAL("triggered(QString)"),
-                         self.show_differences)
+            diff_menu.triggered['QString'].connect(self.show_differences)
         else:
             self.action_show_diff = self.context_menu.addAction(
                                     gettext("Show &differences"),
@@ -2072,11 +2072,11 @@ class TreeWidget(RevisionTreeView):
         if len(paths) == 0:
             return
 
-        res = QtGui.QMessageBox.question(self,
+        res = QtWidgets.QMessageBox.question(self,
             gettext("Revert"),
             gettext("Do you really want to revert the selected file(s)?"),
-            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        if res == QtGui.QMessageBox.Yes:
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        if res == QtWidgets.QMessageBox.Yes:
             try:
                 self.tree.lock_write()
                 try:
@@ -2184,13 +2184,13 @@ class TreeWidget(RevisionTreeView):
             try:
                 self.tree.remove(paths, keep_files=False)
             except errors.BzrRemoveChangedFilesError:
-                res = QtGui.QMessageBox.question(
+                res = QtWidgets.QMessageBox.question(
                     self, gettext("Remove"),
                     gettext("Some of the files selected cannot be recovered if "
                             "removed. Are you sure you want to remove these "
                             "files?"),
-                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-                if res == QtGui.QMessageBox.Yes:
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+                if res == QtWidgets.QMessageBox.Yes:
                     self.tree.remove(paths, keep_files=False, force=True)
         except Exception:
             report_exception(type=SUB_LOAD_METHOD, window=self.window())
@@ -2198,20 +2198,17 @@ class TreeWidget(RevisionTreeView):
         self.refresh()
 
 
-class SelectAllCheckBox(QtGui.QCheckBox):
+class SelectAllCheckBox(QtWidgets.QCheckBox):
 
     def __init__(self, tree_widget, parent=None):
-        QtGui.QCheckBox.__init__(self, gettext("Select / deselect all"), parent)
+        QtWidgets.QCheckBox.__init__(self, gettext("Select / deselect all"), parent)
 
         self.tree_widget = tree_widget
         #self.setTristate(True)
 
-        self.connect(tree_widget.tree_model,
-                     QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                     self.on_data_changed)
+        tree_widget.tree_model.dataChanged[QModelIndex, QModelIndex].connect(self.on_data_changed)
 
-        self.connect(self, QtCore.SIGNAL("clicked(bool)"),
-                     self.clicked)
+        self.clicked[bool].connect(self.clicked)
 
     def on_data_changed(self, start_index, end_index):
         self.update_state()

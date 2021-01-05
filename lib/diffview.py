@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 import re
 from breezy import timestamp
@@ -93,11 +93,12 @@ for kind, cols in list(colors.items()):
     brushes[kind] = (QtGui.QBrush(cols[0]), QtGui.QBrush(cols[1]))
 
 
-class DiffSourceView(QtGui.QTextBrowser):
+class DiffSourceView(QtWidgets.QTextBrowser):
+    resized = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
-        QtGui.QTextBrowser.__init__(self, parent)
-        self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+        QtWidgets.QTextBrowser.__init__(self, parent)
+        self.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
         self.clear()
         self.scrollbar = None
 
@@ -106,8 +107,8 @@ class DiffSourceView(QtGui.QTextBrowser):
         self.infoBlocks = []
 
     def resizeEvent(self, event):
-        QtGui.QTextBrowser.resizeEvent(self, event)
-        self.emit(QtCore.SIGNAL("resized()"))
+        QtWidgets.QTextBrowser.resizeEvent(self, event)
+        self.resized.emit()
 
     def paintEvent(self, event):
         w = self.width()
@@ -140,18 +141,18 @@ class DiffSourceView(QtGui.QTextBrowser):
             painter.drawLine(0, y_top, w, y_top)
             painter.drawLine(0, y_bot - 1, w, y_bot - 1)
         del painter
-        QtGui.QTextBrowser.paintEvent(self, event)
+        QtWidgets.QTextBrowser.paintEvent(self, event)
 
     def wheelEvent(self, event):
         if event.orientation() == QtCore.Qt.Vertical and self.scrollbar:
             self.scrollbar.wheelEvent(event)
         else:
-            QtGui.QTextBrowser.wheelEvent(self, event)
+            QtWidgets.QTextBrowser.wheelEvent(self, event)
 
-class DiffViewHandle(QtGui.QSplitterHandle):
+class DiffViewHandle(QtWidgets.QSplitterHandle):
 
     def __init__(self, parent=None):
-        QtGui.QSplitterHandle.__init__(self, QtCore.Qt.Horizontal, parent)
+        QtWidgets.QSplitterHandle.__init__(self, QtCore.Qt.Horizontal, parent)
         self.scrollbar = None
         self.view = parent
         self.clear()
@@ -163,7 +164,7 @@ class DiffViewHandle(QtGui.QSplitterHandle):
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
         painter.setClipRect(event.rect())
-        frame = QtGui.QApplication.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
+        frame = QtWidgets.QApplication.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
         ly = self.view.browsers[0].verticalScrollBar().value() - frame
         ry = self.view.browsers[1].verticalScrollBar().value() - frame
         w = self.width()
@@ -231,13 +232,13 @@ class DiffViewHandle(QtGui.QSplitterHandle):
         if event.orientation() == QtCore.Qt.Vertical:
             self.view.scrollbar.wheelEvent(event)
         else:
-            QtGui.QSplitterHandle.wheelEvent(self, event)
+            QtWidgets.QSplitterHandle.wheelEvent(self, event)
 
-class SidebySideDiffView(QtGui.QFrame):
+class SidebySideDiffView(QtWidgets.QFrame):
     def __init__(self, parent=None):
-        QtGui.QFrame.__init__(self, parent)
-        hbox = QtGui.QHBoxLayout(self)
-        hbox.setMargin(0)
+        QtWidgets.QFrame.__init__(self, parent)
+        hbox = QtWidgets.QHBoxLayout(self)
+        hbox.setContentsMargins(0, 0, 0, 0)
         hbox.setSpacing(0)
         self.view = _SidebySideDiffView(parent)
         self.browsers = self.view.browsers
@@ -251,9 +252,9 @@ class SidebySideDiffView(QtGui.QFrame):
 
 SYNC_POSITION = 0.4
 
-class SidebySideDiffViewScrollBar(QtGui.QScrollBar):
+class SidebySideDiffViewScrollBar(QtWidgets.QScrollBar):
     def __init__(self, handle, browsers):
-        QtGui.QScrollBar.__init__(self)
+        QtWidgets.QScrollBar.__init__(self)
         self.handle = handle
         self.browsers = browsers
         self.total_length = 0
@@ -264,10 +265,9 @@ class SidebySideDiffViewScrollBar(QtGui.QScrollBar):
             b.scrollbar = self
 
         for i, scbar in enumerate([self] + [b.verticalScrollBar() for b in browsers]):
-            self.connect(scbar, QtCore.SIGNAL("valueChanged(int)"),
-                                        lambda value, target=i : self.scrolled(target))
+            scbar.valueChanged[int].connect(lambda value, target=i : self.scrolled(target))
 
-        self.connect(browsers[0], QtCore.SIGNAL("resized()"), self.adjust_range)
+        browsers[0].resized.connect(self.adjust_range)
         self.setSingleStep(browsers[0].verticalScrollBar().singleStep())
         self.adjust_range()
         self.syncing = False
@@ -387,11 +387,11 @@ def setup_guidebar_entries(gb):
     for tag in ('delete', 'insert', 'replace'):
         gb.add_entry(tag, colors[tag][0], 0)
 
-class _SidebySideDiffView(QtGui.QSplitter):
+class _SidebySideDiffView(QtWidgets.QSplitter):
     """Widget to show differences in side-by-side format."""
 
     def __init__(self, parent=None):
-        QtGui.QSplitter.__init__(self, QtCore.Qt.Horizontal, parent)
+        QtWidgets.QSplitter.__init__(self, QtCore.Qt.Horizontal, parent)
         self.setHandleWidth(30)
         self.complete = False
 
@@ -453,8 +453,8 @@ class _SidebySideDiffView(QtGui.QSplitter):
         self.scrollbar = SidebySideDiffViewScrollBar(self.handle(1), self.browsers)
 
         self.ignoreUpdate = False
-        self.connect(self.browsers[0].horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider1)
-        self.connect(self.browsers[1].horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider2)
+        self.browsers[0].horizontalScrollBar().valueChanged[int].connect(self.syncHorizontalSlider1)
+        self.browsers[1].horizontalScrollBar().valueChanged[int].connect(self.syncHorizontalSlider2)
 
         self.rewinded = False
 
@@ -818,11 +818,11 @@ class SimpleDiffView(GuideBarPanel):
         return getattr(self.view, name)
 
 
-class _SimpleDiffView(QtGui.QTextBrowser):
+class _SimpleDiffView(QtWidgets.QTextBrowser):
     """Widget to show differences in unidiff format."""
 
     def __init__(self, parent=None):
-        QtGui.QTextBrowser.__init__(self, parent)
+        QtWidgets.QTextBrowser.__init__(self, parent)
         self.doc = QtGui.QTextDocument(parent)
         self.doc.setUndoRedoEnabled(False)
         self.setDocument(self.doc)
@@ -950,7 +950,7 @@ class _SimpleDiffView(QtGui.QTextBrowser):
         self.update()
 
     def clear(self):
-        QtGui.QTextBrowser.clear(self)
+        QtWidgets.QTextBrowser.clear(self)
         self.reset_guidebar_data()
 
     def reset_guidebar_data(self):

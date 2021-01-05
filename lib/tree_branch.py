@@ -21,7 +21,7 @@
 
 """Universal tree and/or branch wrapper object for convenience."""
 
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 from breezy import (
     controldir,
@@ -47,7 +47,7 @@ class TreeBranch(object):
 
     @staticmethod
     def open_containing(location=None, require_tree=False, ui_mode=False,
-        _critical_dialog=QtGui.QMessageBox.critical):
+        _critical_dialog=QtWidgets.QMessageBox.critical):
         """Open the branch and tree at location (or in current directory).
 
         @return: initialized TreeBranch if opened successfully,
@@ -81,7 +81,7 @@ class TreeBranch(object):
 
     @staticmethod
     def _report_error(location, err,
-        _critical_dialog=QtGui.QMessageBox.critical):
+        _critical_dialog=QtWidgets.QMessageBox.critical):
         """Report error in GUI dialog.
         @param location: valid location for which error is reported.
         @param err: error object (NotBranchError or NoWorkingTree).

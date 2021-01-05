@@ -28,7 +28,7 @@ import os
 from io import StringIO
 import traceback
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 import breezy
 from breezy import (
@@ -75,13 +75,13 @@ def set_file_bugs_url(url):
 closing_due_to_error = False
 
 def create_lockerror_dialog(type, window=None):
-    msgbox = QtGui.QMessageBox(parent=window)
-    msgbox.setIcon(QtGui.QMessageBox.Warning)
+    msgbox = QtWidgets.QMessageBox(parent=window)
+    msgbox.setIcon(QtWidgets.QMessageBox.Warning)
     msgbox.setText(gettext("Could not acquire lock. Please retry later."))
     if type == MAIN_LOAD_METHOD:
-        msgbox.addButton(QtGui.QMessageBox.Close)
+        msgbox.addButton(QtWidgets.QMessageBox.Close)
     else:
-        msgbox.addButton(QtGui.QMessageBox.Ok)
+        msgbox.addButton(QtWidgets.QMessageBox.Ok)
     return msgbox
 
 def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
@@ -209,7 +209,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
 
         msg_box.exec_()
 
-        if not msg_box.result() == QtGui.QMessageBox.Close:
+        if not msg_box.result() == QtWidgets.QMessageBox.Close:
             close = False
 
     if close:
@@ -221,14 +221,14 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
             window.close()
     return error_type
 
-class ErrorReport(QtGui.QDialog):
+class ErrorReport(QtWidgets.QDialog):
     """A dialogue box for displaying and optionally reporting crashes in bzr/qbrz/bzr explorer."""
     def __init__(self, title, message_internal, trace_back, exc_info, type=MAIN_LOAD_METHOD,
                  parent=None):
 
-        QtGui.QDialog.__init__ (self, parent)
+        QtWidgets.QDialog.__init__ (self, parent)
 
-        self.buttonbox = QtGui.QDialogButtonBox()
+        self.buttonbox = QtWidgets.QDialogButtonBox()
 
         if parent:
             win_title = None
@@ -253,15 +253,15 @@ class ErrorReport(QtGui.QDialog):
         # QDialogButtonBox.StandardButton are different, so we have to
         # duplicate this :-(
         if type == MAIN_LOAD_METHOD:
-            button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Close)
+            button = self.buttonbox.addButton(QtWidgets.QDialogButtonBox.Close)
             button.setText(close_label)
         elif type == SUB_LOAD_METHOD:
-            button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
+            button = self.buttonbox.addButton(QtWidgets.QDialogButtonBox.Ok)
             button.setText(gettext("Close Error Dialog"))
         elif type == ITEM_OR_EVENT_METHOD:
-            button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Close)
+            button = self.buttonbox.addButton(QtWidgets.QDialogButtonBox.Close)
             button.setText(close_label)
-            button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Ignore)
+            button = self.buttonbox.addButton(QtWidgets.QDialogButtonBox.Ignore)
             button.setText(gettext("Ignore Error"))
 
         def report_bug():
@@ -288,8 +288,8 @@ class ErrorReport(QtGui.QDialog):
                            'when the error occurred.'
                            % (_file_bugs_url, _file_bugs_url))
         else:
-            report_bug_button = self.buttonbox.addButton(gettext("Report Bazaar Error"), QtGui.QDialogButtonBox.ActionRole)
-            report_bug_button.connect(report_bug_button, QtCore.SIGNAL("clicked()"), report_bug)
+            report_bug_button = self.buttonbox.addButton(gettext("Report Bazaar Error"), QtWidgets.QDialogButtonBox.ActionRole)
+            report_bug_button.clicked.connect(report_bug)
             if message_internal:
                 message = ("Bazaar has encountered an internal error. Please report a"
                            " bug.")
@@ -298,44 +298,38 @@ class ErrorReport(QtGui.QDialog):
                            " bug if this is not the result of a local problem.")
         message = "<big>%s</big>" % (message)
 
-        label = QtGui.QLabel(message)
+        label = QtWidgets.QLabel(message)
         label.setWordWrap(True)
         label.setAlignment(QtCore.Qt.AlignVCenter|QtCore.Qt.AlignLeft)
-        self.connect(label,
-                     QtCore.SIGNAL("linkActivated(QString)"),
-                     self.link_clicked)
+        label.linkActivated['QString'].connect(self.link_clicked)
 
-        icon_label = QtGui.QLabel()
+        icon_label = QtWidgets.QLabel()
         icon_label.setPixmap(self.style().standardPixmap(
-            QtGui.QStyle.SP_MessageBoxCritical))
+            QtWidgets.QStyle.SP_MessageBoxCritical))
 
-        self.show_trace_back_button = QtGui.QPushButton(gettext("Show Error Details >>>"))
-        self.connect(self.show_trace_back_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.show_trace_back)
-        self.trace_back_label = QtGui.QTextEdit()
+        self.show_trace_back_button = QtWidgets.QPushButton(gettext("Show Error Details >>>"))
+        self.show_trace_back_button.clicked.connect(self.show_trace_back)
+        self.trace_back_label = QtWidgets.QTextEdit()
         self.trace_back_label.setPlainText (trace_back)
         self.trace_back_label.setReadOnly(True)
         self.trace_back_label.hide()
 
-        self.connect(self.buttonbox,
-                     QtCore.SIGNAL("clicked (QAbstractButton *)"),
-                     self.clicked)
+        self.buttonbox.clicked [QAbstractButton].connect(self.clicked)
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(icon_label)
         hbox.addWidget(label, 10)
         vbox.addLayout(hbox)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.show_trace_back_button)
         hbox.addStretch()
         vbox.addLayout(hbox)
         vbox.addWidget(self.trace_back_label)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.buttonbox)
         vbox.addLayout(hbox)
 
@@ -378,7 +372,7 @@ def reports_exception(type=MAIN_LOAD_METHOD):
                 return f(*args, **kargs)
             except Exception:
                 # args[0] - typycaly self, may be a QWidget. Pass it's window
-                if isinstance(args[0], QtGui.QWidget):
+                if isinstance(args[0], QtWidgets.QWidget):
                     report_exception(type=type, window=args[0].window())
                 else:
                     report_exception(type=type)

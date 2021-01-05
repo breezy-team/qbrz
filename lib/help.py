@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.util import QBzrWindow
 
@@ -100,7 +100,7 @@ class QBzrHelpWindow(QBzrWindow):
             window_id = "help-popup"
             default_size = (500, 400)
         QBzrWindow.__init__(self, [gettext("Help")], parent,
-                            centralwidget=QtGui.QTextBrowser())
+                            centralwidget=QtWidgets.QTextBrowser())
         self.restoreSize(window_id, default_size)
         if parent is not None:
             # make it a tool window for the parent.
@@ -115,7 +115,7 @@ class QBzrHelpWindow(QBzrWindow):
         # We move to the right of the parent if room for the window to be
         # full visible on the same screen as the parent.
         # Get the geometry for the screen holding the parent.
-        desktop = QtGui.QApplication.desktop()
+        desktop = QtWidgets.QApplication.desktop()
         geo = desktop.screenGeometry(parent)
 
         pt = parent.pos()
@@ -145,7 +145,7 @@ def show_help(topic, parent=None):
     otherwise a normal MainWindow.
     """
     # find an existing one with the same parent.
-    for window in QtGui.QApplication.topLevelWidgets():
+    for window in QtWidgets.QApplication.topLevelWidgets():
         if isinstance(window, QBzrHelpWindow) and window.parentWidget()==parent:
             break
     else:

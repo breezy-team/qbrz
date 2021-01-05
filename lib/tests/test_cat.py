@@ -19,7 +19,7 @@
 # Updated RJL 2020 - added b(ytes) prefix to strings where needed
 
 from breezy.tests import TestCase, TestCaseWithTransport
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore
 from breezy.plugins.qbrz.lib import tests as qtests
 from breezy.plugins.qbrz.lib.cat import QBzrCatWindow
 

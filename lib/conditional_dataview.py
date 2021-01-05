@@ -15,11 +15,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 
 
-class QBzrConditionalDataView(QtGui.QFrame):
+class QBzrConditionalDataView(QtWidgets.QFrame):
     """A list/table/tree with a label.
     
     Only the label is shown when the data model is empty.
@@ -38,44 +38,44 @@ class QBzrConditionalDataView(QtGui.QFrame):
         :param details: if non-None, a QWidget to show in a details panel.
         :param parent: parent widget
         """
-        QtGui.QFrame.__init__(self, parent)
+        QtWidgets.QFrame.__init__(self, parent)
 
         # Build the model & view for the data
         self._type = type
         columns = listmode_or_headers
         if type == 'list':
-            self._view = QtGui.QListView()
-            self._view.setResizeMode(QtGui.QListView.Adjust)
+            self._view = QtWidgets.QListView()
+            self._view.setResizeMode(QtWidgets.QListView.Adjust)
             self._view.setWrapping(True)
             if listmode_or_headers:
-                self._view.setViewMode(QtGui.QListView.ListMode)
+                self._view.setViewMode(QtWidgets.QListView.ListMode)
             else:
-                self._view.setViewMode(QtGui.QListView.IconMode)
+                self._view.setViewMode(QtWidgets.QListView.IconMode)
             columns = ['Name']
             # TODO: we could add a combo-box here letting the user decide
             # on list vs icons. Would we need a way to switch it off?
         elif type == 'tree':
-            self._view = QtGui.QTreeView()
+            self._view = QtWidgets.QTreeView()
         elif type == 'table':
-            self._view = QtGui.QTableView()
+            self._view = QtWidgets.QTableView()
         self._model = QtGui.QStandardItemModel(0, len(columns))
         self._model.setHorizontalHeaderLabels(columns)
         # Make the view read-only, and enable multi-selection of items
-        self._view.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-        self._view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self._view.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self._view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self._view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self._view.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self._view.setModel(self._model)
 
         # Build the label
         self._label_text = label_text
         if label_text:
-            self._label = QtGui.QLabel()
+            self._label = QtWidgets.QLabel()
             self._update_label_text()
 
         # Put them together
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         if details:
-            splitter = QtGui.QSplitter()
+            splitter = QtWidgets.QSplitter()
             splitter.setOrientation(Qt.Vertical)
             splitter.addWidget(self._view)
             splitter.addWidget(details)

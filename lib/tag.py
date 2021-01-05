@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from breezy.branch import Branch
 from breezy import (
     errors,
@@ -58,21 +58,11 @@ class TagWindow(SubProcessDialog):
         self.setup_initial_values(action, tag_name, revision)
 
         # setup signals
-        QtCore.QObject.connect(self.ui.cb_action,
-            QtCore.SIGNAL("currentIndexChanged(int)"),
-            self.on_action_changed)
-        QtCore.QObject.connect(self.ui.cb_tag,
-            QtCore.SIGNAL("currentIndexChanged(int)"),
-            self.on_tag_changed)
-        QtCore.QObject.connect(self.ui.cb_tag.lineEdit(),
-            QtCore.SIGNAL("editingFinished()"),
-            self.on_tag_changed)
-        QtCore.QObject.connect(self.ui.branch_browse,
-            QtCore.SIGNAL("clicked()"),
-            self.on_browse)
-        QtCore.QObject.connect(self.ui.branch_location,
-            QtCore.SIGNAL("editingFinished()"),
-            self.on_editing_branch)
+        self.ui.cb_action.currentIndexChanged[int].connect(self.on_action_changed)
+        self.ui.cb_tag.currentIndexChanged[int].connect(self.on_tag_changed)
+        self.ui.cb_tag.lineEdit().editingFinished.connect(self.on_tag_changed)
+        self.ui.branch_browse.clicked.connect(self.on_browse)
+        self.ui.branch_location.editingFinished.connect(self.on_editing_branch)
 
     def set_branch(self, branch):
         self.branch = branch
@@ -176,7 +166,7 @@ class TagWindow(SubProcessDialog):
 
     def on_browse(self):
         # browse button clicked
-        directory = QtGui.QFileDialog.getExistingDirectory(self,
+        directory = QtWidgets.QFileDialog.getExistingDirectory(self,
             gettext('Select branch location'),
             self.ui.branch_location.text())
         self._try_to_open_branch(directory)
@@ -190,7 +180,7 @@ class TagWindow(SubProcessDialog):
             try:
                 branch = Branch.open_containing(location)[0]
             except errors.NotBranchError:
-                QtGui.QMessageBox.critical(self,
+                QtWidgets.QMessageBox.critical(self,
                     gettext('Error'),
                     gettext('Not a branch:\n%s') % location,
                     gettext('&Close'))

@@ -19,6 +19,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from distutils import log
+from PyQt5.QtWidgets import *
 from distutils.core import Command
 from distutils.dep_util import newer
 from io import StringIO
@@ -27,8 +28,8 @@ import os
 import re
 
 
-_translate_re = re.compile(r'QtGui\.QApplication.translate\(.*?, (.*?), None, QtGui\.QApplication\.UnicodeUTF8\)')
-_import_re = re.compile(r'(from PyQt4 import QtCore, QtGui)')
+_translate_re = re.compile(r'QtGui\.QCoreApplication.translate\(.*?, (.*?), None, QtGui\.QApplication\\)')
+_import_re = re.compile(r'(from PyQt5 import QtCore, QtGui)')
 
 
 class build_ui(Command):
@@ -50,7 +51,7 @@ class build_ui(Command):
             self.module = ['ui/%s.ui' % self.module]
 
     def run(self):
-        from PyQt4 import uic
+        from PyQt5 import uic
         # project name based on `name` argument in setup() call
         prj_name = self.distribution.get_name() or '?'
 
@@ -62,8 +63,8 @@ class build_ui(Command):
                 tmp = StringIO()
                 uic.compileUi(uifile, tmp)
                 source = _translate_re.sub(r'gettext(\1)', tmp.getvalue())
-                source = source.replace("from PyQt4 import QtCore, QtGui",
-                    "from PyQt4 import QtCore, QtGui\n"
+                source = source.replace("from PyQt5 import QtCore, QtGui",
+                    "from PyQt5 import QtCore, QtGui\n"
                     "from breezy.plugins.%s.lib.i18n import gettext\n" % prj_name)
                 # f = open(pyfile, "wb")
                 f = open(pyfile, "w")

@@ -18,8 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys, time
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import QKeySequence
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QKeySequence
 
 from breezy.revision import CURRENT_REVISION
 from breezy.errors import (
@@ -64,11 +64,11 @@ class ShelveWindow(QBzrWindow):
         QBzrWindow.__init__(self, [gettext("Shelve Manager")], parent, ui_mode=ui_mode)
         self.restoreSize("shelve", (780, 680))
 
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.setMargin(2)
+        vbox = QtWidgets.QVBoxLayout(self.centralwidget)
+        vbox.setContentsMargins(2, 2, 2, 2)
         self.throbber = ToolBarThrobberWidget(self)
         vbox.addWidget(self.throbber)
-        self.tab = QtGui.QTabWidget(self)
+        self.tab = QtWidgets.QTabWidget(self)
         vbox.addWidget(self.tab)
 
         self.splitters = Splitters("shelve")
@@ -86,9 +86,9 @@ class ShelveWindow(QBzrWindow):
         self.tab.addTab(shelve_view, gettext('Shelve'))
         self.tab.addTab(shelvelist_view, gettext('View shelved changes'))
         self.tab.setCurrentIndex(initial_tab)
-        self.connect(self.tab, QtCore.SIGNAL("currentChanged(int)"), self.current_tab_changed)
-        self.connect(shelve_view, QtCore.SIGNAL("shelfCreated(int)"), self.shelf_created)
-        self.connect(shelvelist_view, QtCore.SIGNAL("unshelved(int, QString*)"), self.unshelved)
+        self.tab.currentChanged[int].connect(self.current_tab_changed)
+        shelve_view.shelfCreated[int].connect(self.shelf_created)
+        shelvelist_view.unshelved[int, 'QString'].connect(self.unshelved)
 
         self.splitters.restore_state()
 

@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.revision import CURRENT_REVISION
 
@@ -36,6 +36,8 @@ from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
 from breezy.plugins.qbrz.lib.loggraphviz import GhostRevisionError
 
 from breezy.lazy_import import lazy_import
+QStringList = list
+
 lazy_import(globals(), '''
 import re
 
@@ -65,9 +67,9 @@ file_idRole = QtCore.Qt.UserRole + 2
 AliveRole   = QtCore.Qt.UserRole + 3
 
 
-class Compleater(QtGui.QCompleter):
+class Compleater(QtWidgets.QCompleter):
     def splitPath (self, path):
-        return QtCore.QStringList([path.split(" ")[-1]])
+        return QStringList([path.split(" ")[-1]])
 
 have_search = None
 
@@ -133,27 +135,25 @@ class LogWindow(QBzrWindow):
 
         self.throbber = ThrobberWidget(self)
 
-        logwidget = QtGui.QWidget()
-        logbox = QtGui.QVBoxLayout(logwidget)
+        logwidget = QtWidgets.QWidget()
+        logbox = QtWidgets.QVBoxLayout(logwidget)
         logbox.setContentsMargins(0, 0, 0, 0)
 
-        searchbox = QtGui.QHBoxLayout()
+        searchbox = QtWidgets.QHBoxLayout()
 
-        self.search_label = QtGui.QLabel(gettext("&Search:"))
-        self.search_edit = QtGui.QLineEdit()
+        self.search_label = QtWidgets.QLabel(gettext("&Search:"))
+        self.search_edit = QtWidgets.QLineEdit()
         self.search_label.setBuddy(self.search_edit)
-        self.connect(self.search_edit, QtCore.SIGNAL("textEdited(QString)"),
-                     self.set_search_timer)
+        self.search_edit.textEdited['QString'].connect(self.set_search_timer)
 
         self.search_timer = QtCore.QTimer(self)
         self.search_timer.setSingleShot(True)
-        self.connect(self.search_timer, QtCore.SIGNAL("timeout()"),
-                     self.update_search)
+        self.search_timer.timeout.connect(self.update_search)
 
         searchbox.addWidget(self.search_label)
         searchbox.addWidget(self.search_edit)
 
-        self.searchType = QtGui.QComboBox()
+        self.searchType = QtWidgets.QComboBox()
 
         self.searchType.addItem(gettext("Messages"),
                                 self.FilterMessageRole)
@@ -168,9 +168,7 @@ class LogWindow(QBzrWindow):
         self.searchType.addItem(gettext("Bugs"),
                                 self.FilterBugRole)
         searchbox.addWidget(self.searchType)
-        self.connect(self.searchType,
-                     QtCore.SIGNAL("currentIndexChanged(int)"),
-                     self.updateSearchType)
+        self.searchType.currentIndexChanged[int].connect(self.updateSearchType)
 
         logbox.addLayout(searchbox)
 
@@ -190,17 +188,15 @@ class LogWindow(QBzrWindow):
         self.message_browser.setDocument(self.message)
 
         self.file_list_container = FileListContainer(self.log_list, self)
-        self.connect(self.log_list.selectionModel(),
-                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
-                     self.file_list_container.revision_selection_changed)
+        self.log_list.selectionModel().selectionChanged[QItemSelection, QItemSelection].connect(self.file_list_container.revision_selection_changed)
 
-        hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        hsplitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(self.message_browser)
         hsplitter.addWidget(self.file_list_container)
         hsplitter.setStretchFactor(0, 3)
         hsplitter.setStretchFactor(1, 1)
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         splitter.addWidget(logwidget)
         splitter.addWidget(hsplitter)
         splitter.setStretchFactor(0, 5)
@@ -208,19 +204,16 @@ class LogWindow(QBzrWindow):
 
         buttonbox = self.create_button_box(BTN_CLOSE)
         self.refresh_button = StandardButton(BTN_REFRESH)
-        buttonbox.addButton(self.refresh_button, QtGui.QDialogButtonBox.ActionRole)
-        self.connect(self.refresh_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.refresh)
+        buttonbox.addButton(self.refresh_button, QtWidgets.QDialogButtonBox.ActionRole)
+        self.refresh_button.clicked.connect(self.refresh)
 
         self.diffbuttons = DiffButtons(self.centralwidget)
         self.diffbuttons.setEnabled(False)
-        self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
-                     self.log_list.show_diff_specified_files_ext)
+        self.diffbuttons.triggered['QString'].connect(self.log_list.show_diff_specified_files_ext)
 
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox = QtWidgets.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.diffbuttons)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
@@ -249,9 +242,7 @@ class LogWindow(QBzrWindow):
 
             self.log_list.load(branches, primary_bi, file_ids,
                                self.no_graph, gz_cls)
-            self.connect(self.log_list.selectionModel(),
-                         QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
-                         self.update_selection)
+            self.log_list.selectionModel().selectionChanged[QItemSelection, QItemSelection].connect(self.update_selection)
 
             self.load_search_indexes(branches)
         finally:
@@ -367,15 +358,13 @@ class LogWindow(QBzrWindow):
                 self.searchType.setCurrentIndex(0)
 
                 self.completer = Compleater(self)
-                self.completer_model = QtGui.QStringListModel(self)
+                self.completer_model = QStringListModel(self)
                 self.completer.setModel(self.completer_model)
                 self.search_edit.setCompleter(self.completer)
-                self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
-                             self.update_search_completer)
-                self.suggestion_letters_loaded = {"":QtCore.QStringList()}
+                self.search_edit.textChanged['QString'].connect(self.update_search_completer)
+                self.suggestion_letters_loaded = {"":QStringList()}
                 self.suggestion_last_first_letter = ""
-                self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
-                             self.set_search_timer)
+                self.completer.activated['QString'].connect(self.set_search_timer)
 
     no_usefull_info_in_location_re = re.compile(r'^[.:/\\]*$')
     def branch_label(self, location, branch,
@@ -514,7 +503,7 @@ class LogWindow(QBzrWindow):
                         #if suggestions.count() % 100 == 0:
                         #    QtCore.QCoreApplication.processEvents()
                         suggestions.add(s[0])
-                suggestions = QtCore.QStringList(list(suggestions))
+                suggestions = QStringList(list(suggestions))
                 suggestions.sort()
                 self.suggestion_letters_loaded[first_letter] = suggestions
             else:
@@ -543,24 +532,24 @@ class LogWindow(QBzrWindow):
             return ", ".join(title_for_location(l) for l in locations)
 
 
-class FileListContainer(QtGui.QWidget):
+class FileListContainer(QtWidgets.QWidget):
 
     def __init__(self, log_list, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
         self.log_list = log_list
 
         self.throbber = ThrobberWidget(self)
         self.throbber.hide()
 
-        self.file_list = QtGui.QListWidget()
-        self.connect(self.file_list, QtCore.SIGNAL("doubleClicked(QModelIndex)"), self.show_diff_files)
+        self.file_list = QtWidgets.QListWidget()
+        self.file_list.doubleClicked[QModelIndex].connect(self.show_diff_files)
         self.file_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.file_list_context_menu = QtGui.QMenu(self)
+        self.file_list_context_menu = QtWidgets.QMenu(self)
         if has_ext_diff():
             diff_menu = ExtDiffMenu(self)
             self.file_list_context_menu.addMenu(diff_menu)
-            self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"), self.show_diff_files_ext)
+            diff_menu.triggered['QString'].connect(self.show_diff_files_ext)
         else:
             show_diff_action = self.file_list_context_menu.addAction(gettext("Show &differences..."), self.show_diff_files)
             self.file_list_context_menu.setDefaultAction(show_diff_action)
@@ -571,16 +560,16 @@ class FileListContainer(QtGui.QWidget):
             gettext("Save file on this revision as..."), self.save_old_revision_of_file)
         self.file_list_context_menu_revert_file = self.file_list_context_menu.addAction(gettext("Revert to this revision"), self.revert_file)
 
-        self.file_list.connect(self.file_list, QtCore.SIGNAL("customContextMenuRequested(QPoint)"), self.show_file_list_context_menu)
+        self.file_list.customContextMenuRequested[QPoint].connect(self.show_file_list_context_menu)
 
-        vbox = QtGui.QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         vbox.setContentsMargins(0, 0, 0, 0)
         vbox.addWidget(self.throbber)
         vbox.addWidget(self.file_list)
 
         self.delta_load_timer = QtCore.QTimer(self)
         self.delta_load_timer.setSingleShot(True)
-        self.connect(self.delta_load_timer, QtCore.SIGNAL("timeout()"), self.load_delta)
+        self.delta_load_timer.timeout.connect(self.load_delta)
         self.current_revids = None
 
         self.tree_cache = {}
@@ -749,7 +738,7 @@ class FileListContainer(QtGui.QWidget):
                     #             True))
 
             for (id, path, is_not_specific_file_id, display, color, is_alive) in sorted(items, key = lambda x: (x[2],x[1])):
-                item = QtGui.QListWidgetItem(display, self.file_list)
+                item = QtWidgets.QListWidgetItem(display, self.file_list)
                 item.setData(PathRole, path)
                 item.setData(file_idRole, id)
                 item.setData(AliveRole, is_alive)
@@ -877,12 +866,12 @@ class FileListContainer(QtGui.QWidget):
         finally:
             tree.unlock()
         if kind != 'file':
-            QtGui.QMessageBox.information(self, gettext("Not a file"),
+            QtWidgets.QMessageBox.information(self, gettext("Not a file"),
                 gettext("Operation is supported for a single file only,\n"
                         "not for a %s." % kind))
             return
-        filename = QtGui.QFileDialog.getSaveFileName(
-                self, gettext("Save file in this revision as..."))
+        filename = QtWidgets.QFileDialog.getSaveFileName(
+                self, gettext("Save file in this revision as..."))[0]
         if filename:
             f = open(str(filename), 'wb')
             try:
@@ -893,11 +882,11 @@ class FileListContainer(QtGui.QWidget):
     @ui_current_widget
     def revert_file(self):
         """Reverts the file to what it was at the selected revision."""
-        res = QtGui.QMessageBox.question(self, gettext("Revert File"),
+        res = QtWidgets.QMessageBox.question(self, gettext("Revert File"),
                     gettext("Are you sure you want to revert this file "
                             "to the state it was at the selected revision?"
-                            ),QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        if res == QtGui.QMessageBox.Yes:
+                            ),QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        if res == QtWidgets.QMessageBox.Yes:
           paths, file_ids = self.get_file_selection_paths_and_ids()
 
           (top_revid, old_revid), count = \

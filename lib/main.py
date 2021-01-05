@@ -20,7 +20,7 @@
 import os.path
 import sys
 from base64 import b64encode, b64decode
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 from breezy import (
@@ -50,15 +50,15 @@ def formatFileSize(size):
         return "%0.1f KB" % (size / 1024.0,)
 
 
-class BookmarkDialog(QtGui.QDialog):
+class BookmarkDialog(QtWidgets.QDialog):
 
     def __init__(self, title, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setWindowTitle(title)
         self.ui = Ui_BookmarkDialog()
         self.ui.setupUi(self)
-        self.ui.buttonBox.addButton(StandardButton(BTN_OK), QtGui.QDialogButtonBox.AcceptRole)
-        self.ui.buttonBox.addButton(StandardButton(BTN_CANCEL), QtGui.QDialogButtonBox.RejectRole)
+        self.ui.buttonBox.addButton(StandardButton(BTN_OK), QtWidgets.QDialogButtonBox.AcceptRole)
+        self.ui.buttonBox.addButton(StandardButton(BTN_CANCEL), QtWidgets.QDialogButtonBox.RejectRole)
 
     def setValues(self, name, location):
         self.ui.name.setText(name)
@@ -143,7 +143,7 @@ class BookmarkItem(DirectoryItem):
         self.children = None
 
     def showContextMenu(self, sidebar, pos):
-        self.contextMenu = QtGui.QMenu()
+        self.contextMenu = QtWidgets.QMenu()
         self.contextMenu.addAction(gettext("&Edit Bookmark..."), self.edit)
         self.contextMenu.addAction(gettext("&Remove Bookmark..."), self.remove)
         self.contextMenu.popup(pos)
@@ -163,7 +163,7 @@ class BookmarksItem(SideBarItem):
         self.text = gettext("Bookmarks")
         self.parent = sidebar.root
         self.children = None
-        self.contextMenu = QtGui.QMenu()
+        self.contextMenu = QtWidgets.QMenu()
         self.contextMenu.addAction(sidebar.window.actions['add-bookmark'])
 
     def load(self, sidebar):
@@ -181,6 +181,8 @@ class BookmarksItem(SideBarItem):
 
 
 class SideBarModel(QtCore.QAbstractItemModel):
+    layoutAboutToBeChanged = QtCore.pyqtSignal()
+    layoutChanged = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         QtCore.QAbstractItemModel.__init__(self, parent)
@@ -235,14 +237,14 @@ class SideBarModel(QtCore.QAbstractItemModel):
             items = self.root.children
         else:
             items = [item]
-        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        self.layoutAboutToBeChanged.emit()
         for row, item in enumerate(items):
             if item.children:
                 parent = self.createIndex(row, 0, item)
                 self.beginRemoveRows(parent, 0, len(item.children) - 1)
                 item.refresh()
                 self.endRemoveRows()
-        self.emit(QtCore.SIGNAL("layoutChanged()"))
+        self.layoutChanged.emit()
 
     def showContextMenu(self, pos):
         index = self.window.sideBarView.indexAt(pos)
@@ -268,29 +270,29 @@ class QBzrMainWindow(QBzrWindow):
 
     def createActions(self):
         self.actions = {}
-        action = QtGui.QAction(self.icons['view-refresh'],
+        action = QtWidgets.QAction(self.icons['view-refresh'],
                                gettext("&Refresh"), self)
         action.setShortcut("Ctrl+R")
         action.setStatusTip(gettext("Refresh the directory tree"))
-        self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.refresh)
+        action.triggered[bool].connect(self.refresh)
         self.actions['refresh'] = action
-        action = QtGui.QAction(self.icons['image-missing'],
+        action = QtWidgets.QAction(self.icons['image-missing'],
                                gettext("&Commit"), self)
         action.setStatusTip(gettext("Commit changes into a new revision"))
-        self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.commit)
+        action.triggered[bool].connect(self.commit)
         self.actions['commit'] = action
-        action = QtGui.QAction(self.icons['qbrz-push'],
+        action = QtWidgets.QAction(self.icons['qbrz-push'],
                                gettext("&Push"), self)
         action.setStatusTip(gettext("Turn this branch into a mirror of another branch"))
-        self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.push)
+        action.triggered[bool].connect(self.push)
         self.actions['push'] = action
-        action = QtGui.QAction(self.icons['qbrz-pull'],
+        action = QtWidgets.QAction(self.icons['qbrz-pull'],
                                gettext("Pu&ll"), self)
         action.setStatusTip(gettext("Update a mirror of this branch"))
-        self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.pull)
+        action.triggered[bool].connect(self.pull)
         self.actions['pull'] = action
-        action = QtGui.QAction(gettext("&Add Bookmark..."), self)
-        self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.addBookmark)
+        action = QtWidgets.QAction(gettext("&Add Bookmark..."), self)
+        action.triggered[bool].connect(self.addBookmark)
         self.actions['add-bookmark'] = action
 
     def createMenuBar(self):
@@ -327,34 +329,34 @@ class QBzrMainWindow(QBzrWindow):
         self.statusBar().showMessage("Ready")
 
     def createUi(self):
-        self.vsplitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        self.vsplitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
 
-        self.sideBarView = QtGui.QTreeView()
+        self.sideBarView = QtWidgets.QTreeView()
         self.sideBarModel = SideBarModel(self)
         self.sideBarView.setModel(self.sideBarModel)
         self.sideBarView.setTextElideMode(QtCore.Qt.ElideLeft)
         self.sideBarView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.connect(self.sideBarView, QtCore.SIGNAL("customContextMenuRequested(QPoint)"), self.sideBarModel.showContextMenu)
-        self.connect(self.sideBarView.selectionModel(), QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), self.updateFileList)
+        self.sideBarView.customContextMenuRequested[QPoint].connect(self.sideBarModel.showContextMenu)
+        self.sideBarView.selectionModel().selectionChanged[QItemSelection, QItemSelection].connect(self.updateFileList)
         header = self.sideBarView.header()
-        header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         header.setStretchLastSection(False)
         header.setVisible(False)
 
-        self.fileListView = QtGui.QTreeWidget()
+        self.fileListView = QtWidgets.QTreeWidget()
         self.fileListView.setRootIsDecorated(False)
         self.fileListView.setHeaderLabels([
             gettext("Name"),
             gettext("Size"),
             gettext("Status"),
             ])
-        self.connect(self.fileListView, QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"), self.onFileActivated)
+        self.fileListView.itemDoubleClicked[QTreeWidgetItem, int].connect(self.onFileActivated)
 
-        self.hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        self.hsplitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self.hsplitter.addWidget(self.sideBarView)
         self.hsplitter.addWidget(self.fileListView)
 
-        self.console = QtGui.QTextBrowser()
+        self.console = QtWidgets.QTextBrowser()
         self.vsplitter.addWidget(self.hsplitter)
         self.vsplitter.addWidget(self.console)
 
@@ -397,7 +399,7 @@ class QBzrMainWindow(QBzrWindow):
             'qbrz_version': qbrz.__version__,
             'breezy_version': breezy.__version__,
         }
-        QtGui.QMessageBox.about(self,
+        QtWidgets.QMessageBox.about(self,
             gettext("About QBrz"),
             gettext("<b>QBrz</b> \u2014 A graphical user interface for Breezy<br>"
                     "<small>Version %(qbrz_version)s (breezy %(breezy_version)s)</small><br>"
@@ -464,7 +466,7 @@ class QBzrMainWindow(QBzrWindow):
 
     def addBookmark(self):
         dialog = BookmarkDialog(gettext("Add Bookmark"), self)
-        if dialog.exec_() == QtGui.QDialog.Accepted:
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
             name, location = list(dialog.values())
             config = get_qbrz_config()
             config.add_bookmark(name, location)
@@ -476,18 +478,18 @@ class QBzrMainWindow(QBzrWindow):
         bookmarks = list(config.getBookmarks())
         dialog = BookmarkDialog(gettext("Edit Bookmark"), self)
         dialog.setValues(*bookmarks[pos])
-        if dialog.exec_() == QtGui.QDialog.Accepted:
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
             bookmarks[pos] = list(dialog.values())
             config.set_bookmarks(bookmarks)
             config.save()
             self.sideBarModel.refresh(self.sideBarModel.bookmarksItem)
 
     def removeBookmark(self, pos):
-        res = QtGui.QMessageBox.question(self,
+        res = QtWidgets.QMessageBox.question(self,
             gettext("Remove Bookmark"),
             gettext("Do you really want to remove the selected bookmark?"),
-            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        if res == QtGui.QMessageBox.Yes:
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        if res == QtWidgets.QMessageBox.Yes:
             config = get_qbrz_config()
             bookmarks = list(config.getBookmarks())
             del bookmarks[pos]
@@ -532,11 +534,11 @@ class QBzrMainWindow(QBzrWindow):
     def setDirectory(self, path):
         self.currentDirectory = path
         self.setWindowTitle("QBrz - %s" % path)
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         try:
             pathParts = osutils.splitpath(path)
             self.fileListView.invisibleRootItem().takeChildren()
-            item = QtGui.QTreeWidgetItem(self.fileListView)
+            item = QtWidgets.QTreeWidgetItem(self.fileListView)
             item.setText(0, '..')
             item.setIcon(0, self.icons['folder'])
             item.setData(0, QtCore.Qt.UserRole, os.path.dirname(path))
@@ -544,7 +546,7 @@ class QBzrMainWindow(QBzrWindow):
                 QtCore.QDir.AllEntries | QtCore.QDir.NoDotAndDotDot,
                 QtCore.QDir.DirsFirst)
             for fileInfo in fileInfoList:
-                item = QtGui.QTreeWidgetItem(self.fileListView)
+                item = QtWidgets.QTreeWidgetItem(self.fileListView)
                 item.setText(0, fileInfo.fileName())
                 if fileInfo.isDir():
                     status = self.cache.getDirectoryStatus(pathParts, str(fileInfo.fileName()))
@@ -565,4 +567,4 @@ class QBzrMainWindow(QBzrWindow):
                     item.setTextAlignment(1, QtCore.Qt.AlignRight)
                 item.setText(2, status)
         finally:
-            QtGui.QApplication.restoreOverrideCursor()
+            QtWidgets.QApplication.restoreOverrideCursor()

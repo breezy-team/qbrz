@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 _have_pygments = None
 def have_pygments():
@@ -125,9 +125,9 @@ def highlight_document(edit, filename):
 
 if __name__ == "__main__":
     import sys
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
-    python = QtGui.QPlainTextEdit()
+    python = QtWidgets.QPlainTextEdit()
     f = open('syntaxhighlighter.py', 'r')
     python.setPlainText(f.read())
     f.close()

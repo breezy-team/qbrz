@@ -21,7 +21,7 @@
 
 import os
 import sys
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy import (
     controldir,
@@ -71,18 +71,18 @@ class QBzrExportDialog(SubProcessDialog):
         self.branch = branch
 
         # Create the branch information panel
-        info_hbox = QtGui.QHBoxLayout()
+        info_hbox = QtWidgets.QHBoxLayout()
         branch_info = gettext("Branch: %s") % url_for_display(branch.base)
-        info_label = QtGui.QLabel(branch_info)
+        info_label = QtWidgets.QLabel(branch_info)
         info_hbox.addWidget(info_label)
 
         # Create the export group box
-        gbExportDestination = QtGui.QGroupBox(gettext("Export"), self)
-        vboxExportDestination = QtGui.QVBoxLayout(gbExportDestination)
+        gbExportDestination = QtWidgets.QGroupBox(gettext("Export"), self)
+        vboxExportDestination = QtWidgets.QVBoxLayout(gbExportDestination)
         vboxExportDestination.addStrut(0)
 
         # Build export as archive section
-        exportarch_radio = QtGui.QRadioButton("Export as archive")
+        exportarch_radio = QtWidgets.QRadioButton("Export as archive")
         exportarch_radio.setChecked(True)
         self.exportarch_radio = exportarch_radio 
         vboxExportDestination.addWidget(exportarch_radio)
@@ -91,7 +91,7 @@ class QBzrExportDialog(SubProcessDialog):
         vboxExportDestination.addLayout(self._build_archive_type_layout())
 
         # Build export as directory section
-        exportdir_radio = QtGui.QRadioButton("Export as directory")
+        exportdir_radio = QtWidgets.QRadioButton("Export as directory")
         self.exportdir_radio = exportdir_radio
         vboxExportDestination.addWidget(exportdir_radio)
         vboxExportDestination.addLayout(
@@ -101,7 +101,7 @@ class QBzrExportDialog(SubProcessDialog):
         gbExportOptions = self._build_options_group_box()
 
         # Put the form together
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.addLayout(info_hbox)
         layout.addWidget(gbExportDestination)
         layout.addWidget(gbExportOptions)
@@ -125,26 +125,18 @@ class QBzrExportDialog(SubProcessDialog):
             self.update_root_n_format()
 
         # Disable the group boxes while doing the real work
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("disableUi(bool)"),
-                               gbExportDestination,
-                               QtCore.SLOT("setDisabled(bool)"))
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("disableUi(bool)"),
-                               gbExportOptions,
-                               QtCore.SLOT("setDisabled(bool)"))
+        self.disableUi[bool].connect(gbExportDestination.setDisabled)
+        self.disableUi[bool].connect(gbExportOptions.setDisabled)
 
         # Setup smart setting of fields as others are edited.
         # We could do more here (e.g. make the root directory change
         # when the location changes or vice versa) but opinions vary on
         # whether that increases or decreases usability so KISS for now.
-        QtCore.QObject.connect(self.format_combo,
-                               QtCore.SIGNAL("currentIndexChanged(int)"),
-                               self.format_changed)
+        self.format_combo.currentIndexChanged[int].connect(self.format_changed)
 
     def _build_archive_type_layout(self):
-        format_label = QtGui.QLabel(gettext("Archive type:"))
-        format_combo = QtGui.QComboBox()
+        format_label = QtWidgets.QLabel(gettext("Archive type:"))
+        format_combo = QtWidgets.QComboBox()
         self.format_combo = format_combo
         for ix, k in enumerate(sorted(self.FORMAT_NAMES.keys())):
             format_combo.insertItem(ix, k)
@@ -156,7 +148,7 @@ class QBzrExportDialog(SubProcessDialog):
             indx = format_combo.findText("tar.gz")
         format_combo.setCurrentIndex(indx)
 
-        format_hbox = QtGui.QHBoxLayout()
+        format_hbox = QtWidgets.QHBoxLayout()
         format_hbox.addSpacing(25)
         format_hbox.addWidget(format_label)
         format_hbox.addWidget(format_combo)
@@ -165,26 +157,24 @@ class QBzrExportDialog(SubProcessDialog):
         return format_hbox
 
     def _build_archive_root_layout(self):
-        folder_label = QtGui.QLabel(gettext("Root directory name:"))
-        folder_edit = QtGui.QLineEdit()
+        folder_label = QtWidgets.QLabel(gettext("Root directory name:"))
+        folder_edit = QtWidgets.QLineEdit()
         self.folder_edit = folder_edit
 
-        folder_hbox = QtGui.QHBoxLayout()
+        folder_hbox = QtWidgets.QHBoxLayout()
         folder_hbox.addSpacing(25)
         folder_hbox.addWidget(folder_label)
         folder_hbox.addWidget(folder_edit)
         return folder_hbox
 
     def _build_archive_location_layout(self):
-        locationfil_label = QtGui.QLabel(gettext("Location:"))
-        locationfil_edit = QtGui.QLineEdit()
+        locationfil_label = QtWidgets.QLabel(gettext("Location:"))
+        locationfil_edit = QtWidgets.QLineEdit()
         self.locationfil_edit = locationfil_edit
-        browsefil_button = QtGui.QPushButton(gettext("Browse"))
-        QtCore.QObject.connect(browsefil_button,
-                               QtCore.SIGNAL("clicked(bool)"),
-                               self.browsefil_clicked)
+        browsefil_button = QtWidgets.QPushButton(gettext("Browse"))
+        browsefil_button.clicked[bool].connect(self.browsefil_clicked)
 
-        locationfil_hbox = QtGui.QHBoxLayout()
+        locationfil_hbox = QtWidgets.QHBoxLayout()
         locationfil_hbox.addSpacing(25)
         locationfil_hbox.addWidget(locationfil_label)
         locationfil_hbox.addWidget(locationfil_edit)
@@ -195,13 +185,12 @@ class QBzrExportDialog(SubProcessDialog):
         return locationfil_hbox
 
     def _build_directory_location_layout(self):
-        locationdir_edit = QtGui.QLineEdit()
+        locationdir_edit = QtWidgets.QLineEdit()
         self.locationdir_edit = locationdir_edit
-        browsedir_button = QtGui.QPushButton(gettext("Browse"))
-        QtCore.QObject.connect(browsedir_button,
-            QtCore.SIGNAL("clicked(bool)"), self.browsedir_clicked)
+        browsedir_button = QtWidgets.QPushButton(gettext("Browse"))
+        browsedir_button.clicked[bool].connect(self.browsedir_clicked)
 
-        locationdir_hbox = QtGui.QHBoxLayout()
+        locationdir_hbox = QtWidgets.QHBoxLayout()
         locationdir_hbox.addSpacing(25)
         locationdir_hbox.addWidget(locationdir_edit)
         locationdir_hbox.addWidget(browsedir_button)
@@ -212,29 +201,29 @@ class QBzrExportDialog(SubProcessDialog):
     def _build_options_group_box(self):
         """Build and return the options group box."""
         # Build the revision selection fields
-        revisions_box = QtGui.QGridLayout()
-        revisions_label = QtGui.QLabel(gettext("Revision:"))
-        revisions_tip = QtGui.QRadioButton("Branch tip")
+        revisions_box = QtWidgets.QGridLayout()
+        revisions_label = QtWidgets.QLabel(gettext("Revision:"))
+        revisions_tip = QtWidgets.QRadioButton("Branch tip")
         revisions_tip.setChecked(True)
         self.revisions_tip = revisions_tip
         revisions_box.addWidget(revisions_label, 0, 0)
         revisions_box.addWidget(revisions_tip, 0, 1)
-        revisions_other = QtGui.QRadioButton("Other")
+        revisions_other = QtWidgets.QRadioButton("Other")
         self.revisions_other = revisions_other
-        revisions_edit = QtGui.QLineEdit()
+        revisions_edit = QtWidgets.QLineEdit()
         self.revisions_edit = revisions_edit
         revisions_box.addWidget(revisions_other, 1, 1)
         revisions_box.addWidget(revisions_edit, 1, 2)
 
         # Build the content filtering field
-        format_box = QtGui.QGridLayout()
-        format_canonical = QtGui.QCheckBox("Apply content filters to files")
+        format_box = QtWidgets.QGridLayout()
+        format_canonical = QtWidgets.QCheckBox("Apply content filters to files")
         self.format_canonical = format_canonical
         format_box.addWidget(format_canonical, 0, 0)
 
         # Build the group box and return it
-        gbExportOptions = QtGui.QGroupBox(gettext("Options"), self)
-        vbxExportOptions = QtGui.QVBoxLayout(gbExportOptions)
+        gbExportOptions = QtWidgets.QGroupBox(gettext("Options"), self)
+        vbxExportOptions = QtWidgets.QVBoxLayout(gbExportOptions)
         vbxExportOptions.addLayout(revisions_box)
         vbxExportOptions.addLayout(format_box)
         return gbExportOptions
@@ -291,15 +280,15 @@ class QBzrExportDialog(SubProcessDialog):
         self.folder_edit.setText(export.get_root_name(path))
 
     def browsedir_clicked(self):
-        fileName = QtGui.QFileDialog.getExistingDirectory(self,
+        fileName = QtWidgets.QFileDialog.getExistingDirectory(self,
             ("Select save location"))
         if fileName != None and fileName != '':
             self.locationdir_edit.setText(fileName)
             self.exportdir_radio.setChecked(True)
 
     def browsefil_clicked(self):
-        fileName = QtGui.QFileDialog.getSaveFileName(self,
-            ("Select save location"))
+        fileName = QtWidgets.QFileDialog.getSaveFileName(self,
+            ("Select save location"))[0]
         if fileName != None and fileName != '':
             self.locationfil_edit.setText(fileName)
             self.update_root_n_format()

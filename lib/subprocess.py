@@ -24,7 +24,7 @@ import os
 import sys
 import time
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from contextlib import contextmanager
 
 from breezy.plugins.qbrz.lib import MS_WINDOWS
@@ -46,6 +46,12 @@ from breezy.plugins.qbrz.lib.trace import (
    SUB_LOAD_METHOD)
 
 from breezy.lazy_import import lazy_import
+try:
+    QString = unicode
+except NameError:
+    # Python 3
+    QString = str
+
 lazy_import(globals(), '''
 import codecs
 import re
@@ -86,30 +92,30 @@ NOTIFY_CONFLICT = "conflict:"
 class WarningInfoWidget(InfoWidget):
     def __init__(self, parent):
         InfoWidget.__init__(self, parent)
-        layout = QtGui.QVBoxLayout(self)
-        label_layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QVBoxLayout(self)
+        label_layout = QtWidgets.QHBoxLayout()
 
-        icon = QtGui.QLabel()
-        icon.setPixmap(self.style().standardPixmap(QtGui.QStyle.SP_MessageBoxWarning))
+        icon = QtWidgets.QLabel()
+        icon.setPixmap(self.style().standardPixmap(QtWidgets.QStyle.SP_MessageBoxWarning))
         label_layout.addWidget(icon)
-        self.label = QtGui.QLabel()
+        self.label = QtWidgets.QLabel()
         label_layout.addWidget(self.label, 2)
         layout.addLayout(label_layout)
-        self.button_layout = QtGui.QHBoxLayout()
+        self.button_layout = QtWidgets.QHBoxLayout()
         self.button_layout.addStretch(1)
         layout.addLayout(self.button_layout)
 
         self.buttons = []
 
     def add_button(self, text, on_click):
-        button = QtGui.QPushButton(gettext(text))
-        self.connect(button, QtCore.SIGNAL("clicked(bool)"), on_click)
+        button = QtWidgets.QPushButton(gettext(text))
+        button.clicked[bool].connect(on_click)
         self.button_layout.addWidget(button)
         self.buttons.append((button, on_click))
 
     def remove_all_buttons(self):
         for button, on_click in self.buttons:
-            self.disconnect(button, QtCore.SIGNAL("clicked(bool)"), on_click)
+            button.clicked[bool].disconnect(on_click)
             self.button_layout.removeWidget(button)
             button.close()
         del(self.buttons[:])
@@ -139,6 +145,12 @@ class WarningInfoWidget(InfoWidget):
 
 class SubProcessWindowBase(object):
 
+    subprocessStarted = QtCore.pyqtSignal(bool)
+    disableUi = QtCore.pyqtSignal(bool)
+    subprocessFinished = QtCore.pyqtSignal(bool)
+    subprocessFailed = QtCore.pyqtSignal(bool)
+    subprocessError = QtCore.pyqtSignal(bool)
+
     def __init_internal__(self, title,
                           name="genericsubprocess",
                           args=None,
@@ -163,64 +175,63 @@ class SubProcessWindowBase(object):
             self.setWindowFlags(flags)
 
         self.process_widget = SubProcessWidget(self.ui_mode, self, hide_progress)
-        self.connect(self.process_widget, QtCore.SIGNAL("finished()"), self.on_finished)
-        self.connect(self.process_widget, QtCore.SIGNAL("failed(QString)"), self.on_failed)
-        self.connect(self.process_widget, QtCore.SIGNAL("error()"), self.on_error)
-        self.connect(self.process_widget, QtCore.SIGNAL("conflicted(QString)"), self.on_conflicted)
+        self.process_widget.finished.connect(self.on_finished)
+        self.process_widget.failed['QString'].connect(self.on_failed)
+        self.process_widget.error.connect(self.on_error)
+        self.process_widget.conflicted['QString'].connect(self.on_conflicted)
 
         self.closeButton = StandardButton(BTN_CLOSE)
         self.okButton = StandardButton(BTN_OK)
         self.cancelButton = StandardButton(BTN_CANCEL)
 
         # ok button gets disabled when we start.
-        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessStarted(bool)"), self.okButton, QtCore.SLOT("setDisabled(bool)"))
+        self.subprocessStarted[bool].connect(self.okButton.setDisabled)
 
         # ok button gets hidden when we finish.
-        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFinished(bool)"), self.okButton, QtCore.SLOT("setHidden(bool)"))
+        self.subprocessFinished[bool].connect(self.okButton.setHidden)
 
         # close button gets shown when we finish.
-        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFinished(bool)"), self.closeButton, QtCore.SLOT("setShown(bool)"))
+        self.subprocessFinished[bool].connect(self.closeButton.setShown)
 
         # cancel button gets disabled when finished.
-        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFinished(bool)"), self.cancelButton, QtCore.SLOT("setDisabled(bool)"))
+        self.subprocessFinished[bool].connect(self.cancelButton.setDisabled)
 
         # ok button gets enabled when we fail.
-        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFailed(bool)"), self.okButton, QtCore.SLOT("setDisabled(bool)"))
+        self.subprocessFailed[bool].connect(self.okButton.setDisabled)
 
         # Change the ok button to 'retry' if we fail.
-        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFailed(bool)"),
-                               lambda failed: self.okButton.setText(gettext('&Retry')))
+        self.subprocessFailed[bool].connect(lambda failed: self.okButton.setText(gettext('&Retry')))
 
-        self.buttonbox = QtGui.QDialogButtonBox(self)
-        self.buttonbox.addButton(self.okButton, QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(self.closeButton, QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(self.cancelButton, QtGui.QDialogButtonBox.RejectRole)
-        self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.do_accept)
-        self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)
+        self.buttonbox = QtWidgets.QDialogButtonBox(self)
+        self.buttonbox.addButton(self.okButton, QtWidgets.QDialogButtonBox.AcceptRole)
+        self.buttonbox.addButton(self.closeButton, QtWidgets.QDialogButtonBox.AcceptRole)
+        self.buttonbox.addButton(self.cancelButton, QtWidgets.QDialogButtonBox.RejectRole)
+        self.buttonbox.accepted.connect(self.do_accept)
+        self.buttonbox.rejected.connect(self.do_reject)
         self.closeButton.setHidden(True) # but 'close' starts as hidden.
 
         self.infowidget = WarningInfoWidget(self)
         self.infowidget.hide()
-        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessStarted(bool)"), self.infowidget, QtCore.SLOT("setHidden(bool)"))
+        self.subprocessStarted[bool].connect(self.infowidget.setHidden)
 
         if immediate:
             self.do_accept()
 
     def make_default_status_box(self):
-        panel = QtGui.QWidget()
-        vbox = QtGui.QVBoxLayout(panel)
+        panel = QtWidgets.QWidget()
+        vbox = QtWidgets.QVBoxLayout(panel)
         vbox.setContentsMargins(0, 0, 0, 0)
         vbox.addWidget(self.infowidget)
-        status_group_box = QtGui.QGroupBox(gettext("Status"))
-        status_layout = QtGui.QVBoxLayout(status_group_box)
+        status_group_box = QtWidgets.QGroupBox(gettext("Status"))
+        status_layout = QtWidgets.QVBoxLayout(status_group_box)
         status_layout.setContentsMargins(0, 0, 0, 0)
         status_layout.addWidget(self.process_widget)
         vbox.addWidget(status_group_box)
         return panel
 
     def make_process_panel(self):
-        panel = QtGui.QWidget()
-        vbox = QtGui.QVBoxLayout(panel)
+        panel = QtWidgets.QWidget()
+        vbox = QtWidgets.QVBoxLayout(panel)
         vbox.setContentsMargins(0, 0, 0, 0)
         vbox.addWidget(self.infowidget)
         vbox.addWidget(self.process_widget)
@@ -261,8 +272,8 @@ class SubProcessWindowBase(object):
                 report_exception(type=SUB_LOAD_METHOD, window=self.window())
                 return
 
-            self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), True)
-            self.emit(QtCore.SIGNAL("disableUi(bool)"), True)
+            self.subprocessStarted.emit(True)
+            self.disableUi.emit(True)
             self.do_start()
 
     def do_start(self):
@@ -279,10 +290,10 @@ class SubProcessWindowBase(object):
 
     def on_finished(self):
         if hasattr(self, 'setResult'):
-            self.setResult(QtGui.QDialog.Accepted)
+            self.setResult(QtWidgets.QDialog.Accepted)
 
-        self.emit(QtCore.SIGNAL("subprocessFinished(bool)"), True)
-        self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
+        self.subprocessFinished.emit(True)
+        self.disableUi.emit(False)
 
         self.return_code = 0
 
@@ -296,8 +307,8 @@ class SubProcessWindowBase(object):
             self.infowidget.show()
 
     def on_failed(self, error):
-        self.emit(QtCore.SIGNAL("subprocessFailed(bool)"), False)
-        self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
+        self.subprocessFailed.emit(False)
+        self.disableUi.emit(False)
 
         if error=='UncommittedChanges':
             self.action_url = self.process_widget.error_data['display_url']
@@ -311,7 +322,7 @@ class SubProcessWindowBase(object):
             self.infowidget.show()
 
     def on_error(self):
-        self.emit(QtCore.SIGNAL("subprocessError(bool)"), False)
+        self.subprocessError.emit(False)
 
     def setupUi(self, ui):
         ui.setupUi(self)
@@ -341,7 +352,7 @@ class SubProcessWindowBase(object):
         window = ConflictsWindow(self.action_url, parent=self)
         self.windows.append(window)
         window.show()
-        QtCore.QObject.connect(window, QtCore.SIGNAL("allResolved(bool)"), self.infowidget, QtCore.SLOT("setHidden(bool)"))
+        window.allResolved[bool].connect(self.infowidget.setHidden)
 
 class SubProcessWindow(SubProcessWindowBase, QBzrWindow):
 
@@ -441,10 +452,10 @@ class SimpleSubProcessDialog(SubProcessDialog):
                                immediate=immediate)
         self.desc = desc
         # create a layout to hold our one label and the subprocess widgets.
-        layout = QtGui.QVBoxLayout(self)
-        groupbox = QtGui.QGroupBox(gettext('Description'))
-        v = QtGui.QVBoxLayout(groupbox)
-        label = QtGui.QLabel(self.desc)
+        layout = QtWidgets.QVBoxLayout(self)
+        groupbox = QtWidgets.QGroupBox(gettext('Description'))
+        v = QtWidgets.QVBoxLayout(groupbox)
+        label = QtWidgets.QLabel(self.desc)
         label.font().setBold(True)
         v.addWidget(label)
         layout.addWidget(groupbox)
@@ -457,36 +468,36 @@ class SimpleSubProcessDialog(SubProcessDialog):
 
     def auto_start(self):
         if self.auto_start_show_on_failed:
-            QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessFailed(bool)"), self, QtCore.SLOT("setHidden(bool)"))
-            QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessError(bool)"), self, QtCore.SLOT("setHidden(bool)"))
+            self.subprocessFailed[bool].connect(self.setHidden)
+            self.subprocessError[bool].connect(self.setHidden)
             self.do_start()
 
 
-class SubProcessWidget(QtGui.QWidget):
+class SubProcessWidget(QtWidgets.QWidget):
 
     def __init__(self, ui_mode, parent=None, hide_progress=False):
-        QtGui.QGroupBox.__init__(self, parent)
+        QtWidgets.QGroupBox.__init__(self, parent)
         self.ui_mode = ui_mode
 
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
 
-        message_layout = QtGui.QHBoxLayout()
+        message_layout = QtWidgets.QHBoxLayout()
 
-        self.progressMessage = QtGui.QLabel(self)
+        self.progressMessage = QtWidgets.QLabel(self)
         #self.progressMessage.setWordWrap(True) -- this breaks minimal window size hint
         self.progressMessage.setText(gettext("Ready"))
         message_layout.addWidget(self.progressMessage, 1)
 
-        self.transportActivity = QtGui.QLabel(self)
+        self.transportActivity = QtWidgets.QLabel(self)
         message_layout.addWidget(self.transportActivity)
 
         layout.addLayout(message_layout)
 
-        self.progressBar = QtGui.QProgressBar(self)
+        self.progressBar = QtWidgets.QProgressBar(self)
         self.progressBar.setMaximum(1000000)
         layout.addWidget(self.progressBar)
 
-        self.console = QtGui.QTextBrowser(self)
+        self.console = QtWidgets.QTextBrowser(self)
         self.console.setFocusPolicy(QtCore.Qt.ClickFocus)
         layout.addWidget(self.console)
 
@@ -495,10 +506,10 @@ class SubProcessWidget(QtGui.QWidget):
         self.stderr = None
 
         self.process = QtCore.QProcess()
-        self.connect(self.process, QtCore.SIGNAL("readyReadStandardOutput()"), self.readStdout)
-        self.connect(self.process, QtCore.SIGNAL("readyReadStandardError()"), self.readStderr)
-        self.connect(self.process, QtCore.SIGNAL("error(QProcess::ProcessError)"), self.reportProcessError)
-        self.connect(self.process, QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"), self.onFinished)
+        self.process.readyReadStandardOutput.connect(self.readStdout)
+        self.process.readyReadStandardError.connect(self.readStderr)
+        self.process.error[QProcess.ProcessError].connect(self.reportProcessError)
+        self.process.finished[int, QProcess.ExitStatus].connect(self.onFinished)
 
         self.defaultWorkingDir = self.process.workingDirectory()
 
@@ -534,7 +545,7 @@ class SubProcessWidget(QtGui.QWidget):
         @param  args:   bzr command and its arguments
         @type   args:   all arguments should be unicode strings (or ascii-only).
         """
-        QtGui.QApplication.processEvents()  # make sure ui has caught up
+        QtWidgets.QApplication.processEvents()  # make sure ui has caught up
         self.start_multi(((workdir, args),))
 
     def start_multi(self, commands):
@@ -609,6 +620,9 @@ class SubProcessWidget(QtGui.QWidget):
             directory = self.defaultWorkingDir
 
         self.error_class = ''
+        failed = QtCore.pyqtSignal('QString')
+        conflicted = QtCore.pyqtSignal('QString')
+        finished = QtCore.pyqtSignal()
         self.error_data = {}
 
         self.process.setWorkingDirectory(directory)
@@ -699,32 +713,32 @@ class SubProcessWidget(QtGui.QWidget):
                     self.setProgress(progress, messages, transport_activity.decode("utf-8"))
             elif line.startswith(SUB_GETPASS):
                 prompt = bittorrent_b_decode_prompt(line[len(SUB_GETPASS):].encode(self.encoding))
-                passwd, ok = QtGui.QInputDialog.getText(self, gettext("Enter Password"), prompt, QtGui.QLineEdit.Password)
+                passwd, ok = QtWidgets.QInputDialog.getText(self, gettext("Enter Password"), prompt, QtWidgets.QLineEdit.Password)
                 data = str(passwd).encode('utf-8'), int(ok)
                 self.process.write(SUB_GETPASS + bencode.bencode(data) + "\n")
                 if not ok:
                     self.abort_futher_processes()
             elif line.startswith(SUB_GETUSER):
                 prompt = bittorrent_b_decode_prompt(line[len(SUB_GETUSER):].encode(self.encoding))
-                passwd, ok = QtGui.QInputDialog.getText(self, gettext("Enter Username"), prompt)
+                passwd, ok = QtWidgets.QInputDialog.getText(self, gettext("Enter Username"), prompt)
                 data = str(passwd).encode('utf-8'), int(ok)
                 self.process.write(SUB_GETUSER + bencode.bencode(data) + "\n")
                 if not ok:
                     self.abort_futher_processes()
             elif line.startswith(SUB_GETBOOL):
                 prompt = bittorrent_b_decode_prompt(line[len(SUB_GETBOOL):].encode(self.encoding))
-                button = QtGui.QMessageBox.question(self, "Bazaar", prompt, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-                data = (button == QtGui.QMessageBox.Yes)
+                button = QtWidgets.QMessageBox.question(self, "Bazaar", prompt, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                data = (button == QtWidgets.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
             elif line.startswith(SUB_CHOOSE):
                 msg, choices, default = bittorrent_b_decode_choose_args(line[len(SUB_CHOOSE):].encode(self.encoding))
-                mbox = QtGui.QMessageBox(parent=self)
+                mbox = QtWidgets.QMessageBox(parent=self)
                 mbox.setText(msg)
-                mbox.setIcon(QtGui.QMessageBox.Question)
+                mbox.setIcon(QtWidgets.QMessageBox.Question)
                 choices = choices.split('\n')
                 index = 0
                 for c in choices:
-                    button = mbox.addButton(c, QtGui.QMessageBox.AcceptRole)
+                    button = mbox.addButton(c, QtWidgets.QMessageBox.AcceptRole)
                     if index == default:
                         mbox.setDefaultButton(button)
                     index += 1
@@ -743,7 +757,7 @@ class SubProcessWidget(QtGui.QWidget):
     def readStderr(self):
         data = bytes(self.process.readAllStandardError()).decode(self.encoding, 'replace')
         if data:
-            self.emit(QtCore.SIGNAL("error()"))
+            self.error.emit()
 
         for line in data.splitlines():
             # RJLRJL this should be brz, I think
@@ -791,14 +805,14 @@ class SubProcessWidget(QtGui.QWidget):
             else:
                 message = gettext("Error while running brz. (error code: %d)" % error)
         self.logMessage(message, True)
-        self.emit(QtCore.SIGNAL("failed(QString)"), self.error_class)
+        self.failed.emit(self.error_class)
 
     def onFinished(self, exitCode, exitStatus):
         self._delete_args_file()
         if self.aborting:
             self.aborting = False
             self.setProgress(1000000, [gettext("Aborted!")])
-            self.emit(QtCore.SIGNAL("failed(QString)"), 'Aborted')
+            self.failed.emit('Aborted')
         elif exitCode < 3:
             if self.commands and not self.aborting:
                 self._start_next()
@@ -806,12 +820,12 @@ class SubProcessWidget(QtGui.QWidget):
                 self.finished = True
                 self.setProgress(1000000, [gettext("Finished!")])
                 if self.conflicted:
-                    self.emit(QtCore.SIGNAL("conflicted(QString)"), self.conflict_tree_path)
+                    self.conflicted.emit(self.conflict_tree_path)
                 time.sleep(2)
-                self.emit(QtCore.SIGNAL("finished()"))
+                self.finished.emit()
         else:
             self.setProgress(1000000, [gettext("Failed!")])
-            self.emit(QtCore.SIGNAL("failed(QString)"), self.error_class)
+            self.failed.emit(self.error_class)
 
     def _create_args_file(self, text:bytes):
         """@param text: text to write into temp file,

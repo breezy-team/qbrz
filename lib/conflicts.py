@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from breezy.config import GlobalConfig
 from breezy.conflicts import resolve
 from breezy.workingtree import WorkingTree
@@ -41,6 +41,7 @@ except ImportError:
 
 
 class ConflictsWindow(QBzrWindow):
+    allResolved = QtCore.pyqtSignal(bool)
 
     def __init__(self, wt_dir, parent=None):
         self.merge_action = None
@@ -50,54 +51,40 @@ class ConflictsWindow(QBzrWindow):
             [gettext("Conflicts")], parent)
         self.restoreSize("conflicts", (550, 380))
 
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox = QtWidgets.QVBoxLayout(self.centralwidget)
 
-        self.conflicts_list = QtGui.QTreeWidget(self)
+        self.conflicts_list = QtWidgets.QTreeWidget(self)
         self.conflicts_list.setRootIsDecorated(False)
         self.conflicts_list.setUniformRowHeights(True)
-        self.conflicts_list.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.conflicts_list.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.conflicts_list.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.conflicts_list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.conflicts_list.setHeaderLabels([
             gettext("File"),
             gettext("Conflict"),
             ])
-        self.connect(
-            self.conflicts_list.selectionModel(),
-            QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
-            self.update_merge_tool_ui)
-        self.connect(
-            self.conflicts_list,
-            QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
-            self.show_context_menu)
-        self.connect(
-            self.conflicts_list,
-            QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
-            self.launch_merge_tool)
+        self.conflicts_list.selectionModel().selectionChanged[QItemSelection, QItemSelection].connect(self.update_merge_tool_ui)
+        self.conflicts_list.customContextMenuRequested[QPoint].connect(self.show_context_menu)
+        self.conflicts_list.itemDoubleClicked[QTreeWidgetItem, int].connect(self.launch_merge_tool)
         self.conflicts_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.conflicts_list.setSortingEnabled(True)
         self.conflicts_list.sortByColumn(0, QtCore.Qt.AscendingOrder)
         header = self.conflicts_list.header()
         header.setStretchLastSection(False)
-        header.setResizeMode(0, QtGui.QHeaderView.Stretch)
-        header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        header.setResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         vbox.addWidget(self.conflicts_list)
 
-        hbox = QtGui.QHBoxLayout()
-        self.merge_tools_combo = QtGui.QComboBox(self)
+        hbox = QtWidgets.QHBoxLayout()
+        self.merge_tools_combo = QtWidgets.QComboBox(self)
         self.merge_tools_combo.setEditable(False)
-        self.connect(self.merge_tools_combo,
-                     QtCore.SIGNAL("currentIndexChanged(int)"),
-                     self.update_merge_tool_ui)
+        self.merge_tools_combo.currentIndexChanged[int].connect(self.update_merge_tool_ui)
 
-        self.merge_tool_error = QtGui.QLabel('', self)
+        self.merge_tool_error = QtWidgets.QLabel('', self)
 
-        self.program_launch_button = QtGui.QPushButton(gettext("&Launch..."), self)
+        self.program_launch_button = QtWidgets.QPushButton(gettext("&Launch..."), self)
         self.program_launch_button.setEnabled(False)
-        self.connect(
-            self.program_launch_button,
-            QtCore.SIGNAL("clicked()"),
-            self.launch_merge_tool)
-        self.program_label = QtGui.QLabel(gettext("M&erge tool:"), self)
+        self.program_launch_button.clicked.connect(self.launch_merge_tool)
+        self.program_label = QtWidgets.QLabel(gettext("M&erge tool:"), self)
         self.program_label.setBuddy(self.merge_tools_combo)
         hbox.addWidget(self.program_label)
         hbox.addWidget(self.merge_tools_combo)
@@ -110,14 +97,14 @@ class ConflictsWindow(QBzrWindow):
 
         buttonbox = self.create_button_box(BTN_CLOSE)
         refresh = StandardButton(BTN_REFRESH)
-        buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
-        self.connect(refresh, QtCore.SIGNAL("clicked()"), self.refresh)
+        buttonbox.addButton(refresh, QtWidgets.QDialogButtonBox.ActionRole)
+        refresh.clicked.connect(self.refresh)
 
-        autobutton = QtGui.QPushButton(gettext('Auto-resolve'),
+        autobutton = QtWidgets.QPushButton(gettext('Auto-resolve'),
             self.centralwidget)
-        self.connect(autobutton, QtCore.SIGNAL("clicked(bool)"), self.auto_resolve)
+        autobutton.clicked[bool].connect(self.auto_resolve)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(autobutton)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
@@ -144,11 +131,10 @@ class ConflictsWindow(QBzrWindow):
         self.update_merge_tool_ui()
 
     def create_context_menu(self):
-        self.context_menu = QtGui.QMenu(self.conflicts_list)
-        self.merge_action = QtGui.QAction(gettext("&Merge conflict"),
+        self.context_menu = QtWidgets.QMenu(self.conflicts_list)
+        self.merge_action = QtWidgets.QAction(gettext("&Merge conflict"),
                                      self.context_menu)
-        self.connect(self.merge_action, QtCore.SIGNAL("triggered(bool)"),
-                     self.launch_merge_tool)
+        self.merge_action.triggered[bool].connect(self.launch_merge_tool)
         self.context_menu.addAction(self.merge_action)
         self.context_menu.setDefaultAction(self.merge_action)
         self.context_menu.addAction(gettext('Take "&THIS" version'),
@@ -171,7 +157,7 @@ class ConflictsWindow(QBzrWindow):
         conflicts = self.wt.conflicts()
         items = []
         for conflict in conflicts:
-            item = QtGui.QTreeWidgetItem()
+            item = QtWidgets.QTreeWidgetItem()
             item.setText(0, conflict.path)
             item.setText(1, gettext(conflict.typestring))
             item.setData(0, QtCore.Qt.UserRole, conflict.file_id or '')  # file_id is None for non-versioned items, so we force it to be empty string to avoid Qt error
@@ -179,24 +165,24 @@ class ConflictsWindow(QBzrWindow):
             items.append(item)
 
         if len(items) == 0 and self.conflicts_list.topLevelItemCount() > 0:
-            self.emit(QtCore.SIGNAL("allResolved(bool)"), True)
+            self.allResolved.emit(True)
         self.conflicts_list.clear()
         self.conflicts_list.addTopLevelItems(items)
 
     def auto_resolve(self):
         while self.wt is None:
-            QtGui.QApplication.processEvents()
+            QtWidgets.QApplication.processEvents()
         un_resolved, resolved = self.wt.auto_resolve()
         if len(un_resolved) > 0:
             n = len(resolved)
-            QtGui.QMessageBox.information(self, gettext('Conflicts'),
+            QtWidgets.QMessageBox.information(self, gettext('Conflicts'),
                 ngettext('%d conflict auto-resolved.',
                          '%d conflicts auto-resolved.',
                          n) % n,
                 gettext('&OK'))
             QtCore.QTimer.singleShot(1, self.load)
         else:
-            QtGui.QMessageBox.information(self, gettext('Conflicts'),
+            QtWidgets.QMessageBox.information(self, gettext('Conflicts'),
                 gettext('All conflicts resolved.'),
                 gettext('&OK'))
             self.close()
@@ -226,14 +212,14 @@ class ConflictsWindow(QBzrWindow):
                 cleanup(process.exitCode())
             def qprocess_finished(exit_code, exit_status):
                 cleanup(exit_code)
-            self.connect(process, QtCore.SIGNAL("error(QProcess::ProcessError)"), qprocess_error)
-            self.connect(process, QtCore.SIGNAL("finished(int,QProcess::ExitStatus)"), qprocess_finished)
+            process.error[QProcess.ProcessError].connect(qprocess_error)
+            process.finished[int, QProcess.ExitStatus].connect(qprocess_finished)
             process.start(executable, args)
         mergetools.invoke(cmdline, file_name, qprocess_invoker)
 
     def show_merge_tool_error(self, error):
         msg = gettext("Error while running merge tool (code %d)") % error
-        QtGui.QMessageBox.critical(self, gettext("Error"), msg)
+        QtWidgets.QMessageBox.critical(self, gettext("Error"), msg)
 
     def take_this(self):
         self._resolve_action('take_this')
@@ -295,7 +281,7 @@ class ConflictsWindow(QBzrWindow):
             extmerge_tool.rindex('%o')
         except ValueError:
             if showErrorDialog:
-                QtGui.QMessageBox.critical(self, gettext("Error"),
+                QtWidgets.QMessageBox.critical(self, gettext("Error"),
                     gettext("The extmerge definition: '%(tool)s' is invalid.\n"
                         "Missing the flag: %(flags)s. "
                         "This must be fixed in qconfig under the Merge tab.") % {

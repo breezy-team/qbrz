@@ -28,7 +28,7 @@ from breezy import (
     )
 
 try:
-    from PyQt4 import QtGui, QtTest
+    from PyQt5 import QtGui, QtTest, QtWidgets
 except ImportError:
     pass
 
@@ -65,8 +65,8 @@ def load_tests(loader, basic_tests, pattern):
         try:
             basic_tests.addTests(loader.loadTestsFromModuleName(m))
         except ImportError as e:
-            if str(e).endswith('PyQt4'):
-                trace.note('QBrz: skip module %s because PyQt4 is not installed' % m)
+            if str(e).endswith('PyQt5'):
+                trace.note('QBrz: skip module %s because PyQt5 is not installed' % m)
             else:
                 raise
     return basic_tests
@@ -82,7 +82,7 @@ class QTestCase(tests.TestCaseWithTransport):
         super(QTestCase, self).setUp()
         global _qt_app
         if _qt_app is None:
-            _qt_app = QtGui.QApplication(sys.argv)
+            _qt_app = QtWidgets.QApplication(sys.argv)
         def excepthook_tests(eclass, evalue, tb):
             def _reraise_on_cleanup():
                 raise eclass(evalue).with_traceback(tb)

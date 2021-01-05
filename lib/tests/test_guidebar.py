@@ -11,8 +11,8 @@ if __name__=='__main__':
     breezy.plugin.load_plugins()
 
 from breezy.plugins.qbrz.lib.tests import QTestCase
-from PyQt4 import QtCore
-from PyQt4.QtTest import QTest
+from PyQt5 import QtCore
+from PyQt5.QtTest import QTest
 
 from breezy.plugins.qbrz.lib.diffwindow import DiffWindow
 from breezy.plugins.qbrz.lib.shelvewindow import ShelveWindow

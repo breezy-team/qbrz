@@ -24,7 +24,7 @@ from breezy import (
     osutils,
     workingtree,
     )
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 
 class CacheEntry(object):
@@ -44,11 +44,11 @@ class StatusCache(QtCore.QObject):
     def __init__(self, window):
         QtCore.QObject.__init__(self)
         self.fileSystemWatcher = QtCore.QFileSystemWatcher(self)
-        self.connect(self.fileSystemWatcher, QtCore.SIGNAL("directoryChanged(QString)"), self.invalidateDirectory)
+        self.fileSystemWatcher.directoryChanged['QString'].connect(self.invalidateDirectory)
         self.autoRefreshPath = None
         self.autoRefreshTimer = QtCore.QTimer(self)
         self.autoRefreshTimer.setSingleShot(True)
-        self.connect(self.autoRefreshTimer, QtCore.SIGNAL("timeout()"), self.autoRefresh)
+        self.autoRefreshTimer.timeout.connect(self.autoRefresh)
         self.window = window
         self.cache = CacheEntry()
 

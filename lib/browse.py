@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from breezy.plugins.qbrz.lib.util import (
     BTN_CLOSE,
     BTN_REFRESH,
@@ -65,34 +65,30 @@ class BrowseWindow(QBzrWindow):
             [gettext("Browse"), self.location], parent)
         self.restoreSize("browse", (780, 580))
 
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox = QtWidgets.QVBoxLayout(self.centralwidget)
         
         self.throbber = ThrobberWidget(self)
         vbox.addWidget(self.throbber)
 
-        hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(QtGui.QLabel(gettext("Location:")))
-        self.location_edit = QtGui.QLineEdit()
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.addWidget(QtWidgets.QLabel(gettext("Location:")))
+        self.location_edit = QtWidgets.QLineEdit()
         self.location_edit.setReadOnly(True)
         self.location_edit.setText(self.location)
         hbox.addWidget(self.location_edit, 7)
-        hbox.addWidget(QtGui.QLabel(gettext("Revision:")))
-        self.revision_edit = QtGui.QLineEdit()
-        self.connect(self.revision_edit,
-                     QtCore.SIGNAL("returnPressed()"), self.reload_tree)
+        hbox.addWidget(QtWidgets.QLabel(gettext("Revision:")))
+        self.revision_edit = QtWidgets.QLineEdit()
+        self.revision_edit.returnPressed.connect(self.reload_tree)
         hbox.addWidget(self.revision_edit, 1)
-        self.show_button = QtGui.QPushButton(gettext("Show"))
-        self.connect(self.show_button,
-                     QtCore.SIGNAL("clicked()"), self.reload_tree)
+        self.show_button = QtWidgets.QPushButton(gettext("Show"))
+        self.show_button.clicked.connect(self.reload_tree)
         hbox.addWidget(self.show_button, 0)
         
         self.filter_menu = TreeFilterMenu(self)
-        self.filter_button = QtGui.QPushButton(gettext("&Filter"))
+        self.filter_button = QtWidgets.QPushButton(gettext("&Filter"))
         self.filter_button.setMenu(self.filter_menu)
         hbox.addWidget(self.filter_button, 0)
-        self.connect(self.filter_menu,
-                     QtCore.SIGNAL("triggered(int, bool)"),
-                     self.filter_triggered)
+        self.filter_menu.triggered[int, bool].connect(self.filter_triggered)
         
         vbox.addLayout(hbox)
         
@@ -105,16 +101,13 @@ class BrowseWindow(QBzrWindow):
         buttonbox = self.create_button_box(BTN_CLOSE)
         
         self.refresh_button = StandardButton(BTN_REFRESH)
-        buttonbox.addButton(self.refresh_button, QtGui.QDialogButtonBox.ActionRole)
-        self.connect(self.refresh_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.file_tree.refresh)
+        buttonbox.addButton(self.refresh_button, QtWidgets.QDialogButtonBox.ActionRole)
+        self.refresh_button.clicked.connect(self.file_tree.refresh)
 
         self.diffbuttons = DiffButtons(self.centralwidget)
-        self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
-                     self.file_tree.show_differences)
+        self.diffbuttons.triggered['QString'].connect(self.file_tree.show_differences)
         
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.diffbuttons)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
@@ -232,9 +225,9 @@ class BrowseWindow(QBzrWindow):
                 try:
                     revspec = RevisionSpec.from_string(revstr)
                 except errors.NoSuchRevisionSpec as e:
-                    QtGui.QMessageBox.warning(self,
+                    QtWidgets.QMessageBox.warning(self,
                         gettext("Browse"), str(e),
-                        QtGui.QMessageBox.Ok)
+                        QtWidgets.QMessageBox.Ok)
                     return
                 self.set_revision(revspec)
 

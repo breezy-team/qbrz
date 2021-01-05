@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import time
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore
 from breezy.plugins.qbrz.lib.decorators import lazy_call
 from breezy.tests import TestCase, TestCaseWithTransport
 from breezy.plugins.qbrz.lib import tests as qtests

@@ -20,7 +20,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os.path
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
 from breezy.plugins.qbrz.lib.util import (
@@ -65,10 +65,11 @@ from breezy.plugins.qbrz.lib.update import QBzrUpdateWindow
 MAX_AUTOCOMPLETE_FILES = 20
 
 
-class TextEdit(QtGui.QTextEdit):
+class TextEdit(QtWidgets.QTextEdit):
+    messageEntered = QtCore.pyqtSignal()
 
     def __init__(self, spell_checker, parent=None, main_window=None):
-        QtGui.QTextEdit.__init__(self, parent)
+        QtWidgets.QTextEdit.__init__(self, parent)
         # RJL The completer, I think, is to provide suggestions for anything typed
         self.completer = None
         self.spell_checker = spell_checker
@@ -78,7 +79,7 @@ class TextEdit(QtGui.QTextEdit):
 
     def inputMethodEvent(self, e):
         self.completer.popup().hide()
-        QtGui.QTextEdit.inputMethodEvent(self, e)
+        QtWidgets.QTextEdit.inputMethodEvent(self, e)
 
     def keyPressEvent(self, e):
         c = self.completer
@@ -92,12 +93,12 @@ class TextEdit(QtGui.QTextEdit):
             and e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return)
             and (int(e.modifiers()) & QtCore.Qt.ControlModifier)):
                 e.ignore()
-                self.emit(QtCore.SIGNAL("messageEntered()"))
+                self.messageEntered.emit()
                 return
 
         isShortcut = e.modifiers() & QtCore.Qt.ControlModifier and e.key() == QtCore.Qt.Key_E
         if not isShortcut:
-            QtGui.QTextEdit.keyPressEvent(self, e)
+            QtWidgets.QTextEdit.keyPressEvent(self, e)
 
         ctrlOrShift = e.modifiers() & (QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier)
         # if ctrlOrShift and e.text().isEmpty():
@@ -149,7 +150,7 @@ class TextEdit(QtGui.QTextEdit):
         self.completer = completer
         completer.setWidget(self)
         completer.setCaseSensitivity(QtCore.Qt.CaseSensitive)
-        self.connect(completer, QtCore.SIGNAL("activated(QString)"), self.insertCompletion)
+        completer.activated['QString'].connect(self.insertCompletion)
 
     def contextMenuEvent(self, event):
         menu = self.createStandardContextMenu(event.globalPos())
@@ -162,8 +163,8 @@ class TextEdit(QtGui.QTextEdit):
             suggestions = self.spell_checker.suggest(text)
             first_action = menu.actions()[0]
             for suggestion in suggestions:
-                action = QtGui.QAction(suggestion, self)
-                self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.suggestion_selected(suggestion))
+                action = QtWidgets.QAction(suggestion, self)
+                action.triggered[bool].connect(self.suggestion_selected(suggestion))
                 menu.insertAction(first_action, action)
             if suggestions:
                 menu.insertSeparator(first_action)
@@ -193,13 +194,11 @@ class PendingMergesList(LogList):
 
     def create_context_menu(self, file_ids):
         super(PendingMergesList, self).create_context_menu(file_ids)
-        showinfo = QtGui.QAction("Show &information...", self)
+        showinfo = QtWidgets.QAction("Show &information...", self)
         self.context_menu.insertAction(self.context_menu.actions()[0],
                                        showinfo)
         self.context_menu.setDefaultAction(showinfo)
-        self.connect(showinfo,
-                     QtCore.SIGNAL("triggered(bool)"),
-                     self.show_info_menu)
+        showinfo.triggered[bool].connect(self.show_info_menu)
 
     def show_info_menu(self, b=False):
         self.default_action()
@@ -247,14 +246,14 @@ class CommitWindow(SubProcessDialog):
         self.windows = []
         self.initial_selected_list = selected_list
 
-        self.connect(self.process_widget, QtCore.SIGNAL("failed(QString)"), self.on_failed)
+        self.process_widget.failed['QString'].connect(self.on_failed)
 
         self.throbber = ThrobberWidget(self)
 
         # commit to branch location
-        branch_groupbox = QtGui.QGroupBox(gettext("Branch"), self)
-        branch_layout = QtGui.QGridLayout(branch_groupbox)
-        self.branch_location = QtGui.QLineEdit()
+        branch_groupbox = QtWidgets.QGroupBox(gettext("Branch"), self)
+        branch_layout = QtWidgets.QGridLayout(branch_groupbox)
+        self.branch_location = QtWidgets.QLineEdit()
         self.branch_location.setReadOnly(True)
         #
         branch_base = url_for_display(tree.branch.base)
@@ -263,16 +262,16 @@ class CommitWindow(SubProcessDialog):
             self.branch_location.setText(branch_base)
             branch_layout.addWidget(self.branch_location, 0, 0, 1, 2)
         else:
-            self.local_checkbox = QtGui.QCheckBox(gettext("&Local commit"))
+            self.local_checkbox = QtWidgets.QCheckBox(gettext("&Local commit"))
             self.local_checkbox.setToolTip(gettext("Local commits are not pushed to the master branch until a normal commit is performed"))
             branch_layout.addWidget(self.local_checkbox, 0, 0, 1, 2)
             branch_layout.addWidget(self.branch_location, 1, 0, 1, 2)
-            branch_layout.addWidget(QtGui.QLabel(gettext('Description:')), 2, 0, QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-            self.commit_type_description = QtGui.QLabel()
+            branch_layout.addWidget(QtWidgets.QLabel(gettext('Description:')), 2, 0, QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+            self.commit_type_description = QtWidgets.QLabel()
             self.commit_type_description.setWordWrap(True)
             branch_layout.addWidget(self.commit_type_description, 2, 1)
             branch_layout.setColumnStretch(1,10)
-            self.connect(self.local_checkbox, QtCore.SIGNAL("stateChanged(int)"), self.update_branch_groupbox)
+            self.local_checkbox.stateChanged[int].connect(self.update_branch_groupbox)
             if local:
                 self.local_checkbox.setChecked(True)
             self.update_branch_groupbox()
@@ -286,37 +285,37 @@ class CommitWindow(SubProcessDialog):
                 'Working tree is out of date. To commit, update the working tree.')
             }
         self.not_uptodate_info = InfoWidget(branch_groupbox)
-        not_uptodate_layout = QtGui.QHBoxLayout(self.not_uptodate_info)
+        not_uptodate_layout = QtWidgets.QHBoxLayout(self.not_uptodate_info)
 
         # XXX this is to big. Resize
-        not_uptodate_icon = QtGui.QLabel()
+        not_uptodate_icon = QtWidgets.QLabel()
         not_uptodate_icon.setPixmap(self.style().standardPixmap(
-            QtGui.QStyle.SP_MessageBoxWarning))
+            QtWidgets.QStyle.SP_MessageBoxWarning))
         not_uptodate_layout.addWidget(not_uptodate_icon)
 
-        self.not_uptodate_label = QtGui.QLabel('error message goes here')
+        self.not_uptodate_label = QtWidgets.QLabel('error message goes here')
         not_uptodate_layout.addWidget(self.not_uptodate_label, 2)
 
-        update_button = QtGui.QPushButton(gettext('Update'))
-        self.connect(update_button, QtCore.SIGNAL("clicked(bool)"), self.open_update_win)
+        update_button = QtWidgets.QPushButton(gettext('Update'))
+        update_button.clicked[bool].connect(self.open_update_win)
 
         not_uptodate_layout.addWidget(update_button)
 
         self.not_uptodate_info.hide()
         branch_layout.addWidget(self.not_uptodate_info, 3, 0, 1, 2)
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical, self)
 
-        message_groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
+        message_groupbox = QtWidgets.QGroupBox(gettext("Message"), splitter)
         splitter.addWidget(message_groupbox)
-        self.tabWidget = QtGui.QTabWidget()
+        self.tabWidget = QtWidgets.QTabWidget()
         splitter.addWidget(self.tabWidget)
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 8)
 
-        grid = QtGui.QGridLayout(message_groupbox)
+        grid = QtWidgets.QGridLayout(message_groupbox)
 
-        self.show_nonversioned_checkbox = QtGui.QCheckBox(gettext("Show non-versioned files"))
+        self.show_nonversioned_checkbox = QtWidgets.QCheckBox(gettext("Show non-versioned files"))
         show_nonversioned = get_qbrz_config().get_option_as_bool(self._window_name + "_show_nonversioned")
         if show_nonversioned:
             self.show_nonversioned_checkbox.setChecked(QtCore.Qt.Checked)
@@ -331,9 +330,7 @@ class CommitWindow(SubProcessDialog):
             self.filelist_widget.tree_model.set_select_all_kind('versioned')
 
         self.file_words = {}
-        self.connect(self.filelist_widget.tree_model,
-                     QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                     self.on_filelist_data_changed)
+        self.filelist_widget.tree_model.dataChanged[QtCore.QModelIndex, QtCore.QModelIndex].connect(self.on_filelist_data_changed)
 
         self.selectall_checkbox = SelectAllCheckBox(self.filelist_widget, self)
         self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
@@ -344,9 +341,9 @@ class CommitWindow(SubProcessDialog):
         # Equivalent for 'bzr commit --message'
         self.message = TextEdit(spell_checker, message_groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the commit message"))
-        self.connect(self.message, QtCore.SIGNAL("messageEntered()"), self.do_accept)
-        self.completer = QtGui.QCompleter()
-        self.completer_model = QtGui.QStringListModel(self.completer)
+        self.message.messageEntered.connect(self.do_accept)
+        self.completer = QtWidgets.QCompleter()
+        self.completer_model = QStringListModel(self.completer)
         self.completer.setModel(self.completer_model)
         self.message.setCompleter(self.completer)
         self.message.setAcceptRichText(False)
@@ -356,28 +353,26 @@ class CommitWindow(SubProcessDialog):
         grid.addWidget(self.message, 0, 0, 1, 2)
 
         # Equivalent for 'bzr commit --fixes'
-        self.bugsCheckBox = QtGui.QCheckBox(gettext("&Fixed bugs:"))
+        self.bugsCheckBox = QtWidgets.QCheckBox(gettext("&Fixed bugs:"))
         self.bugsCheckBox.setToolTip(gettext("Set the IDs of bugs fixed by this commit"))
-        self.bugs = QtGui.QLineEdit()
+        self.bugs = QtWidgets.QLineEdit()
         self.bugs.setToolTip(gettext("Enter the list of bug IDs in format "
                              "<i>tag:id</i> separated by a space, "
                              "e.g. <i>project:123 project:765</i>"))
         self.bugs.setEnabled(False)
-        self.connect(self.bugsCheckBox, QtCore.SIGNAL("stateChanged(int)"),
-                     self.enableBugs)
+        self.bugsCheckBox.stateChanged[int].connect(self.enableBugs)
         grid.addWidget(self.bugsCheckBox, 1, 0)
         grid.addWidget(self.bugs, 1, 1)
 
         # Equivalent for 'bzr commit --author'
-        self.authorCheckBox = QtGui.QCheckBox(gettext("&Author:"))
+        self.authorCheckBox = QtWidgets.QCheckBox(gettext("&Author:"))
         self.authorCheckBox.setToolTip(gettext("Set the author of this change,"
             " if it's different from the committer"))
-        self.author = QtGui.QLineEdit()
+        self.author = QtWidgets.QLineEdit()
         self.author.setToolTip(gettext("Enter the author's name, "
             "e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"))
         self.author.setEnabled(False)
-        self.connect(self.authorCheckBox, QtCore.SIGNAL("stateChanged(int)"),
-                     self.enableAuthor)
+        self.authorCheckBox.stateChanged[int].connect(self.enableAuthor)
         grid.addWidget(self.authorCheckBox, 2, 0)
         grid.addWidget(self.author, 2, 1)
         # default author from config
@@ -387,12 +382,12 @@ class CommitWindow(SubProcessDialog):
         self.author.setText(self.default_author)
 
         # Display the list of changed files
-        files_tab = QtGui.QWidget()
+        files_tab = QtWidgets.QWidget()
         self.tabWidget.addTab(files_tab, gettext("Changes"))
 
-        vbox = QtGui.QVBoxLayout(files_tab)
+        vbox = QtWidgets.QVBoxLayout(files_tab)
         vbox.addWidget(self.filelist_widget)
-        self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
+        self.show_nonversioned_checkbox.toggled[bool].connect(self.show_nonversioned)
         vbox.addWidget(self.show_nonversioned_checkbox)
 
         vbox.addWidget(self.selectall_checkbox)
@@ -409,10 +404,7 @@ class CommitWindow(SubProcessDialog):
             self.tabWidget.setCurrentWidget(self.pending_merges_list)
 
             # Pending-merge widget gets disabled as we are executing.
-            QtCore.QObject.connect(self,
-                                   QtCore.SIGNAL("disableUi(bool)"),
-                                   self.pending_merges_list,
-                                   QtCore.SLOT("setDisabled(bool)"))
+            self.disableUi[bool].connect(self.pending_merges_list.setDisabled)
         else:
             self.pending_merges_list = False
 
@@ -421,7 +413,7 @@ class CommitWindow(SubProcessDialog):
 
         splitter.setStretchFactor(0, 3)
 
-        vbox = QtGui.QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         vbox.addWidget(self.throbber)
         vbox.addWidget(branch_groupbox)
         vbox.addWidget(splitter)
@@ -430,15 +422,12 @@ class CommitWindow(SubProcessDialog):
         self.diffbuttons = DiffButtons(self)
         self.diffbuttons.setToolTip(
             gettext("View changes in files selected to commit"))
-        self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
-                     self.show_diff_for_checked)
+        self.diffbuttons.triggered['QString'].connect(self.show_diff_for_checked)
 
         self.refresh_button = StandardButton(BTN_REFRESH)
-        self.connect(self.refresh_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.refresh)
+        self.refresh_button.clicked.connect(self.refresh)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.diffbuttons)
         hbox.addWidget(self.refresh_button)
         hbox.addWidget(self.buttonbox)
@@ -447,7 +436,7 @@ class CommitWindow(SubProcessDialog):
         # groupbox and tabbox signals handling.
         for w in (message_groupbox, files_tab):
             # when operation started we need to disable widgets
-            QtCore.QObject.connect(self, QtCore.SIGNAL("disableUi(bool)"), w, QtCore.SLOT("setDisabled(bool)"))
+            self.disableUi[bool].connect(w.setDisabled)
 
         self.restore_commit_data()
         if message:
@@ -770,7 +759,7 @@ class CommitWindow(SubProcessDialog):
                 show_diff(arg_provider, ext_diff=ext_diff, parent_window=self, context=self.filelist_widget.diff_context)
             else:
                 msg = "No changes selected to " + dialog_action
-                QtGui.QMessageBox.warning(self, "QBrz - " + gettext("Diff"), gettext(msg), QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.warning(self, "QBrz - " + gettext("Diff"), gettext(msg), QtWidgets.QMessageBox.Ok)
 
             if unversioned:
                 # XXX show infobox with message that not all files shown in diff
@@ -793,7 +782,4 @@ class CommitWindow(SubProcessDialog):
         update_window = QBzrUpdateWindow(self.tree)
         self.windows.append(update_window)
         update_window.show()
-        QtCore.QObject.connect(update_window,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self.not_uptodate_info,
-                               QtCore.SLOT("setHidden(bool)"))
+        update_window.subprocessFinished[bool].connect(self.not_uptodate_info.setHidden)

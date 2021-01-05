@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys, time
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.plugins.qbrz.lib.i18n import gettext, ngettext, N_
 from breezy.plugins.qbrz.lib.util import (
@@ -242,6 +242,7 @@ class Change(object):
 
 
 class ShelveWidget(ToolbarPanel):
+    shelfCreated = QtCore.pyqtSignal(int)
 
     def __init__(self, file_list=None, directory=None, complete=False, encoding=None, 
                 splitters=None, parent=None, select_all=False, init_msg=None):
@@ -258,18 +259,18 @@ class ShelveWidget(ToolbarPanel):
         self.current_layout = -1
         self.load_settings()
 
-        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
+        self.splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical, self)
         pal = QtGui.QPalette()
         pal.setColor(QtGui.QPalette.Window, QtGui.QColor(0,0,0,0))
         self.splitter.setPalette(pal)
 
-        self.splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal, self)
-        self.splitter2 = QtGui.QSplitter(QtCore.Qt.Horizontal, self)
+        self.splitter1 = QtWidgets.QSplitter(QtCore.Qt.Horizontal, self)
+        self.splitter2 = QtWidgets.QSplitter(QtCore.Qt.Horizontal, self)
         self.splitter.addWidget(self.splitter1)
         self.splitter.addWidget(self.splitter2)
         
-        message_groupbox = QtGui.QGroupBox(gettext("Message"), self)
-        message_layout = QtGui.QVBoxLayout(message_groupbox)
+        message_groupbox = QtWidgets.QGroupBox(gettext("Message"), self)
+        message_layout = QtWidgets.QVBoxLayout(message_groupbox)
         self.splitter1.addWidget(message_groupbox)
 
         language = get_global_config().get_user_option('spellcheck_language') or 'en'
@@ -277,10 +278,9 @@ class ShelveWidget(ToolbarPanel):
         
         self.message = TextEdit(spell_checker, message_groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the shelve message"))
-        self.connect(self.message, QtCore.SIGNAL("messageEntered()"),
-                     self.do_shelve)
-        self.completer = QtGui.QCompleter()
-        self.completer_model = QtGui.QStringListModel(self.completer)
+        self.message.messageEntered.connect(self.do_shelve)
+        self.completer = QtWidgets.QCompleter()
+        self.completer_model = QStringListModel(self.completer)
         self.completer.setModel(self.completer_model)
         self.message.setCompleter(self.completer)
         self.message.setAcceptRichText(False)
@@ -290,14 +290,14 @@ class ShelveWidget(ToolbarPanel):
 
         message_layout.addWidget(self.message)
 
-        self.file_view = QtGui.QTreeWidget(self)
+        self.file_view = QtWidgets.QTreeWidget(self)
         self.file_view.setHeaderLabels(
                 [gettext("File Name"), gettext("Status"), gettext("Hunks")])
         header = self.file_view.header()
         header.setStretchLastSection(False)
-        header.setResizeMode(0, QtGui.QHeaderView.Stretch)
-        header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
-        header.setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        header.setResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        header.setResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
 
         self.splitter1.addWidget(self.file_view)
 
@@ -312,7 +312,7 @@ class ShelveWidget(ToolbarPanel):
                         shortcut=QtGui.QKeySequence.Find)
         hunk_panel.add_separator()
 
-        view_menu = QtGui.QMenu(gettext('View Options'), self)
+        view_menu = QtWidgets.QMenu(gettext('View Options'), self)
         view_menu.addAction(
                 hunk_panel.create_button(N_("Complete"), icon_name="complete", 
                     onclick=self.hunk_view.set_complete,
@@ -348,12 +348,12 @@ class ShelveWidget(ToolbarPanel):
         setup_guidebar_for_find(self.hunk_view.guidebar, find_toolbar, index=1)
         self.find_toolbar = find_toolbar
 
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(10)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(10, 10, 10, 10)
         layout.addWidget(self.splitter)
         self.add_layout(layout)
 
-        shelve_menu = QtGui.QMenu(gettext("Shelve"), self)
+        shelve_menu = QtWidgets.QMenu(gettext("Shelve"), self)
         shelve_menu.addAction(self.create_button(N_("Destroy"),
                                     onclick=lambda:self.do_shelve(destroy=True)))
 
@@ -379,14 +379,11 @@ class ShelveWidget(ToolbarPanel):
         self.add_toolbar_button(N_('&Refresh'), icon_name='view-refresh', 
                 shortcut="Ctrl+R", onclick=self.refresh)
 
-        self.connect(self.file_view, QtCore.SIGNAL("itemSelectionChanged()"),
-                self.selected_file_changed)
+        self.file_view.itemSelectionChanged.connect(self.selected_file_changed)
 
-        self.connect(self.file_view, QtCore.SIGNAL("itemChanged(QTreeWidgetItem *, int)"),
-                self.file_checked)
+        self.file_view.itemChanged[QTreeWidgetItem, int].connect(self.file_checked)
 
-        self.connect(self.hunk_view, QtCore.SIGNAL("selectionChanged()"),
-                self.selected_hunk_changed)
+        self.hunk_view.selectionChanged.connect(self.selected_hunk_changed)
 
         self.set_layout()
 
@@ -504,7 +501,7 @@ class ShelveWidget(ToolbarPanel):
     def _create_item(self, change, shelver, trees, old_changes):
         """Create QTreeWidgetItem for file list from Change instance."""
         ch = Change(change, shelver, trees)
-        item = QtGui.QTreeWidgetItem()
+        item = QtWidgets.QTreeWidgetItem()
 
         if ch.kind == 'directory':
             item.setIcon(0, get_icon("folder", 16))
@@ -640,7 +637,7 @@ class ShelveWidget(ToolbarPanel):
             config = work_tree.branch.get_config()
             change_editor = config.get_change_editor(target_tree, work_tree)
             if change_editor is None:
-                QtGui.QMessageBox.information(self, gettext('Shelve'),
+                QtWidgets.QMessageBox.information(self, gettext('Shelve'),
                         gettext('Change editor is not defined.'), gettext('&OK'))
                 self.editor_available = False
                 self.editor_button.setEnabled(False)
@@ -674,17 +671,17 @@ class ShelveWidget(ToolbarPanel):
             if destroy:
                 prompt = ngettext('Delete changes of %d file without shelving',
                                   'Delete changes of %d files without shelving', nfiles) % nfiles 
-                func = QtGui.QMessageBox.warning
+                func = QtWidgets.QMessageBox.warning
             else:
                 prompt = ngettext('Shelve changes of %d file',
                                   'Shelve changes of %d files', nfiles) % nfiles 
-                func = QtGui.QMessageBox.question
+                func = QtWidgets.QMessageBox.question
             ret = func(self, gettext('Shelve'), prompt,
-                    QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-            if ret != QtGui.QMessageBox.Ok:
+                    QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+            if ret != QtWidgets.QMessageBox.Ok:
                 return
         else:
-            QtGui.QMessageBox.information(self, gettext('Shelve'),
+            QtWidgets.QMessageBox.information(self, gettext('Shelve'),
                     gettext('No changes selected.'), gettext('&OK'))
             return
 
@@ -730,19 +727,19 @@ class ShelveWidget(ToolbarPanel):
                 shelf_id = manager.shelve_changes(creator, message)
 
         except WorkingTreeHasPendingMarge:
-            QtGui.QMessageBox.warning(self, gettext('Shelve'),
+            QtWidgets.QMessageBox.warning(self, gettext('Shelve'),
                     gettext('Operation aborted because working tree has pending merges.'),
                     gettext('&OK'))
             return
         except WorkingTreeHasChanged:
-            QtGui.QMessageBox.warning(self, gettext('Shelve'),
+            QtWidgets.QMessageBox.warning(self, gettext('Shelve'),
                     gettext('Operation aborted because target files has been changed.'), gettext('&OK'))
             return
 
         finally:
             while cleanup:
                 cleanup.pop()()
-        self.emit(QtCore.SIGNAL("shelfCreated(int)"), shelf_id)
+        self.shelfCreated.emit(shelf_id)
         self.clear()
 
     def handle_modify_text(self, creator, change):
@@ -800,12 +797,14 @@ class ShelveWidget(ToolbarPanel):
         words.sort(key=lambda x: x.lower())
         self.completer_model.setStringList(words)
     
-class HunkView(QtGui.QWidget):
+class HunkView(QtWidgets.QWidget):
+    selectionChanged = QtCore.pyqtSignal()
+
     def __init__(self, complete=False, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        layout = QtGui.QHBoxLayout(self)
+        QtWidgets.QWidget.__init__(self, parent)
+        layout = QtWidgets.QHBoxLayout(self)
         layout.setSpacing(0)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.browser = HunkTextBrowser(complete, self)
         self.guidebar = GuideBar(self.browser, parent=self)
         self.guidebar.add_entry('hunk', self.browser.focus_color)
@@ -813,14 +812,12 @@ class HunkView(QtGui.QWidget):
         layout.addWidget(self.selector)
         layout.addWidget(self.browser)
         layout.addWidget(self.guidebar)
-        self.connect(self.browser, QtCore.SIGNAL("focusedHunkChanged()"),
-                     self.update)
+        self.browser.focusedHunkChanged.connect(self.update)
 
         def selected_hunk_changed():
             self.update()
-            self.emit(QtCore.SIGNAL("selectionChanged()"))
-        self.connect(self.browser, QtCore.SIGNAL("selectedHunkChanged()"), 
-                     selected_hunk_changed)
+            self.selectionChanged.emit()
+        self.browser.selectedHunkChanged.connect(selected_hunk_changed)
 
         self.change = None
         self.encoding = None
@@ -856,14 +853,14 @@ class HunkView(QtGui.QWidget):
     def clear(self):
         self.browser.clear()
 
-class HunkSelector(QtGui.QFrame):
+class HunkSelector(QtWidgets.QFrame):
     def __init__(self, browser, parent):
-        QtGui.QFrame.__init__(self, parent)
+        QtWidgets.QFrame.__init__(self, parent)
         self.browser = browser
         self.setFixedWidth(25)
         self.setStyleSheet("border:1px solid lightgray;")
-        self.connect(browser.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.scrolled)
-        self.frame_width = QtGui.QApplication.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
+        browser.verticalScrollBar().valueChanged[int].connect(self.scrolled)
+        self.frame_width = QtWidgets.QApplication.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
 
         self.checkbox_pen = QtGui.QPen(QtCore.Qt.black)
         self.checkbox_pen.setWidth(2)
@@ -872,7 +869,7 @@ class HunkSelector(QtGui.QFrame):
         self.update()
 
     def paintEvent(self, event):
-        QtGui.QFrame.paintEvent(self, event) 
+        QtWidgets.QFrame.paintEvent(self, event) 
         browser = self.browser
         if not browser.hunk_list:
             return
@@ -917,13 +914,16 @@ class HunkSelector(QtGui.QFrame):
                 elif y < top:
                     break
             browser.focus_hunk_by_pos(event.y() - self.frame_width)
-        QtGui.QFrame.mousePressEvent(self, event)
+        QtWidgets.QFrame.mousePressEvent(self, event)
 
-class HunkTextBrowser(QtGui.QTextBrowser):
+class HunkTextBrowser(QtWidgets.QTextBrowser):
+    documentChangeFinished = QtCore.pyqtSignal()
+    selectedHunkChanged = QtCore.pyqtSignal()
+    focusedHunkChanged = QtCore.pyqtSignal()
 
     def __init__(self, complete=False, parent=None):
         # XXX: This code should be merged with QSimpleDiffView
-        QtGui.QTextBrowser.__init__(self, parent)
+        QtWidgets.QTextBrowser.__init__(self, parent)
         self.hunk_list = []
         self.doc = QtGui.QTextDocument(parent)
         self.doc.setUndoRedoEnabled(False)
@@ -1028,23 +1028,23 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         if self.hunk_list:
             self._set_focused_hunk(0)
 
-        self.emit(QtCore.SIGNAL("documentChangeFinished()"))
+        self.documentChangeFinished.emit()
         self.update()
 
     def update(self):
-        QtGui.QTextBrowser.update(self)
+        QtWidgets.QTextBrowser.update(self)
         self.viewport().update()
 
     def clear(self):
-        QtGui.QTextBrowser.clear(self)
+        QtWidgets.QTextBrowser.clear(self)
         del(self.hunk_list[:])
         self._set_focused_hunk(-1)
         self.guidebar_deta = []
-        self.emit(QtCore.SIGNAL("documentChangeFinished()"))
+        self.documentChangeFinished.emit()
 
     def paintEvent(self, event):
         if not self.hunk_list:
-            QtGui.QTextBrowser.paintEvent(self, event) 
+            QtWidgets.QTextBrowser.paintEvent(self, event) 
             return
         scroll_y = self.verticalScrollBar().value()
 
@@ -1055,7 +1055,7 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         self.draw_background(rect, painter, scroll_y)
 
         del painter
-        QtGui.QTextBrowser.paintEvent(self, event) 
+        QtWidgets.QTextBrowser.paintEvent(self, event) 
 
     def draw_background(self, rect, painter, offset):
         left, right, width = rect.left(), rect.right(), rect.width()
@@ -1098,7 +1098,7 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         if 0 <= index < len(self.hunk_list) and int(index) == index:
             self.hunk_list[index][0].selected = \
                     not self.hunk_list[index][0].selected
-            self.emit(QtCore.SIGNAL("selectedHunkChanged()"))
+            self.selectedHunkChanged.emit()
 
     def focus_hunk_by_pos(self, y):
         index = self.hittest(y)
@@ -1107,7 +1107,7 @@ class HunkTextBrowser(QtGui.QTextBrowser):
     def _set_focused_hunk(self, index, scroll=True):
         self._focused_index = index
         self.update()
-        self.emit(QtCore.SIGNAL("focusedHunkChanged()"))
+        self.focusedHunkChanged.emit()
         if scroll and int(index) == index:
             self.scroll_to_hunk(index)
 
@@ -1145,15 +1145,15 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         if event.button() == QtCore.Qt.LeftButton:
             self.focus_hunk_by_pos(event.y())
 
-        QtGui.QTextBrowser.mousePressEvent(self, event)
+        QtWidgets.QTextBrowser.mousePressEvent(self, event)
 
     def focusInEvent(self, event):
         self.parent().update()
-        QtGui.QTextBrowser.focusInEvent(self, event)
+        QtWidgets.QTextBrowser.focusInEvent(self, event)
 
     def focusOutEvent(self, event):
         self.parent().update()
-        QtGui.QTextBrowser.focusOutEvent(self, event)
+        QtWidgets.QTextBrowser.focusOutEvent(self, event)
 
     def keyPressEvent(self, event):
         mod, key = int(event.modifiers()), event.key()
@@ -1161,4 +1161,4 @@ class HunkTextBrowser(QtGui.QTextBrowser):
             if key == QtCore.Qt.Key_Space:
                 self.toggle_selection(self._focused_index)
                 return
-        QtGui.QTextBrowser.keyPressEvent(self, event)
+        QtWidgets.QTextBrowser.keyPressEvent(self, event)

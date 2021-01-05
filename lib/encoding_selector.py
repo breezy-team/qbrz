@@ -20,7 +20,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import codecs
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.util import is_valid_encoding
@@ -73,10 +73,8 @@ class BaseEncodingSelector(object):
             self._encoding = encoding
             self.onChanged(encoding)
         except (UnicodeError, LookupError):
-            QtGui.QMessageBox.critical(self,
-                gettext("Wrong encoding"),
-                gettext('Encoding "%s" is invalid or not supported.') %
-                    str(encoding))
+            QtWidgets.QMessageBox.critical(self, gettext("Wrong encoding"),
+                gettext('Encoding "%s" is invalid or not supported.') % str(encoding))
             self.setEncoding(self._encoding)
 
     def getEncoding(self):
@@ -93,7 +91,7 @@ class BaseEncodingSelector(object):
     encoding = property(getEncoding, setEncoding)
 
 
-class EncodingSelector(QtGui.QWidget, BaseEncodingSelector):
+class EncodingSelector(QtWidgets.QWidget, BaseEncodingSelector):
     """Widget to control encoding of text."""
 
     def __init__(self, initial_encoding=None, label_text=None, onChanged=None,
@@ -104,25 +102,24 @@ class EncodingSelector(QtGui.QWidget, BaseEncodingSelector):
         @param onChanged: callback to processing encoding change.
         @param args: additional arguments to initialize QWidget.
         """
-        QtGui.QWidget.__init__(self, *args)
+        QtWidgets.QWidget.__init__(self, *args)
         self.init_encodings(initial_encoding)
         self.onChanged = onChanged
         if onChanged is None:
             self.onChanged = lambda encoding: None
 
-        layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
 
         if label_text is None:
             label_text = gettext("Encoding:")
-        self._label = QtGui.QLabel(label_text)
+        self._label = QtWidgets.QLabel(label_text)
         layout.addWidget(self._label)
 
-        self.chooser = QtGui.QComboBox()
+        self.chooser = QtWidgets.QComboBox()
         self.chooser.addItems(self.encodings)
         self.chooser.setEditable(True)
         self.chooser.setEditText(self.encoding)
-        self.connect(self.chooser, QtCore.SIGNAL("currentIndexChanged(QString)"),
-                     self._encodingChanged)
+        self.chooser.currentIndexChanged['QString'].connect(self._encodingChanged)
         self.chooser.focusOutEvent = self._focusOut
         layout.addWidget(self.chooser)
 
@@ -132,7 +129,7 @@ class EncodingSelector(QtGui.QWidget, BaseEncodingSelector):
         encoding = self.chooser.currentText()
         if self._encoding != encoding:
             self._encodingChanged(encoding)
-        QtGui.QComboBox.focusOutEvent(self.chooser, ev)
+        QtWidgets.QComboBox.focusOutEvent(self.chooser, ev)
 
     def _setEncoding(self, encoding):
         self.chooser.setEditText(encoding)
@@ -146,7 +143,7 @@ class EncodingSelector(QtGui.QWidget, BaseEncodingSelector):
     label = property(getLabel, setLabel)
 
 
-class EncodingMenuSelector(QtGui.QMenu, BaseEncodingSelector):
+class EncodingMenuSelector(QtWidgets.QMenu, BaseEncodingSelector):
     """Menu to control encoding of text."""
 
     def __init__(self, initial_encoding=None, label_text=None, onChanged=None,
@@ -157,30 +154,30 @@ class EncodingMenuSelector(QtGui.QMenu, BaseEncodingSelector):
         @param onChanged: callback to processing encoding change.
         @param args: additional arguments to initialize QWidget.
         """
-        QtGui.QMenu.__init__(self, *args)
+        QtWidgets.QMenu.__init__(self, *args)
         self.init_encodings(initial_encoding)
         self.onChanged = onChanged
         if onChanged is None:
             self.onChanged = lambda encoding: None
-        
+
         self.setTitle(label_text)
         self.setStyleSheet("QMenu { menu-scrollable: 1; }")
-        
-        self.action_group = QtGui.QActionGroup(self)
-        
+
+        self.action_group = QtWidgets.QActionGroup(self)
+
         self.encoding_actions = {}
         for encoding in self.encodings:
-            action = QtGui.QAction(encoding, self.action_group)
+            action = QtWidgets.QAction(encoding, self.action_group)
             action.setCheckable(True)
             action.setData(encoding)
             self.addAction(action)
             self.encoding_actions[encoding] = action
-        
+
         self._setEncoding(self.encoding)
-        self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
-                     self.triggered)
-    
-    def triggered(self, action):
+        # RJLRJL changed triggered to _triggered
+        self.triggered[QtWidgets.QAction].connect(self._triggered)
+
+    def _triggered(self, action):
         encoding = action.data()
         self._encodingChanged(encoding)
 
@@ -197,6 +194,21 @@ class EncodingMenuSelector(QtGui.QMenu, BaseEncodingSelector):
     label = property(getLabel, setLabel)
 
 
+# The 'python_encodings' horror below changes underscores to dashes and them makes a list.
+# What you actually get is:
+#
+# ['utf-8', 'ascii', 'latin-1', 'big5', 'big5hkscs', 'cp037', 'cp1006', 'cp1026', 'cp1140', 'cp1250', 'cp1251',
+# 'cp1252', 'cp1253', 'cp1254', 'cp1255', 'cp1256', 'cp1257', 'cp1258', 'cp424', 'cp437', 'cp500', 'cp737', 'cp775',
+# 'cp850', 'cp852', 'cp855', 'cp856', 'cp857', 'cp860', 'cp861', 'cp862', 'cp863', 'cp864', 'cp865', 'cp866', 'cp869',
+# 'cp874', 'cp875', 'cp932', 'cp949', 'cp950', 'euc-jisx0213', 'euc-jis-2004', 'euc-jp', 'euc-kr', 'gb18030', 'gb2312',
+# 'gbk', 'hp-roman8', 'hz', 'iso2022-jp', 'iso2022-jp-1', 'iso2022-jp-2', 'iso2022-jp-2004', 'iso2022-jp-3',
+# 'iso2022-jp-ext', 'iso2022-kr', 'iso8859-1', 'iso8859-10', 'iso8859-11', 'iso8859-13', 'iso8859-14', 'iso8859-15',
+# 'iso8859-16', 'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5', 'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9',
+# 'johab', 'koi8-r', 'koi8-u', 'mac-arabic', 'mac-centeuro', 'mac-croatian', 'mac-cyrillic', 'mac-farsi', 'mac-greek',
+# 'mac-iceland', 'mac-latin2', 'mac-roman', 'mac-romanian', 'mac-turkish', 'ptcp154', 'shift-jis', 'shift-jisx0213',
+# 'shift-jis-2004', 'tis-620', 'utf-16', 'utf-16-be', 'utf-16-le', 'utf-32', 'utf-32-be', 'utf-32-le', 'utf-7', 'utf-8-sig']
+#
+# ...and before you ask, no, I don't know why they didn't just do that either. What larks!
 
 # human encodings found in standard Python encodings package.
 python_encodings = """

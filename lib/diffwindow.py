@@ -25,7 +25,7 @@ import re
 import time
 import contextlib
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.errors import NoSuchRevision, PathsNotVersionedError
 from breezy.mutabletree import MutableTree
@@ -119,6 +119,7 @@ def get_title_for_tree(tree, branch, other_branch):
 
 
 class DiffWindow(QBzrWindow):
+    documentChangeFinished = QtCore.pyqtSignal()
 
     def __init__(self, arg_provider, parent=None,
                  complete=False, encoding=None,
@@ -144,10 +145,10 @@ class DiffWindow(QBzrWindow):
         for view in self.views:
             view.set_complete(complete)
 
-        self.stack = QtGui.QStackedWidget(self.centralwidget)
+        self.stack = QtWidgets.QStackedWidget(self.centralwidget)
         self.stack.addWidget(self.diffview)
         self.stack.addWidget(self.sdiffview)
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox = QtWidgets.QVBoxLayout(self.centralwidget)
         vbox.addWidget(self.stack)
 
         # Don't use a custom tab width by default
@@ -196,20 +197,20 @@ class DiffWindow(QBzrWindow):
             show_ext_diff_menu = self.create_ext_diff_action()
             toolbar.addAction(show_ext_diff_menu)
             widget = toolbar.widgetForAction(show_ext_diff_menu)
-            widget.setPopupMode(QtGui.QToolButton.InstantPopup)
+            widget.setPopupMode(QtWidgets.QToolButton.InstantPopup)
             widget.setShortcut("Alt+E")
             show_shortcut_hint(widget)
 
         show_view_menu = self.create_view_menu()
         toolbar.addAction(show_view_menu)
         widget = toolbar.widgetForAction(show_view_menu)
-        widget.setPopupMode(QtGui.QToolButton.InstantPopup)
+        widget.setPopupMode(QtWidgets.QToolButton.InstantPopup)
         widget.setShortcut("Alt+V")
         show_shortcut_hint(widget)
 
-        spacer = QtGui.QWidget()
-        spacer.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                QtGui.QSizePolicy.Expanding)
+        spacer = QtWidgets.QWidget()
+        spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                QtWidgets.QSizePolicy.Expanding)
         toolbar.addWidget(spacer)
 
         self.throbber = ToolBarThrobberWidget(self)
@@ -217,7 +218,7 @@ class DiffWindow(QBzrWindow):
         return toolbar
 
     def create_find_action(self):
-        action = QtGui.QAction(get_icon("edit-find"),
+        action = QtWidgets.QAction(get_icon("edit-find"),
                 gettext("&Find"), self)
         action.setShortcut(QtGui.QKeySequence.Find)
         action.setToolTip(gettext("Find on active panel"))
@@ -226,7 +227,7 @@ class DiffWindow(QBzrWindow):
         return action
 
     def create_toggle_view_mode(self):
-        action = QtGui.QAction(get_icon("view-split-left-right"),
+        action = QtWidgets.QAction(get_icon("view-split-left-right"),
                 gettext("Unidiff"), self)
         action.setToolTip(
                 gettext("Toggle between Side by side and Unidiff view modes"))
@@ -234,45 +235,37 @@ class DiffWindow(QBzrWindow):
         show_shortcut_hint(action)
         action.setCheckable(True)
         action.setChecked(False);
-        self.connect(action,
-                     QtCore.SIGNAL("toggled (bool)"),
-                     self.click_toggle_view_mode)
+        action.toggled [bool].connect(self.click_toggle_view_mode)
         return action
 
     def create_refresh_action(self, allow_refresh=True):
-        action = QtGui.QAction(get_icon("view-refresh"),
+        action = QtWidgets.QAction(get_icon("view-refresh"),
                 gettext("&Refresh"), self)
         action.setShortcut("Ctrl+R")
         show_shortcut_hint(action)
-        self.connect(action,
-                     QtCore.SIGNAL("triggered (bool)"),
-                     self.click_refresh)
+        action.triggered [bool].connect(self.click_refresh)
         action.setEnabled(allow_refresh)
         return action
 
     def create_ext_diff_action(self):
-        action = QtGui.QAction(get_icon("system-run"),
+        action = QtWidgets.QAction(get_icon("system-run"),
                 gettext("&External Diff"), self)
         action.setToolTip(
             gettext("Launch an external diff application"))
         ext_diff_menu = ExtDiffMenu(parent=self, include_builtin = False)
         action.setMenu(ext_diff_menu)
-        self.connect(ext_diff_menu,
-                QtCore.SIGNAL("triggered(QString)"),
-                self.ext_diff_triggered)
+        ext_diff_menu.triggered['QString'].connect(self.ext_diff_triggered)
         return action
 
 
     def create_view_menu(self):
-        show_view_menu = QtGui.QAction(get_icon("document-properties"), gettext("&View Options"), self)
-        view_menu = QtGui.QMenu(gettext('View Options'), self)
+        show_view_menu = QtWidgets.QAction(get_icon("document-properties"), gettext("&View Options"), self)
+        view_menu = QtWidgets.QMenu(gettext('View Options'), self)
         show_view_menu.setMenu(view_menu)
 
-        view_complete = QtGui.QAction(gettext("&Complete"), self)
+        view_complete = QtWidgets.QAction(gettext("&Complete"), self)
         view_complete.setCheckable(True)
-        self.connect(view_complete,
-                     QtCore.SIGNAL("toggled (bool)"),
-                     self.click_complete)
+        view_complete.toggled [bool].connect(self.click_complete)
         view_menu.addAction(view_complete)
 
         self.ignore_whitespace_action = self.create_ignore_ws_action()
@@ -336,7 +329,7 @@ class DiffWindow(QBzrWindow):
         return show_view_menu
 
     def create_ignore_ws_action(self):
-        action = QtGui.QAction(gettext("&Ignore whitespace changes"), self)
+        action = QtWidgets.QAction(gettext("&Ignore whitespace changes"), self)
         action.setCheckable(True)
         action.setChecked(self.ignore_whitespace);
         self.connect_later(action,
@@ -452,18 +445,18 @@ class DiffWindow(QBzrWindow):
                     self.processEvents()
                 no_changes = False
         except PathsNotVersionedError as e:
-                QtGui.QMessageBox.critical(self, gettext('Diff'),
+                QtWidgets.QMessageBox.critical(self, gettext('Diff'),
                     gettext('File %s is not versioned.\n'
                         'Operation aborted.') % e.paths_as_string,
                     gettext('&Close'))
                 self.close()
 
         if no_changes:
-            QtGui.QMessageBox.information(self, gettext('Diff'),
+            QtWidgets.QMessageBox.information(self, gettext('Diff'),
                 gettext('No changes found.'),
                 gettext('&OK'))
         for t in self.views[0].browsers + (self.views[1],):
-            t.emit(QtCore.SIGNAL("documentChangeFinished()"))
+            t.documentChangeFinished.emit()
         self.view_refresh.setEnabled(self.can_refresh())
 
     def click_toggle_view_mode(self, checked):

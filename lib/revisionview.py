@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.plugins.qbrz.lib.diffwindow import DiffWindow
 from breezy.plugins.qbrz.lib.diff_arg import InternalDiffArgProvider
@@ -38,7 +38,7 @@ class RevisionView(DiffWindow):
         self.message_browser = RevisionMessageBrowser(self)
         self.message_browser.set_display_revids([self.revid], branch.repository)
         
-        vsplitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        vsplitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         vsplitter.addWidget(self.message_browser)
         vsplitter.addWidget(self.stack)
         vsplitter.setStretchFactor(0, 1)

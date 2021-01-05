@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import time
 
 from breezy import ui
@@ -104,10 +104,10 @@ class QUIFactory(ui.UIFactory):
         QtCore.QCoreApplication.processEvents()
 
     def get_password(self, prompt='', **kwargs):
-        password, ok = QtGui.QInputDialog.getText(self.current_widget(),
+        password, ok = QtWidgets.QInputDialog.getText(self.current_widget(),
                                                   gettext("Enter Password"),
                                                   (prompt % kwargs),
-                                                  QtGui.QLineEdit.Password)
+                                                  QtWidgets.QLineEdit.Password)
         
         if ok:
             return str(password)
@@ -115,7 +115,7 @@ class QUIFactory(ui.UIFactory):
             raise KeyboardInterrupt()
 
     def get_username(self, prompt='', **kwargs):
-        username, ok = QtGui.QInputDialog.getText(self.current_widget(),
+        username, ok = QtWidgets.QInputDialog.getText(self.current_widget(),
                                                   gettext("Enter Username"),
                                                   (prompt % kwargs))
         
@@ -125,11 +125,11 @@ class QUIFactory(ui.UIFactory):
             raise KeyboardInterrupt()
     
     def get_boolean(self, prompt):
-        button = QtGui.QMessageBox.question(
+        button = QtWidgets.QMessageBox.question(
             self.current_widget(), "Bazaar", prompt,
-            QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
         
-        return button == QtGui.QMessageBox.Yes
+        return button == QtWidgets.QMessageBox.Yes
 
     def clear_term(self):
         """Prepare the terminal for output.
@@ -143,7 +143,7 @@ class QUIFactory(ui.UIFactory):
 # because it actualy open the ui, and so user interaction is required to run
 # the test.
 if __name__ == "__main__":
-    application = QtGui.QApplication([])
+    application = QtWidgets.QApplication([])
     ui_factory = QUIFactory()
     print(ui_factory.get_username("Enter password 123"))
     #print ui_factory.get_boolean("Question?")

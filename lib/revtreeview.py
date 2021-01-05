@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from breezy.plugins.qbrz.lib import MS_WINDOWS
 
 from breezy.lazy_import import lazy_import
@@ -31,7 +31,7 @@ from breezy.transport.local import LocalTransport
 RevIdRole = QtCore.Qt.UserRole + 1
 
 
-class RevisionTreeView(QtGui.QTreeView):
+class RevisionTreeView(QtWidgets.QTreeView):
     """TreeView widget to shows revisions.
 
     Only revisions that are visible on screen are loaded.
@@ -43,10 +43,10 @@ class RevisionTreeView(QtGui.QTreeView):
     """
 
     def __init__(self, parent=None):
-        QtGui.QTreeView.__init__(self, parent)
-        self.connect(self.verticalScrollBar(), QtCore.SIGNAL("valueChanged (int)"), self.scroll_changed)
-        self.connect(self, QtCore.SIGNAL("collapsed (QModelIndex)"), self.collapsed_expanded)
-        self.connect(self, QtCore.SIGNAL("expanded (QModelIndex)"), self.collapsed_expanded)
+        QtWidgets.QTreeView.__init__(self, parent)
+        self.verticalScrollBar().valueChanged [int].connect(self.scroll_changed)
+        self.collapsed [QtCore.QModelIndex].connect(self.collapsed_expanded)
+        self.expanded [QtCore.QModelIndex].connect(self.collapsed_expanded)
 
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
@@ -54,15 +54,15 @@ class RevisionTreeView(QtGui.QTreeView):
         self.diff_context = ExtDiffContext(self)
 
     def setModel(self, model):
-        QtGui.QTreeView.setModel(self, model)
+        QtWidgets.QTreeView.setModel(self, model)
 
-        if isinstance(model, QtGui.QAbstractProxyModel):
+        if isinstance(model, QtCore.QAbstractProxyModel):
             # Connecting the below signal has funny results when we connect to
             # to a ProxyModel, so connect to the source model.
             model = model.sourceModel()
 
-        model.connect(model, QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.data_changed)
-        model.connect(model, QtCore.SIGNAL("layoutChanged()"), self.layout_changed)
+        model.dataChanged[QtCore.QModelIndex, QtCore.QModelIndex].connect(self.data_changed)
+        model.layoutChanged.connect(self.layout_changed)
 
     def scroll_changed(self, value):
         self.load_visible_revisions()
@@ -78,7 +78,7 @@ class RevisionTreeView(QtGui.QTreeView):
 
     def resizeEvent(self, e):
         self.load_visible_revisions()
-        QtGui.QTreeView.resizeEvent(self, e)
+        QtWidgets.QTreeView.resizeEvent(self, e)
 
     def load_visible_revisions(self):
         if not self.revision_loading_disabled:
@@ -149,8 +149,7 @@ class RevisionTreeView(QtGui.QTreeView):
             pass
 
         QtCore.QTimer.singleShot(timeout, null)
-        QtCore.QCoreApplication.processEvents(
-                            QtCore.QEventLoop.WaitForMoreEvents)
+        QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.WaitForMoreEvents)
 
 
 has_vista_style = hasattr(QtGui, "QWindowsVistaStyle")
@@ -167,15 +166,15 @@ if MS_WINDOWS:
 
 def get_text_color(option, style):
     # cg == ColorGroup
-    if option.state & QtGui.QStyle.State_Enabled:
-        if option.state & QtGui.QStyle.State_Active:
+    if option.state & QtWidgets.QStyle.State_Enabled:
+        if option.state & QtWidgets.QStyle.State_Active:
             cg = QtGui.QPalette.Active
         else:
             cg = QtGui.QPalette.Inactive
     else:
         cg = QtGui.QPalette.Disabled
 
-    if option.state & QtGui.QStyle.State_Selected:
+    if option.state & QtWidgets.QStyle.State_Selected:
         if has_vista_style and isinstance(style, QtGui.QWindowsVistaStyle):
             # QWindowsVistaStyle normally modifies it palette,
             # but as we can't reuse that code, we have to reproduce
@@ -192,10 +191,10 @@ def get_text_color(option, style):
         return option.palette.color(cg, QtGui.QPalette.Text)
 
 
-class RevNoItemDelegate(QtGui.QStyledItemDelegate):
+class RevNoItemDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__ (self, max_mainline_digits=4, parent=None):
-        QtGui.QItemDelegate.__init__(self, parent)
+        QtWidgets.QItemDelegate.__init__(self, parent)
         self.max_mainline_digits = max_mainline_digits
 
     def paint(self, painter, option, index):
@@ -206,11 +205,9 @@ class RevNoItemDelegate(QtGui.QStyledItemDelegate):
 
         painter.save()
         painter.setClipRect(option.rect)
-        style.drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
-                            option, painter, widget)
+        style.drawPrimitive(QtWidgets.QStyle.PE_PanelItemViewItem, option, painter, widget)
 
-        text_margin = style.pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
-                                        None, widget) + 1
+        text_margin = style.pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin, None, widget) + 1
         text_rect = option.rect.adjusted(text_margin, 0, -text_margin, 0)
 
         painter.setPen(get_text_color(option, style))

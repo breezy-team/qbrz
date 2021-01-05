@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
@@ -55,8 +55,8 @@ class AddWindow(SubProcessDialog):
         self.throbber = ThrobberWidget(self)
 
         # Display the list of unversioned files
-        groupbox = QtGui.QGroupBox(gettext("Unversioned Files"), self)
-        vbox = QtGui.QVBoxLayout(groupbox)
+        groupbox = QtWidgets.QGroupBox(gettext("Unversioned Files"), self)
+        vbox = QtWidgets.QVBoxLayout(groupbox)
 
         self.filelist_widget = TreeWidget(groupbox)
         self.filelist_widget.throbber = self.throbber
@@ -99,20 +99,20 @@ class AddWindow(SubProcessDialog):
         selectall_checkbox.setCheckState(QtCore.Qt.Checked)
         selectall_checkbox.setEnabled(True)
 
-        self.show_ignored_checkbox = QtGui.QCheckBox(gettext("Show ignored files"), groupbox)
+        self.show_ignored_checkbox = QtWidgets.QCheckBox(gettext("Show ignored files"), groupbox)
         vbox.addWidget(self.show_ignored_checkbox)
-        self.connect(self.show_ignored_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_ignored)
+        self.show_ignored_checkbox.toggled[bool].connect(self.show_ignored)
 
         # groupbox gets disabled as we are executing.
-        QtCore.QObject.connect(self, QtCore.SIGNAL("disableUi(bool)"), groupbox, QtCore.SLOT("setDisabled(bool)"))
+        self.disableUi[bool].connect(groupbox.setDisabled)
 
-        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        self.splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.splitter.addWidget(groupbox)
         self.splitter.addWidget(self.make_default_status_box())
         self.splitter.setStretchFactor(0, 10)
         self.restoreSplitterSizes([150, 150])
 
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.throbber)
         layout.addWidget(self.splitter)
         layout.addWidget(self.buttonbox)

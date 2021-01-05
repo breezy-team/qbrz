@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.errors import NoSuchId, ExecutableMissing
 from breezy.tree import FileTimestampUnavailable
@@ -30,6 +30,12 @@ from breezy.plugins.qbrz.lib.util import (
     )
 
 from breezy.lazy_import import lazy_import
+try:
+    QString = unicode
+except NameError:
+    # Python 3
+    QString = str
+
 lazy_import(globals(), '''
 import errno
 import re
@@ -75,7 +81,7 @@ def show_diff(arg_provider, ext_diff=None, parent_window=None, context=None):
         cleanup = []
         try:
             args = arg_provider.get_diff_window_args(
-                QtGui.QApplication.processEvents, cleanup.append
+                QtWidgets.QApplication.processEvents, cleanup.append
             )
             old_tree = args["old_tree"]
             new_tree = args["new_tree"]
@@ -111,61 +117,59 @@ def has_ext_diff():
     return len(ext_diffs) > 1
 
 
-class ExtDiffMenu(QtGui.QMenu):
+class ExtDiffMenu(QtWidgets.QMenu):
+    triggered = QtCore.pyqtSignal('QString')
 
     def __init__ (self, parent=None, include_builtin=True, set_default=True):
-        QtGui.QMenu.__init__(self, gettext("Show &differences"), parent)
+        QtWidgets.QMenu.__init__(self, gettext("Show &differences"), parent)
 
         for name, command in list(ext_diffs.items()):
             if command == "" and include_builtin or not command == "":
-                action = QtGui.QAction(name, self)
+                action = QtWidgets.QAction(name, self)
                 action.setData(command)
                 if command == default_diff and set_default:
                     self.setDefaultAction(action)
                 self.addAction(action)
 
-        self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
-                     self.triggered)
+        self.triggered[QAction].connect(self.triggered)
 
     def triggered(self, action):
         ext_diff = str(action.data())
-        self.emit(QtCore.SIGNAL("triggered(QString)"), ext_diff)
+        self.triggered.emit(ext_diff)
 
 
-class DiffButtons(QtGui.QWidget):
+class DiffButtons(QtWidgets.QWidget):
+    triggered = QtCore.pyqtSignal('QString')
 
     def __init__(self, parent = None):
-        QtGui.QWidget.__init__(self, parent)
-        layout = QtGui.QHBoxLayout(self)
+        QtWidgets.QWidget.__init__(self, parent)
+        layout = QtWidgets.QHBoxLayout(self)
 
-        self.default_button = QtGui.QPushButton(gettext('Diff'),
+        self.default_button = QtWidgets.QPushButton(gettext('Diff'),
                                                  self)
         layout.addWidget(self.default_button)
         layout.setSpacing(0)
-        self.connect(self.default_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.triggered)
+        self.default_button.clicked.connect(self.triggered)
 
         if has_ext_diff():
             self.menu = ExtDiffMenu(self)
-            self.menu_button = QtGui.QPushButton("",
+            self.menu_button = QtWidgets.QPushButton("",
                                                  self)
             layout.addWidget(self.menu_button)
             self.menu_button.setMenu(self.menu)
             #QStyle.PM_MenuButtonIndicator
             self.menu_button.setFixedWidth(
                 self.menu_button.style().pixelMetric(
-                    QtGui.QStyle.PM_MenuButtonIndicator) +
+                    QtWidgets.QStyle.PM_MenuButtonIndicator) +
                 self.menu_button.style().pixelMetric(
-                    QtGui.QStyle.PM_ButtonMargin)
+                    QtWidgets.QStyle.PM_ButtonMargin)
                 )
-            self.connect(self.menu, QtCore.SIGNAL("triggered(QString)"),
-                         self.triggered)
+            self.menu.triggered['QString'].connect(self.triggered)
 
     def triggered(self, ext_diff=None):
         if ext_diff is None:
             ext_diff = default_diff
-        self.emit(QtCore.SIGNAL("triggered(QString)"), ext_diff)
+        self.triggered.emit(ext_diff)
 
 
 class DiffItem(object):

@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.plugins.qbrz.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
@@ -52,56 +52,50 @@ class LogList(RevisionTreeView):
         """
         RevisionTreeView.__init__(self, parent)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
         self.setUniformRowHeights(True)
         self.setAllColumnsShowFocus(True)
         self.setRootIsDecorated (False)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
 
-        self.setItemDelegateForColumn(logmodel.COL_MESSAGE,
-                                      GraphTagsBugsItemDelegate(self))
+        self.setItemDelegateForColumn(logmodel.COL_MESSAGE, GraphTagsBugsItemDelegate(self))
         self.rev_no_item_delegate = RevNoItemDelegate(parent=self)
-        self.setItemDelegateForColumn(logmodel.COL_REV,
-                                      self.rev_no_item_delegate)
+        self.setItemDelegateForColumn(logmodel.COL_REV, self.rev_no_item_delegate)
 
         self.log_model = logmodel.LogModel(processEvents, throbber, self)
         self.lines_updated_selection = []
         self.lines_updated_selection_current = None
         self.setModel(self.log_model)
-        self.connect(self.log_model,
-                     QtCore.SIGNAL("layoutAboutToBeChanged()"),
-                     self.lines_updated_remember_selection)
-        self.connect(self.log_model,
-                     QtCore.SIGNAL("layoutChanged()"),
-                     self.lines_updated_restore_selection)
+        self.log_model.layoutAboutToBeChanged.connect(self.lines_updated_remember_selection)
+        self.log_model.layoutChanged.connect(self.lines_updated_restore_selection)
 
         header = self.header()
         header.setStretchLastSection(False)
-        header.setResizeMode(logmodel.COL_REV, QtGui.QHeaderView.Interactive)
-        header.setResizeMode(logmodel.COL_MESSAGE, QtGui.QHeaderView.Stretch)
-        header.setResizeMode(logmodel.COL_DATE, QtGui.QHeaderView.Interactive)
-        header.setResizeMode(logmodel.COL_AUTHOR, QtGui.QHeaderView.Interactive)
+        # header.setResizeMode(logmodel.COL_REV, QtWidgets.QHeaderView.Interactive)
+        # header.setResizeMode(logmodel.COL_MESSAGE, QtWidgets.QHeaderView.Stretch)
+        # header.setResizeMode(logmodel.COL_DATE, QtWidgets.QHeaderView.Interactive)
+        # header.setResizeMode(logmodel.COL_AUTHOR, QtWidgets.QHeaderView.Interactive)
+        # RJLRJL: for PyQt5, use setSectionResizeMode instead, apparently
+        header.setSectionResizeMode(logmodel.COL_REV, QtWidgets.QHeaderView.Interactive)
+        header.setSectionResizeMode(logmodel.COL_MESSAGE, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(logmodel.COL_DATE, QtWidgets.QHeaderView.Interactive)
+        header.setSectionResizeMode(logmodel.COL_AUTHOR, QtWidgets.QHeaderView.Interactive)
         fm = self.fontMetrics()
 
-        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
-                                               None, self) + 1) *2
-        header.resizeSection(logmodel.COL_REV,
-                             fm.width("8888.8.888") + col_margin)
+        col_margin = (self.style().pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1) *2
+        header.resizeSection(logmodel.COL_REV, fm.width("8888.8.888") + col_margin)
         header.resizeSection(logmodel.COL_DATE,
                              # [bialix 2013/07/11]     v  I've added a space to sample string below to workaround bug https://bugs.launchpad.net/qbrz/+bug/430502
                              #                         v  If this is a problem on non-Windows platforms - please let me know and I'll add a platform check
                              fm.width("88-88-8888 88:88 ") + col_margin)
-        header.resizeSection(logmodel.COL_AUTHOR,
-                             fm.width("Joe I have a Long Name") + col_margin)
+        header.resizeSection(logmodel.COL_AUTHOR, fm.width("Joe I have a Long Name") + col_margin)
 
         self.view_commands = view_commands
         self.action_commands = action_commands
 
         if self.view_commands:
-            self.connect(self,
-                         QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                         self.default_action)
-        self.context_menu = QtGui.QMenu(self)
+            self.doubleClicked[QtCore.QModelIndex].connect(self.default_action)
+        self.context_menu = QtWidgets.QMenu(self)
         self.context_menu_initialized = False
 
     def load(self, *args, **kargs):
@@ -123,51 +117,37 @@ class LogList(RevisionTreeView):
         branch_count = len(self.log_model.graph_viz.branches)
         has_file_filter = bool(self.log_model.file_id_filter)
 
-        self.context_menu = QtGui.QMenu(self)
-        self.connect(self,
-                     QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
-                     self.show_context_menu)
+        self.context_menu = QtWidgets.QMenu(self)
+        self.customContextMenuRequested[QPoint].connect(self.show_context_menu)
 
         if self.view_commands:
             if has_file_filter:
                 if diff.has_ext_diff():
-                    diff_menu = diff.ExtDiffMenu(
-                        self, set_default=diff_is_default_action)
+                    diff_menu = diff.ExtDiffMenu(self, set_default=diff_is_default_action)
                     diff_menu.setTitle(gettext("Show file &differences"))
                     self.context_menu.addMenu(diff_menu)
-                    self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                                 self.show_diff_specified_files_ext)
+                    diff_menu.triggered['QString'].connect(self.show_diff_specified_files_ext)
 
                     all_diff_menu = diff.ExtDiffMenu(self, set_default=False)
                     all_diff_menu.setTitle(gettext("Show all &differences"))
                     self.context_menu.addMenu(all_diff_menu)
-                    self.connect(all_diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                                 self.show_diff_ext)
+                    all_diff_menu.triggered['QString'].connect(self.show_diff_ext)
                 else:
-                    show_diff_action = self.context_menu.addAction(
-                                        gettext("Show file &differences..."),
-                                        self.show_diff_specified_files)
+                    show_diff_action = self.context_menu.addAction(gettext("Show file &differences..."), self.show_diff_specified_files)
                     if diff_is_default_action:
                         self.context_menu.setDefaultAction(show_diff_action)
-                    self.context_menu.addAction(
-                                        gettext("Show all &differences..."),
-                                        self.show_diff)
+                    self.context_menu.addAction(gettext("Show all &differences..."), self.show_diff)
             else:
                 if diff.has_ext_diff():
-                    diff_menu = diff.ExtDiffMenu(
-                        self, set_default=diff_is_default_action)
+                    diff_menu = diff.ExtDiffMenu(self, set_default=diff_is_default_action)
                     self.context_menu.addMenu(diff_menu)
-                    self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                                 self.show_diff_ext)
+                    diff_menu.triggered['QString'].connect(self.show_diff_ext)
                 else:
-                    show_diff_action = self.context_menu.addAction(
-                                        gettext("Show &differences..."),
-                                        self.show_diff)
+                    show_diff_action = self.context_menu.addAction(gettext("Show &differences..."), self.show_diff)
                     if diff_is_default_action:
                         self.context_menu.setDefaultAction(show_diff_action)
 
-            self.context_menu_show_tree = self.context_menu.addAction(
-                gettext("Show &tree..."), self.show_revision_tree)
+            self.context_menu_show_tree = self.context_menu.addAction(gettext("Show &tree..."), self.show_revision_tree)
 
         if self.action_commands:
             self.context_menu.addSeparator()
@@ -175,41 +155,28 @@ class LogList(RevisionTreeView):
                 if branch_count == 1:
                     action = self.context_menu.addAction(text, triggered)
                     if require_wt:
-                        action.setDisabled(
-                            self.log_model.graph_viz.branches[0].tree is None)
+                        action.setDisabled(self.log_model.graph_viz.branches[0].tree is None)
                 else:
-                    menu = BranchMenu(text, self, self.log_model.graph_viz,
-                                      require_wt)
-                    self.connect(menu,
-                                 QtCore.SIGNAL("bm_triggered"),
-                                 triggered)
+                    menu = BranchMenu(text, self, self.log_model.graph_viz, require_wt)
+                    menu.bm_triggered.connect(triggered)
                     action = self.context_menu.addMenu(menu)
                 return action
 
-            self.context_menu_tag = add_branch_action(
-                gettext("Tag &revision..."), self.tag_revision)
+            self.context_menu_tag = add_branch_action(gettext("Tag &revision..."), self.tag_revision)
 
-            self.context_menu_revert = add_branch_action(
-                gettext("R&evert to this revision"), self.revert_to_revision,
-                require_wt=True)
+            self.context_menu_revert = add_branch_action(gettext("R&evert to this revision"), self.revert_to_revision, require_wt=True)
 
-            self.context_menu_update = add_branch_action(
-                gettext("&Update to this revision"), self.update_to_revision,
-                require_wt=True)
+            self.context_menu_update = add_branch_action(gettext("&Update to this revision"), self.update_to_revision, require_wt=True)
 
             # In theory we should have a select branch option like push.
             # But merge is orentated to running in a branch, and selecting a
             # branch to merge form, so it does not really work well.
             if branch_count > 1:
-                self.context_menu_cherry_pick = add_branch_action(
-                    gettext("&Cherry pick"), self.cherry_pick,
-                    require_wt=True)
+                self.context_menu_cherry_pick = add_branch_action(gettext("&Cherry pick"), self.cherry_pick, require_wt=True)
             else:
                 self.context_menu_cherry_pick = None
 
-            self.context_menu_reverse_cherry_pick = add_branch_action(
-                gettext("Re&verse Cherry pick"), self.reverse_cherry_pick,
-                require_wt=True)
+            self.context_menu_reverse_cherry_pick = add_branch_action(gettext("Re&verse Cherry pick"), self.reverse_cherry_pick, require_wt=True)
 
     def _adjust_revno_column(self):
         # update the data
@@ -218,10 +185,8 @@ class LogList(RevisionTreeView):
         # resize the column
         header = self.header()
         fm = self.fontMetrics()
-        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
-                                               None, self) + 1) *2
-        header.resizeSection(logmodel.COL_REV,
-            fm.width(("8"*max_mainline_digits)+".8.888") + col_margin)
+        col_margin = (self.style().pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1) *2
+        header.resizeSection(logmodel.COL_REV, fm.width(("8" * max_mainline_digits)+".8.888") + col_margin)
 
     def refresh_tags(self):
         self.log_model.graph_viz.lock_read_branches()
@@ -255,13 +220,13 @@ class LogList(RevisionTreeView):
                     self.scrollTo(new_index)
                 e.accept ()
         if not collapse_expand_click:
-            QtGui.QTreeView.mousePressEvent(self, e)
+            QtWidgets.QTreeView.mousePressEvent(self, e)
 
     def mouseMoveEvent(self, e):
         # This prevents the selection from changing when the mouse is over
         # a twisty.
         if not self.get_c_rev_under_twisty_pos(e.pos()):
-            QtGui.QTreeView.mouseMoveEvent(self, e)
+            QtWidgets.QTreeView.mouseMoveEvent(self, e)
 
     def keyPressEvent(self, e):
         e_key = e.key()
@@ -289,7 +254,7 @@ class LogList(RevisionTreeView):
                         self.setCurrentIndex(self.log_model.index_from_c_rev(merged_by))
             self.scrollTo(self.currentIndex())
         else:
-            QtGui.QTreeView.keyPressEvent(self, e)
+            QtWidgets.QTreeView.keyPressEvent(self, e)
 
     def select_revid(self, revid):
         try:
@@ -336,10 +301,10 @@ class LogList(RevisionTreeView):
         if not len(indexes) == 0 and indexes[0]:
             if not indexes[1]:
                 indexes[1] = indexes[0]
-            selection = QtGui.QItemSelection(*indexes)
+            selection = QtCore.QItemSelection(*indexes)
             selection_model.select(selection,
-                                   (QtGui.QItemSelectionModel.SelectCurrent |
-                                    QtGui.QItemSelectionModel.Rows))
+                                   (QtCore.QItemSelectionModel.SelectCurrent |
+                                    QtCore.QItemSelectionModel.Rows))
 
     def get_selection_indexes(self, index=None):
         if index is None:
@@ -426,9 +391,7 @@ class LogList(RevisionTreeView):
                             selected_branch_info, single_branch)
 
         if refresh_method:
-            QtCore.QObject.connect(dialog,
-                                   QtCore.SIGNAL("subprocessFinished(bool)"),
-                                   refresh_method)
+            dialog.subprocessFinished[bool].connect(refresh_method)
 
         dialog.show()
         self.window().windows.append(dialog)
@@ -615,26 +578,26 @@ class LogList(RevisionTreeView):
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
 
-class BranchMenu(QtGui.QMenu):
+class BranchMenu(QtWidgets.QMenu):
+    bm_triggered = QtCore.pyqtSignal()
 
     def __init__ (self, text, parent, graphprovider, require_wt):
-        QtGui.QMenu.__init__(self, text, parent)
+        QtWidgets.QMenu.__init__(self, text, parent)
         self.graphprovider = graphprovider
         for branch in self.graphprovider.branches:
-            action = QtGui.QAction(branch.label, self)
+            action = QtWidgets.QAction(branch.label, self)
             action.setData(branch)
             self.addAction(action)
             if require_wt and branch.tree is None:
                 action.setDisabled(True)
 
-        self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
-                     self.triggered)
+        self.triggered[QAction].connect(self.triggered)
 
     def filter_rev_ancestor(self, rev, is_ancestor=True):
         visible_action_count = 0
 
         for action in self.actions():
-            branch_info = action.data().toPyObject()
+            branch_info = action.data()
             branch_tip = branch_info.branch.last_revision()
             is_ancestor_ = (
                 frozenset((branch_tip,)) ==
@@ -647,11 +610,11 @@ class BranchMenu(QtGui.QMenu):
         return visible_action_count
 
     def triggered(self, action):
-        branch_info = action.data().toPyObject()
-        self.emit(QtCore.SIGNAL("bm_triggered"), branch_info)
+        branch_info = action.data()
+        self.bm_triggered.emit(branch_info)
 
 
-class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
+class GraphTagsBugsItemDelegate(QtWidgets.QStyledItemDelegate):
 
     _twistyColor = QtCore.Qt.black
 
@@ -668,12 +631,12 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
         widget = self.parent()
         style = widget.style()
 
-        text_margin = style.pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+        text_margin = style.pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin,
                                         None, widget) + 1
 
         painter.save()
         painter.setClipRect(option.rect)
-        style.drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
+        style.drawPrimitive(QtWidgets.QStyle.PE_PanelItemViewItem,
                             option, painter, widget)
 
         graphCols = 0
@@ -833,7 +796,7 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
         pen.setStyle(QtCore.Qt.SolidLine)
 
     def sizeHint(self, option, index):
-        size = QtGui.QStyledItemDelegate.sizeHint(self, option, index)
+        size = QtWidgets.QStyledItemDelegate.sizeHint(self, option, index)
         height = size.height()
         # sizes smaller that this are to small.
         if height < 14:

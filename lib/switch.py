@@ -20,7 +20,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy import errors, osutils
 
@@ -54,9 +54,9 @@ class QBzrSwitchWindow(SubProcessDialog):
 
         self.branch = branch
 
-        gbSwitch = QtGui.QGroupBox(gettext("Switch checkout"), self)
+        gbSwitch = QtWidgets.QGroupBox(gettext("Switch checkout"), self)
 
-        switch_box = QtGui.QFormLayout(gbSwitch)
+        switch_box = QtWidgets.QFormLayout(gbSwitch)
 
         branchbase = None
 
@@ -72,22 +72,22 @@ class QBzrSwitchWindow(SubProcessDialog):
             else:
                 raise errors.BzrError("This branch is not checkout.")
 
-        switch_box.addRow(label, QtGui.QLabel(url_for_display(branchbase)))
+        switch_box.addRow(label, QtWidgets.QLabel(url_for_display(branchbase)))
         switch_box.addRow(gettext("Checkout of branch:"),
-                          QtGui.QLabel(url_for_display(boundloc)))
+                          QtWidgets.QLabel(url_for_display(boundloc)))
         self.boundloc = url_for_display(boundloc)
 
-        throb_hbox = QtGui.QHBoxLayout()
+        throb_hbox = QtWidgets.QHBoxLayout()
 
         self.throbber = ThrobberWidget(self)
         throb_hbox.addWidget(self.throbber)
         self.throbber.hide()
         switch_box.addRow(throb_hbox)
 
-        switch_hbox = QtGui.QHBoxLayout()
+        switch_hbox = QtWidgets.QHBoxLayout()
 
-        branch_label = QtGui.QLabel(gettext("Switch to branch:"))
-        branch_combo = QtGui.QComboBox()   
+        branch_label = QtWidgets.QLabel(gettext("Switch to branch:"))
+        branch_combo = QtWidgets.QComboBox()   
         branch_combo.setEditable(True)
 
         self.branch_combo = branch_combo
@@ -97,8 +97,8 @@ class QBzrSwitchWindow(SubProcessDialog):
         elif boundloc is not None:
             branch_combo.addItem(url_for_display(boundloc))
 
-        browse_button = QtGui.QPushButton(gettext("Browse"))
-        QtCore.QObject.connect(browse_button, QtCore.SIGNAL("clicked(bool)"), self.browse_clicked)
+        browse_button = QtWidgets.QPushButton(gettext("Browse"))
+        browse_button.clicked[bool].connect(self.browse_clicked)
 
         switch_hbox.addWidget(branch_label)
         switch_hbox.addWidget(branch_combo)
@@ -110,12 +110,12 @@ class QBzrSwitchWindow(SubProcessDialog):
 
         switch_box.addRow(switch_hbox)
 
-        create_branch_box = QtGui.QCheckBox(gettext("Create Branch before switching"))
+        create_branch_box = QtWidgets.QCheckBox(gettext("Create Branch before switching"))
         create_branch_box.setChecked(False)
         switch_box.addRow(create_branch_box)
         self.create_branch_box = create_branch_box
 
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
 
         layout.addWidget(gbSwitch)
 
@@ -154,7 +154,7 @@ class QBzrSwitchWindow(SubProcessDialog):
             directory = self.boundloc
         else:
             directory = os.getcwd()
-        fileName = QtGui.QFileDialog.getExistingDirectory(self,
+        fileName = QtWidgets.QFileDialog.getExistingDirectory(self,
             gettext("Select branch location"),
             directory,
             )

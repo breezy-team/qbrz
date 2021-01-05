@@ -24,7 +24,7 @@
 
 import sip
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore
 
 
 class ModelTest(QtCore.QObject):
@@ -51,25 +51,25 @@ class ModelTest(QtCore.QObject):
         self.fetchingMore = False
         assert(self.model)
 
-        self.connect( self.model, QtCore.SIGNAL("columnsAboutToBeInserted(const QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("columnsAboutToBeRemoved(const QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("columnsBeInserted(const QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("columnsRemoved(const QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("dataChanged(const QModelIndex&, const QModelIndex&)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("headerDataChanged(Qt::Orientation, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("layoutAboutToBeChanged()"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("layoutChanged()"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("modelReset()"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("rowsAboutToBeInserted(const QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("rowsAboutToBeRemoved(const QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("rowsBeInserted(const QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("rowsRemoved(const QModelIndex&, int, int)"), self.runAllTests)
+        self.model.columnsAboutToBeInserted[QModelIndex, int, int].connect(self.runAllTests)
+        self.model.columnsAboutToBeRemoved[QModelIndex, int, int].connect(self.runAllTests)
+        self.model.columnsBeInserted[QModelIndex, int, int].connect(self.runAllTests)
+        self.model.columnsRemoved[QModelIndex, int, int].connect(self.runAllTests)
+        self.model.dataChanged[QModelIndex, QModelIndex].connect(self.runAllTests)
+        self.model.headerDataChanged[Qt.Orientation, int, int].connect(self.runAllTests)
+        self.model.layoutAboutToBeChanged.connect(self.runAllTests)
+        self.model.layoutChanged.connect(self.runAllTests)
+        self.model.modelReset.connect(self.runAllTests)
+        self.model.rowsAboutToBeInserted[QModelIndex, int, int].connect(self.runAllTests)
+        self.model.rowsAboutToBeRemoved[QModelIndex, int, int].connect(self.runAllTests)
+        self.model.rowsBeInserted[QModelIndex, int, int].connect(self.runAllTests)
+        self.model.rowsRemoved[QModelIndex, int, int].connect(self.runAllTests)
 
         # Special checks for inserting/removing
-        self.connect( self.model, QtCore.SIGNAL("rowsAboutToBeInserted(const QModelIndex&, int, int)"), self.rowsAboutToBeInserted)
-        self.connect( self.model, QtCore.SIGNAL("rowsAboutToBeRemoved(const QModelIndex&, int, int)"), self.rowsAboutToBeRemoved)
-        self.connect( self.model, QtCore.SIGNAL("rowsBeInserted(const QModelIndex&, int, int)"), self.rowsInserted)
-        self.connect( self.model, QtCore.SIGNAL("rowsRemoved(const QModelIndex&, int, int)"), self.rowsRemoved)
+        self.model.rowsAboutToBeInserted[QModelIndex, int, int].connect(self.rowsAboutToBeInserted)
+        self.model.rowsAboutToBeRemoved[QModelIndex, int, int].connect(self.rowsAboutToBeRemoved)
+        self.model.rowsBeInserted[QModelIndex, int, int].connect(self.rowsInserted)
+        self.model.rowsRemoved[QModelIndex, int, int].connect(self.rowsRemoved)
         self.runAllTests()
 
     def nonDestructiveBasicTest(self):

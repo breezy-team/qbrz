@@ -19,7 +19,7 @@
 
 import os
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 from breezy import osutils
 from breezy.commands import get_cmd_object
@@ -62,9 +62,7 @@ class QBzrBranchWindow(SubProcessDialog):
             self.layout().addWidget(w)
 
         # Setup smart setting of fields as others are edited.
-        QtCore.QObject.connect(self.ui.from_location,
-            QtCore.SIGNAL("editTextChanged(const QString&)"),
-            self.from_changed)
+        self.ui.from_location.editTextChanged['QString'].connect(self.from_changed)
 
         # Initialise the fields
         fill_combo_with(self.ui.from_location,

@@ -21,17 +21,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class AnnotateBarBase(QtGui.QWidget):
+class AnnotateBarBase(QtWidgets.QWidget):
+    cursorPositionChanged = QtCore.pyqtSignal()
 
     def __init__(self, edit, parent):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.edit = edit
-        self.connect(self.edit,
-            QtCore.SIGNAL("updateRequest(const QRect&,int)"),
-            self.updateContents)
+        self.edit.updateRequest[QtCore.QRect, int].connect(self.updateContents)
 
     def paintEvent(self, event):
         current_line = self.edit.document().findBlock(
@@ -57,9 +56,9 @@ class AnnotateBarBase(QtGui.QWidget):
             block = block.next()
 
         painter.end()
-        
-        QtGui.QWidget.paintEvent(self, event)
-    
+
+        QtWidgets.QWidget.paintEvent(self, event)
+
     def paint_line(self, painter, rect, line_number, is_current):
         pass
 
@@ -68,7 +67,7 @@ class AnnotateBarBase(QtGui.QWidget):
             self.scroll(0, scroll)
         else:
             self.update(0, rect.y(), self.width(), rect.height())
-    
+
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             cursor = self.edit.cursorForPosition(event.pos())
@@ -76,8 +75,8 @@ class AnnotateBarBase(QtGui.QWidget):
             cursor.movePosition(QtGui.QTextCursor.EndOfBlock,
                                 QtGui.QTextCursor.KeepAnchor)
             self.edit.setTextCursor(cursor)
-            self.emit(QtCore.SIGNAL("cursorPositionChanged()"))
-    
+            self.cursorPositionChanged.emit()
+
     def wheelEvent(self, event):
         self.edit.wheelEvent(event)
 
@@ -87,44 +86,42 @@ class LineNumberBar(AnnotateBarBase):
     def __init__(self, edit, parent):
         super(LineNumberBar, self).__init__(edit, parent)
         self.adjustWidth(1)
-        self.connect(self.edit,
-            QtCore.SIGNAL("blockCountChanged(int)"),
-            self.adjustWidth)
+        self.edit.blockCountChanged[int].connect(self.adjustWidth)
 
     def adjustWidth(self, count):
         width = self.fontMetrics().width(str(count))
         text_margin = self.style().pixelMetric(
-            QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1
+            QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1
         width += text_margin * 2
         if self.width() != width:
             self.setFixedWidth(width)
-    
+
     def paint_line(self, painter, rect, line_number, is_current):
         text_margin = self.style().pixelMetric(
-            QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1
+            QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1
         painter.drawText(rect.adjusted(text_margin, 0, -text_margin, 0),
                          QtCore.Qt.AlignRight, str(line_number))
 
 
-class AnnotateEditerFrameBase(QtGui.QFrame):
+class AnnotateEditerFrameBase(QtWidgets.QFrame):
 
     def __init__(self, parent = None):
-        QtGui.QFrame.__init__(self,parent)
+        QtWidgets.QFrame.__init__(self,parent)
 
-        self.setFrameStyle(QtGui.QFrame.StyledPanel | QtGui.QFrame.Sunken)
+        self.setFrameStyle(QtWidgets.QFrame.StyledPanel | QtWidgets.QFrame.Sunken)
 
-        self.hbox = QtGui.QHBoxLayout(self)
+        self.hbox = QtWidgets.QHBoxLayout(self)
         self.hbox.setSpacing(0)
         self.hbox.setContentsMargins(0, 0, 0, 0)
 
 
 class LineNumberEditerFrame(AnnotateEditerFrameBase):
-    
+
     def __init__(self, parent= None):
         super(LineNumberEditerFrame, self).__init__(parent)
-        self.edit = QtGui.QPlainTextEdit(self)
-        self.edit.setFrameStyle(QtGui.QFrame.NoFrame)
-        
+        self.edit = QtWidgets.QPlainTextEdit(self)
+        self.edit.setFrameStyle(QtWidgets.QFrame.NoFrame)
+
         self.number_bar = LineNumberBar(self.edit, self)
         self.hbox.addWidget(self.number_bar)
         self.hbox.addWidget(self.edit)

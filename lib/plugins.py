@@ -19,7 +19,7 @@
 
 from inspect import getdoc
 
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 from breezy import (
     _format_version_tuple,
@@ -45,7 +45,7 @@ class QBzrPluginsWindow(QBzrWindow):
         self.restoreSize("plugins", (400,256))
         view = self.build_view()
         btns = self.create_button_box(BTN_CLOSE)
-        layout = QtGui.QVBoxLayout(self.centralWidget())
+        layout = QtWidgets.QVBoxLayout(self.centralWidget())
         layout.addWidget(view)
         layout.addWidget(btns)
         self.refresh_view()
@@ -65,7 +65,7 @@ class QBzrPluginsWindow(QBzrWindow):
         details = None
         self._summary_viewer = QBzrConditionalDataView("tree", summary_headers, footer, details)
         self._locations_viewer = QBzrConditionalDataView("tree", locations_headers, footer, details)
-        tabs = QtGui.QTabWidget()
+        tabs = QtWidgets.QTabWidget()
         tabs.addTab(self._summary_viewer, gettext("Summary"))
         tabs.addTab(self._locations_viewer, gettext("Locations"))
         return tabs

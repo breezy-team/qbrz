@@ -21,7 +21,7 @@ from breezy.plugins.qbrz.lib.util import (
     show_shortcut_hint
     )
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from breezy.plugins.qbrz.lib.i18n import gettext, N_
 from breezy.plugins.qbrz.lib.decorators import lazy_call
 import sip
@@ -30,10 +30,10 @@ def create_toolbar_button(text, parent=None, icon_name=None, icon_size=22,
                 enabled=True, checkable=False, checked=False, 
                 shortcut=None, onclick=None):
     if icon_name:
-        button = QtGui.QAction(get_icon(icon_name, size=icon_size),
+        button = QtWidgets.QAction(get_icon(icon_name, size=icon_size),
                                 gettext(text), parent)
     else:
-        button = QtGui.QAction(gettext(text), parent)
+        button = QtWidgets.QAction(gettext(text), parent)
     if checkable:
         button.setCheckable(True)
         button.setChecked(checked)
@@ -46,7 +46,7 @@ def create_toolbar_button(text, parent=None, icon_name=None, icon_size=22,
         button.setShortcut(shortcut)
         show_shortcut_hint(button)
     if onclick:
-        parent.connect(button, QtCore.SIGNAL(signal), onclick)
+        button.signal.connect(onclick)
     return button
 
 def add_toolbar_button(toolbar, text, parent, icon_name=None, icon_size=22,
@@ -58,10 +58,11 @@ def add_toolbar_button(toolbar, text, parent, icon_name=None, icon_size=22,
     return button
 
 
-class FindToolbar(QtGui.QToolBar):
+class FindToolbar(QtWidgets.QToolBar):
+    highlightChanged = QtCore.pyqtSignal()
 
     def __init__(self, window, text_edit, show_action):
-        QtGui.QToolBar.__init__(self, gettext("Find"), window)
+        QtWidgets.QToolBar.__init__(self, gettext("Find"), window)
         self.text_edits = []
         if isinstance(text_edit, list) or isinstance(text_edit, tuple):
             self.set_text_edits(text_edit)
@@ -72,10 +73,10 @@ class FindToolbar(QtGui.QToolBar):
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.setMovable (False)
         
-        find_label = QtGui.QLabel(gettext("Find: "), self)
+        find_label = QtWidgets.QLabel(gettext("Find: "), self)
         self.addWidget(find_label)
         
-        self.find_text = QtGui.QLineEdit(self)
+        self.find_text = QtWidgets.QLineEdit(self)
         self.addWidget(self.find_text)
         find_label.setBuddy(self.find_text)
 
@@ -96,42 +97,26 @@ class FindToolbar(QtGui.QToolBar):
         next.setShortcut(QtGui.QKeySequence.FindNext)
         show_shortcut_hint(next)
         
-        self.case_sensitive = QtGui.QCheckBox(gettext("Case sensitive"), self)
+        self.case_sensitive = QtWidgets.QCheckBox(gettext("Case sensitive"), self)
         self.addWidget(self.case_sensitive)
-        self.whole_words = QtGui.QCheckBox(gettext("Whole words"), self)
+        self.whole_words = QtWidgets.QCheckBox(gettext("Whole words"), self)
         self.addWidget(self.whole_words)
         
-        close_find = QtGui.QAction(self)
+        close_find = QtWidgets.QAction(self)
         close_find.setIcon(self.style().standardIcon(
-                                        QtGui.QStyle.SP_DialogCloseButton))
+                                        QtWidgets.QStyle.SP_DialogCloseButton))
         self.addAction(close_find)
         close_find.setShortcut((QtCore.Qt.Key_Escape))
         close_find.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         close_find.setStatusTip(gettext("Close find"))
-        self.connect(self.show_action,
-                     QtCore.SIGNAL("toggled (bool)"),
-                     self.show_action_toggle)
-        self.connect(close_find,
-                     QtCore.SIGNAL("triggered(bool)"),
-                     self.close_triggered)
-        self.connect(self.find_text,
-                     QtCore.SIGNAL("textChanged(QString)"),
-                     self.find_text_changed)
-        self.connect(next,
-                     QtCore.SIGNAL("triggered(bool)"),
-                     self.find_next)
-        self.connect(prev,
-                     QtCore.SIGNAL("triggered(bool)"),
-                     self.find_prev)
-        self.connect(self.case_sensitive,
-                     QtCore.SIGNAL("stateChanged(int)"),
-                     self.find_text_changed)
-        self.connect(self.whole_words,
-                     QtCore.SIGNAL("stateChanged(int)"),
-                     self.find_text_changed)
-        self.connect(self.find_text,
-                     QtCore.SIGNAL("returnPressed()"),
-                     self.find_next)        
+        self.show_action.toggled [bool].connect(self.show_action_toggle)
+        close_find.triggered[bool].connect(self.close_triggered)
+        self.find_text.textChanged['QString'].connect(self.find_text_changed)
+        next.triggered[bool].connect(self.find_next)
+        prev.triggered[bool].connect(self.find_prev)
+        self.case_sensitive.stateChanged[int].connect(self.find_text_changed)
+        self.whole_words.stateChanged[int].connect(self.find_text_changed)
+        self.find_text.returnPressed.connect(self.find_next)
 
     def show_action_toggle(self, state):
         self.setVisible(state)
@@ -193,14 +178,12 @@ class FindToolbar(QtGui.QToolBar):
             raise ValueError('text_edits is empty.')
 
         for t in self.text_edits:
-            self.disconnect(t, QtCore.SIGNAL("documentChangeFinished()"), 
-                    self.highlight)
+            t.documentChangeFinished.disconnect(self.highlight)
             t.setExtraSelections([])
 
         for t in text_edits:
             t.highlight_lines = []
-            self.connect(t, QtCore.SIGNAL("documentChangeFinished()"), 
-                    self.highlight)
+            t.documentChangeFinished.connect(self.highlight)
 
         self.text_edits = text_edits
         self.text_edit = text_edits[0]
@@ -232,7 +215,7 @@ class FindToolbar(QtGui.QToolBar):
                     if cursor.isNull():
                         break
 
-                    sel = QtGui.QTextEdit.ExtraSelection()
+                    sel = QtWidgets.QTextEdit.ExtraSelection()
                     sel.cursor, sel.format = cursor, fmt
                     selections.append(sel)
                     highlight_lines.append(cursor.blockNumber())
@@ -241,16 +224,16 @@ class FindToolbar(QtGui.QToolBar):
             text_edit.setExtraSelections(selections)
             text_edit.highlight_lines = highlight_lines
 
-        self.emit(QtCore.SIGNAL("highlightChanged()"))
+        self.highlightChanged.emit()
 
-class ToolbarPanel(QtGui.QWidget):
+class ToolbarPanel(QtWidgets.QWidget):
     def __init__(self, slender=True, icon_size=16, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout(self)
+        QtWidgets.QWidget.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout(self)
         vbox.setSpacing(0)
-        vbox.setMargin(0)
+        vbox.setContentsMargins(0, 0, 0, 0)
 
-        toolbar = QtGui.QToolBar(self)
+        toolbar = QtWidgets.QToolBar(self)
         toolbar.setMovable(False)
         toolbar.setIconSize(QtCore.QSize(icon_size,icon_size))
         self.icon_size=icon_size
@@ -276,7 +259,7 @@ class ToolbarPanel(QtGui.QWidget):
         button = self.add_toolbar_button(text, icon_name=icon_name, 
                     icon_size=icon_size or self.icon_size, enabled=enabled, menu=menu)
         widget = self.toolbar.widgetForAction(button)
-        widget.setPopupMode(QtGui.QToolButton.InstantPopup)
+        widget.setPopupMode(QtWidgets.QToolButton.InstantPopup)
         if shortcut:
             widget.setShortcut(shortcut)
             show_shortcut_hint(widget)
@@ -297,10 +280,10 @@ class ToolbarPanel(QtGui.QWidget):
     def add_layout(self, layout):
         self.vbox.addLayout(layout)
 
-class LayoutSelector(QtGui.QMenu):
+class LayoutSelector(QtWidgets.QMenu):
     """Menu to select layout."""
     def __init__(self, num, onchanged, parent=None, initial_no=1):
-        QtGui.QMenu.__init__(self, gettext('Layout'), parent)
+        QtWidgets.QMenu.__init__(self, gettext('Layout'), parent)
 
         self.current = initial_no
         
@@ -311,7 +294,7 @@ class LayoutSelector(QtGui.QMenu):
         def get_handler(no):
             return lambda:selected(no)
         
-        group = QtGui.QActionGroup(self)
+        group = QtWidgets.QActionGroup(self)
         self.buttons = []
         for i in range(1, num + 1):
             btn = create_toolbar_button(gettext("Layout %d") % i, self,

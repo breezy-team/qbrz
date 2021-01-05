@@ -23,7 +23,7 @@
 
 import os
 import re
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
 from breezy.plugins.qbrz.lib.ui_new_tree import Ui_NewWorkingTreeForm
@@ -72,10 +72,8 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
                                 DIRECTORYPICKER_TARGET)
 
         # signal to manage updating the 'location' on the fly.
-        self.connect(self.ui.from_location, QtCore.SIGNAL("editTextChanged(const QString &)"),
-                     self.from_location_changed)
-        self.connect(self.ui.to_location, QtCore.SIGNAL("textChanged(const QString &)"),
-                     self.to_location_changed)
+        self.ui.from_location.editTextChanged['QString'].connect(self.from_location_changed)
+        self.ui.to_location.textChanged['QString'].connect(self.to_location_changed)
 
         self.ui.but_checkout.setChecked(True)
         self.ui.but_rev_tip.setChecked(True)
@@ -85,10 +83,8 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
             self.ui.from_location.setEditText(self.from_location)
 
     def to_location_changed(self):
-        self.disconnect(self.ui.from_location, QtCore.SIGNAL("editTextChanged(const QString &)"),
-                     self.from_location_changed)
-        self.disconnect(self.ui.to_location, QtCore.SIGNAL("textChanged(const QString &)"),
-                     self.to_location_changed)
+        self.ui.from_location.editTextChanged['QString'].disconnect(self.from_location_changed)
+        self.ui.to_location.textChanged['QString'].disconnect(self.to_location_changed)
 
     def from_location_changed(self, new_text):
         new_val = self.to_location

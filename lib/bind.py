@@ -20,7 +20,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy import errors, osutils
 
@@ -51,23 +51,22 @@ class QBzrBindDialog(SubProcessDialog):
                                   )
 
         # Display information fields
-        gbBind = QtGui.QGroupBox(gettext("Bind"), self)
-        bind_box = QtGui.QFormLayout(gbBind)
+        gbBind = QtWidgets.QGroupBox(gettext("Bind"), self)
+        bind_box = QtWidgets.QFormLayout(gbBind)
         bind_box.addRow(gettext("Branch location:"),
-            QtGui.QLabel(url_for_display(branch.base)))
+            QtWidgets.QLabel(url_for_display(branch.base)))
         self.currbound = branch.get_bound_location()
         if self.currbound != None:
             bind_box.addRow(gettext("Currently bound to:"),
-                QtGui.QLabel(url_for_display(self.currbound)))
+                QtWidgets.QLabel(url_for_display(self.currbound)))
 
         # Build the "Bind to" widgets
-        branch_label = QtGui.QLabel(gettext("Bind to:"))
-        branch_combo = QtGui.QComboBox()   
+        branch_label = QtWidgets.QLabel(gettext("Bind to:"))
+        branch_combo = QtWidgets.QComboBox()   
         branch_combo.setEditable(True)
         self.branch_combo = branch_combo
-        browse_button = QtGui.QPushButton(gettext("Browse"))
-        QtCore.QObject.connect(browse_button, QtCore.SIGNAL("clicked(bool)"),
-            self.browse_clicked)
+        browse_button = QtWidgets.QPushButton(gettext("Browse"))
+        browse_button.clicked[bool].connect(self.browse_clicked)
 
         # Add some useful values into the combo box. If a location was given,
         # default to it. If an old bound location exists, suggest it.
@@ -82,7 +81,7 @@ class QBzrBindDialog(SubProcessDialog):
             branch_combo.addItems(suggestions)
 
         # Build the "Bind to" row/panel
-        bind_hbox = QtGui.QHBoxLayout()
+        bind_hbox = QtWidgets.QHBoxLayout()
         bind_hbox.addWidget(branch_label)
         bind_hbox.addWidget(branch_combo)
         bind_hbox.addWidget(browse_button)
@@ -92,7 +91,7 @@ class QBzrBindDialog(SubProcessDialog):
         bind_box.addRow(bind_hbox)
 
         # Put the form together
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(gbBind)
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
@@ -106,7 +105,7 @@ class QBzrBindDialog(SubProcessDialog):
                 suggestions.append(url)
 
     def browse_clicked(self):
-        fileName = QtGui.QFileDialog.getExistingDirectory(self,
+        fileName = QtWidgets.QFileDialog.getExistingDirectory(self,
             gettext("Select branch location"));
         if fileName != '':
             self.branch_combo.insertItem(0,fileName)

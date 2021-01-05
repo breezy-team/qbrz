@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy import controldir, errors, log
 from breezy.revisionspec import RevisionSpec
@@ -45,32 +45,32 @@ class QBzrUncommitWindow(SubProcessDialog):
         self.tree, self.branch = controldir.ControlDir.open_tree_or_branch(location)
 
         # Display the branch
-        branch_label = QtGui.QLabel(gettext("Branch: %s") % url_for_display(self.branch.base))
+        branch_label = QtWidgets.QLabel(gettext("Branch: %s") % url_for_display(self.branch.base))
 
         # Display the revision selection section. We nearly always
         # want to just uncommit the last revision (to tweak the
         # commit message say) so we make that the default.
-        groupbox = QtGui.QGroupBox(gettext("Move tip to"), self)
-        self.last_radio = QtGui.QRadioButton(gettext("Parent of current tip revision"))
+        groupbox = QtWidgets.QGroupBox(gettext("Move tip to"), self)
+        self.last_radio = QtWidgets.QRadioButton(gettext("Parent of current tip revision"))
         self.last_radio.setChecked(QtCore.Qt.Checked)
-        self.other_radio = QtGui.QRadioButton(gettext("Other revision:"))
-        self.other_revision = QtGui.QLineEdit()
-        other = QtGui.QHBoxLayout()
+        self.other_radio = QtWidgets.QRadioButton(gettext("Other revision:"))
+        self.other_revision = QtWidgets.QLineEdit()
+        other = QtWidgets.QHBoxLayout()
         other.addWidget(self.other_radio)
         other.addWidget(self.other_revision)
-        vbox = QtGui.QVBoxLayout(groupbox)
+        vbox = QtWidgets.QVBoxLayout(groupbox)
         vbox.addWidget(self.last_radio)
         vbox.addLayout(other)
 
         # If the user starts entering a value in the 'other revision' field,
         # set the matching radio button implicitly
-        QtCore.QObject.connect(self.other_revision, QtCore.SIGNAL("textChanged(QString)"), self.do_other_revision_changed)
+        self.other_revision.textChanged['QString'].connect(self.do_other_revision_changed)
 
         # groupbox gets disabled as we are executing.
-        QtCore.QObject.connect(self, QtCore.SIGNAL("subprocessStarted(bool)"), groupbox, QtCore.SLOT("setDisabled(bool)"))
+        self.subprocessStarted[bool].connect(groupbox.setDisabled)
 
         # Put the form together
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(branch_label)
         layout.addWidget(groupbox)
         layout.addWidget(self.make_default_status_box())

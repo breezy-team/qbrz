@@ -24,7 +24,7 @@
 
 import sys, time, hashlib
 from itertools import groupby
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.revision import CURRENT_REVISION
 
@@ -81,9 +81,7 @@ class AnnotateBar(AnnotateBarBase):
         self.splitter = None
         self.adjustWidth(1, 999)
 
-        self.connect(edit,
-            QtCore.SIGNAL("cursorPositionChanged()"),
-            self.edit_cursorPositionChanged)
+        edit.cursorPositionChanged.connect(self.edit_cursorPositionChanged)
         self.show_current_line = False
 
     def get_highlight_revids(self):
@@ -117,7 +115,7 @@ class AnnotateBar(AnnotateBarBase):
     def adjustWidth(self, lines, max_revno):
         fm = self.fontMetrics()
         text_margin = self.style().pixelMetric(
-            QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1
+            QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1
 
         self.line_number_width = fm.width(str(lines))
         self.line_number_width += (text_margin * 2)
@@ -127,7 +125,7 @@ class AnnotateBar(AnnotateBarBase):
         self.revno_width += (text_margin * 2)
 
         if self.splitter:
-            if 0: self.splitter = QtGui.QSplitter
+            if 0: self.splitter = QtWidgets.QSplitter
             width = (self.line_number_width + self.revno_width +
                      fm.width("Joe I have a Long Name"))
             self.splitter.setSizes([width, 1000])
@@ -141,10 +139,10 @@ class AnnotateBar(AnnotateBarBase):
             style = self.style()
             option = QtGui.QStyleOptionViewItemV4()
             option.initFrom(self)
-            option.state = option.state | QtGui.QStyle.State_Selected
+            option.state = option.state | QtWidgets.QStyle.State_Selected
             option.rect = rect.toRect()
             painter.fillRect(rect, QtGui.QBrush(option.palette.highlight()))
-            style.drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
+            style.drawPrimitive(QtWidgets.QStyle.PE_PanelItemViewItem,
                                        option, painter, self)
 
             painter.setPen(get_text_color(option, style))
@@ -154,7 +152,7 @@ class AnnotateBar(AnnotateBarBase):
                 painter.fillRect(rect, self.rev_colors[revid])
 
         text_margin = self.style().pixelMetric(
-            QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1
+            QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1
 
         if 0: rect = QtCore.QRect
         line_number_rect = QtCore.QRect(
@@ -199,9 +197,11 @@ class AnnotateBar(AnnotateBarBase):
         painter.restore()
 
 
-class AnnotatedTextEdit(QtGui.QPlainTextEdit):
+class AnnotatedTextEdit(QtWidgets.QPlainTextEdit):
     annotate = None
     rev_colors = {}
+    # RJLRJL: added for Qt5
+    documentChangeFinished = QtCore.pyqtSignal()
 
     def paintEvent(self, event):
         if self.annotate:
@@ -230,7 +230,7 @@ class AnnotatedTextEdit(QtGui.QPlainTextEdit):
 
                 block = block.next()
             del painter
-        QtGui.QPlainTextEdit.paintEvent(self, event)
+        QtWidgets.QPlainTextEdit.paintEvent(self, event)
 
     def get_positions(self):
         """Returns the charator positons for the selection start,
@@ -264,6 +264,7 @@ class AnnotatedTextEdit(QtGui.QPlainTextEdit):
 
 
 class AnnotateWindow(QBzrWindow):
+    documentChangeFinished = QtCore.pyqtSignal()
 
     def __init__(self, branch, working_tree, annotate_tree, path, fileId,
                  encoding=None, parent=None, ui_mode=True, no_graph=False,
@@ -297,41 +298,33 @@ class AnnotateWindow(QBzrWindow):
 
         self.text_edit_frame = AnnotateEditerFrameBase(self)
         self.text_edit = AnnotatedTextEdit(self)
-        self.text_edit.setFrameStyle(QtGui.QFrame.NoFrame)
+        self.text_edit.setFrameStyle(QtWidgets.QFrame.NoFrame)
         self.text_edit.setTextInteractionFlags(
             QtCore.Qt.TextSelectableByMouse|
             QtCore.Qt.TextSelectableByKeyboard)
-        self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
+        self.text_edit.setLineWrapMode(QtWidgets.QPlainTextEdit.NoWrap)
 
         self.text_edit.document().setDefaultFont(get_monospace_font())
 
         self.guidebar_panel = GuideBarPanel(self.text_edit, parent=self)
         self.guidebar_panel.add_entry('annotate', QtGui.QColor(255, 160, 180))
         self.annotate_bar = AnnotateBar(self.text_edit, self, self.get_revno)
-        annotate_spliter = QtGui.QSplitter(QtCore.Qt.Horizontal, self)
+        annotate_spliter = QtWidgets.QSplitter(QtCore.Qt.Horizontal, self)
         annotate_spliter.addWidget(self.annotate_bar)
         annotate_spliter.addWidget(self.guidebar_panel)
         self.annotate_bar.splitter = annotate_spliter
         self.text_edit_frame.hbox.addWidget(annotate_spliter)
 
-        self.connect(self.text_edit,
-                     QtCore.SIGNAL("cursorPositionChanged()"),
-                     self.edit_cursorPositionChanged)
-        self.connect(self.annotate_bar,
-                     QtCore.SIGNAL("cursorPositionChanged()"),
-                     self.edit_cursorPositionChanged)
-        self.connect(self.text_edit,
-                     QtCore.SIGNAL("documentChangeFinished()"),
-                     self.edit_documentChangeFinished)
+        self.text_edit.cursorPositionChanged.connect(self.edit_cursorPositionChanged)
+        self.annotate_bar.cursorPositionChanged.connect(self.edit_cursorPositionChanged)
+        self.text_edit.documentChangeFinished.connect(self.edit_documentChangeFinished)
 
         self.log_list = AnnotateLogList(self.processEvents, self.throbber, self)
         self.log_list.header().hideSection(logmodel.COL_DATE)
         self.log_list.parent_annotate_window = self
         self.log_branch_loaded = False
 
-        self.connect(self.log_list.selectionModel(),
-                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
-                     self.log_list_selectionChanged)
+        self.log_list.selectionModel().selectionChanged[QtCore.QItemSelection, QtCore.QItemSelection].connect(self.log_list_selectionChanged)
 
         self.message = LogListRevisionMessageBrowser(self.log_list, self)
 
@@ -339,42 +332,40 @@ class AnnotateWindow(QBzrWindow):
             gettext("Encoding"),
             self._on_encoding_changed)
 
-        hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        hsplitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(self.log_list)
         hsplitter.addWidget(self.message)
 
         hsplitter.setStretchFactor(0, 2)
         hsplitter.setStretchFactor(1, 2)
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         splitter.addWidget(self.text_edit_frame)
         splitter.addWidget(hsplitter)
 
         splitter.setStretchFactor(0, 5)
         splitter.setStretchFactor(1, 2)
 
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox = QtWidgets.QVBoxLayout(self.centralwidget)
         #vbox.addWidget(self.toolbar)
         vbox.addWidget(splitter)
         self.text_edit.setFocus()
 
-        self.show_find = QtGui.QAction(get_icon("edit-find"), gettext("Find"), self)
+        self.show_find = QtWidgets.QAction(get_icon("edit-find"), gettext("Find"), self)
         self.show_find.setShortcuts(QtGui.QKeySequence.Find)
         self.show_find.setCheckable(True)
 
-        self.show_goto_line = QtGui.QAction(get_icon("go-jump"), gettext("Goto Line"), self)
+        self.show_goto_line = QtWidgets.QAction(get_icon("go-jump"), gettext("Goto Line"), self)
         self.show_goto_line.setShortcuts((QtCore.Qt.CTRL + QtCore.Qt.Key_L,))
         self.show_goto_line.setCheckable(True)
 
-        show_view_menu = QtGui.QAction(get_icon("document-properties"), gettext("&View Options"), self)
-        view_menu = QtGui.QMenu(gettext('View Options'), self)
+        show_view_menu = QtWidgets.QAction(get_icon("document-properties"), gettext("&View Options"), self)
+        view_menu = QtWidgets.QMenu(gettext('View Options'), self)
         show_view_menu.setMenu(view_menu)
 
-        word_wrap = QtGui.QAction(gettext("Word Wrap"), self)
+        word_wrap = QtWidgets.QAction(gettext("Word Wrap"), self)
         word_wrap.setCheckable(True)
-        self.connect(word_wrap,
-                     QtCore.SIGNAL("toggled (bool)"),
-                     self.word_wrap_toggle)
+        word_wrap.toggled [bool].connect(self.word_wrap_toggle)
 
         def setTabStopWidth(tw):
             self.text_edit.setTabStopWidth(get_tab_width_pixels(tab_width_chars=tw))
@@ -395,10 +386,10 @@ class AnnotateWindow(QBzrWindow):
         toolbar.addAction(self.show_find)
         toolbar.addAction(self.show_goto_line)
         toolbar.addAction(show_view_menu)
-        toolbar.widgetForAction(show_view_menu).setPopupMode(QtGui.QToolButton.InstantPopup)
+        toolbar.widgetForAction(show_view_menu).setPopupMode(QtWidgets.QToolButton.InstantPopup)
 
-        spacer = QtGui.QWidget()
-        spacer.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        spacer = QtWidgets.QWidget()
+        spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         toolbar.addWidget(spacer)
         toolbar.addWidget(self.throbber)
 
@@ -407,18 +398,14 @@ class AnnotateWindow(QBzrWindow):
         self.find_toolbar = FindToolbar(self, self.text_edit, self.show_find)
         self.find_toolbar.hide()
         self.addToolBar(self.find_toolbar)
-        self.connect(self.show_find,
-                     QtCore.SIGNAL("toggled (bool)"),
-                     self.show_find_toggle)
+        self.show_find.toggled [bool].connect(self.show_find_toggle)
         setup_guidebar_for_find(self.guidebar_panel, self.find_toolbar, index=1)
 
         self.goto_line_toolbar = GotoLineToolbar(self, self.show_goto_line)
         self.goto_line_toolbar.hide()
         self.addToolBar(self.goto_line_toolbar)
 
-        self.connect(self.show_goto_line,
-                     QtCore.SIGNAL("toggled (bool)"),
-                     self.show_goto_line_toggle )
+        self.show_goto_line.toggled [bool].connect(self.show_goto_line_toggle)
 
         self.__hashes = {}
 
@@ -538,7 +525,7 @@ class AnnotateWindow(QBzrWindow):
         self.text_edit.annotate = annotate
         self.annotate_bar.show_current_line = False
 
-        self.text_edit.emit(QtCore.SIGNAL("documentChangeFinished()"))
+        self.text_edit.documentChangeFinished.emit()
 
         self.processEvents()
 
@@ -728,9 +715,9 @@ class AnnotateWindow(QBzrWindow):
 
     def word_wrap_toggle(self, state):
         if state:
-            self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.WidgetWidth)
+            self.text_edit.setLineWrapMode(QtWidgets.QPlainTextEdit.WidgetWidth)
         else:
-            self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
+            self.text_edit.setLineWrapMode(QtWidgets.QPlainTextEdit.NoWrap)
 
     def go_to_line(self, line):
         doc = self.text_edit.document()
@@ -758,10 +745,10 @@ class IntValidator(QtGui.QValidator):
             return (QtGui.QValidator.Invalid, pos)
 
 
-class GotoLineToolbar(QtGui.QToolBar):
+class GotoLineToolbar(QtWidgets.QToolBar):
 
     def __init__(self, anotate_window, show_action):
-        QtGui.QToolBar.__init__(self, gettext("Goto Line"), anotate_window)
+        QtWidgets.QToolBar.__init__(self, gettext("Goto Line"), anotate_window)
         self.anotate_window = anotate_window
         if 0: self.anotate_window = AnnotateWindow()
         self.show_action = show_action
@@ -769,10 +756,10 @@ class GotoLineToolbar(QtGui.QToolBar):
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.setMovable (False)
 
-        label = QtGui.QLabel(gettext("Goto Line: "), self)
+        label = QtWidgets.QLabel(gettext("Goto Line: "), self)
         self.addWidget(label)
 
-        self.line_edit = QtGui.QLineEdit(self)
+        self.line_edit = QtWidgets.QLineEdit(self)
         # QIntValidator is working in python3, so we'll use that
         # self.line_edit.setValidator(IntValidator(self.line_edit))
         self.line_edit.setValidator(QtGui.QIntValidator())
@@ -781,20 +768,20 @@ class GotoLineToolbar(QtGui.QToolBar):
 
         go = self.addAction(get_icon("go-next"), gettext("Go"))
 
-        spacer = QtGui.QWidget()
-        spacer.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                             QtGui.QSizePolicy.Expanding)
+        spacer = QtWidgets.QWidget()
+        spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                             QtWidgets.QSizePolicy.Expanding)
         self.addWidget(spacer)
 
-        close = QtGui.QAction(self)
-        close.setIcon(self.style().standardIcon(QtGui.QStyle.SP_DialogCloseButton))
+        close = QtWidgets.QAction(self)
+        close.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogCloseButton))
         self.addAction(close)
         close.setShortcut((QtCore.Qt.Key_Escape))
         close.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         close.setStatusTip(gettext("Close Goto Line"))
-        self.connect(close, QtCore.SIGNAL("triggered(bool)"), self.close_triggered)
-        self.connect(go, QtCore.SIGNAL("triggered(bool)"), self.go_triggered)
-        self.connect(self.line_edit, QtCore.SIGNAL("returnPressed()"), self.go_triggered)
+        close.triggered[bool].connect(self.close_triggered)
+        go.triggered[bool].connect(self.go_triggered)
+        self.line_edit.returnPressed.connect(self.go_triggered)
 
     def close_triggered(self, state):
         self.show_action.setChecked(False)
@@ -815,8 +802,8 @@ class AnnotateLogList(LogList):
 
     def create_context_menu(self):
         LogList.create_context_menu(self, diff_is_default_action=False)
-        set_rev_action = QtGui.QAction(gettext("&Annotate this revision"), self.context_menu)
-        self.connect(set_rev_action, QtCore.SIGNAL('triggered()'), self.parent_annotate_window.set_annotate_revision)
+        set_rev_action = QtWidgets.QAction(gettext("&Annotate this revision"), self.context_menu)
+        set_rev_action.triggered.connect(self.parent_annotate_window.set_annotate_revision)
         self.context_menu.insertAction(self.context_menu.actions()[0], set_rev_action)
         self.context_menu.setDefaultAction(set_rev_action)
 
