@@ -68,7 +68,7 @@ DIFF_BY_TAGS = dict(
 # thing (on Linux) between runs- for example, TestQAnnotate can be run
 # 3 times in succession and will often pass twice and fail once, except
 # when if fails twice and passes once... except when it passes 3 times...
-# You get the idea. Added QTest.qWaitForWindowShown here and there
+# You get the idea. Added QTest.qWaitForWindowExposed here and there
 # which I suspect was not available when this code was first written.
 #
 # N.B. this appears to be missing a binary file test
@@ -260,7 +260,7 @@ class TestQAnnotate(TestGuideBarBase):
         self.win = AnnotateWindow(None, None, None, None, None, loader=self.load, loader_args=[])
         self.addCleanup(self.win.close)
         self.win.show()
-        QTest.qWaitForWindowShown(self.win)
+        QTest.qWaitForWindowExposed(self.win)
         # The lambda here just makes an anonymous function that returns not isVisible()
         # self.waitUntil(lambda:self.win.throbber.isVisible() is False, wait_delay_ms)
 

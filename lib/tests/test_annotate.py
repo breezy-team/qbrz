@@ -48,22 +48,22 @@ class TestAnnotate(qtests.QTestCase):
         tree1 = self.make_branch_and_tree('tree1')
         self.build_tree_contents([('tree1/a', b'first\n')])
         tree1.add(['a'], [b'a-id'])
-        tree1.commit('a', rev_id=b'rev-1', committer="joe@foo.com", timestamp=1166046000.00, timezone=0)
+        tree1.commit('a', rev_id=b'rev-1', committer="joe@foo5.com", timestamp=1166046000.00, timezone=0)
 
         tree2 = tree1.controldir.sprout('tree2').open_workingtree()
 
         self.build_tree_contents([('tree1/a', b'first\nsecond\n')])
-        tree1.commit('b', rev_id=b'rev-2', committer='joe@foo.com', timestamp=1166046001.00, timezone=0)
+        tree1.commit('b', rev_id=b'rev-2', committer='joe@foo5.com', timestamp=1166046001.00, timezone=0)
 
         self.build_tree_contents([('tree2/a', b'first\nthird\n')])
-        tree2.commit('c', rev_id=b'rev-1_1_1', committer="barry@foo.com", timestamp=1166046002.00, timezone=0)
+        tree2.commit('c', rev_id=b'rev-1_1_1', committer="barry@foo5.com", timestamp=1166046002.00, timezone=0)
 
         num_conflicts = tree1.merge_from_branch(tree2.branch)
         self.assertEqual(1, num_conflicts)
 
         self.build_tree_contents([('tree1/a', b'first\nsecond\nthird\n')])
         tree1.set_conflicts(conflicts.ConflictList())
-        tree1.commit('merge 2', rev_id=b'rev-3', committer='sal@foo.com', timestamp=1166046003.00, timezone=0)
+        tree1.commit('merge 2', rev_id=b'rev-3', committer='sal@foo5.com', timestamp=1166046003.00, timezone=0)
         return tree1, tree2
 
     def test_just_show_annotate(self):

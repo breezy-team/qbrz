@@ -66,13 +66,13 @@ ui:
 
 # === Tests beyond this point ===
 
-check: test
+check:
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s bp.qbrz -x TestTreeFilterProxyModel
 
 # Stop on first error, ignore TestTreeFilterProxyModel for now
 
 checkone:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x  TestTreeFilterProxyModel
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x  TestTreeFilterProxyModel -x TestTreeWidget
 
 # Test specific item - e.g. for internationalisation, use:
 #
@@ -92,7 +92,6 @@ qtest:
 # to ``cd`` to it (note the semi-colon) THEN execute the plugin code we want:
 #
 # cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
-	QT_PREFERRED_BINDING=PyQt4
 	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qinfo
 
 # cd ~/.local/share/nemo/actions; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit

@@ -79,11 +79,11 @@ class TestTreeWidget(qtests.QTestCase):
         tree = self.make_branch_and_tree('trunk')
         self.build_tree_contents([('trunk/textconflict', b'base'),])
         tree.add(['textconflict'], [b'textconflict-id'])
-        tree.commit('a', rev_id=b'rev-a', committer="joe@foo.com", timestamp=1166046000.00, timezone=0)
+        tree.commit('a', rev_id=b'rev-a', committer="joe@foo5.com", timestamp=1166046000.00, timezone=0)
 
         branch_tree = tree.controldir.sprout('branch').open_workingtree()
         self.build_tree_contents([('branch/textconflict', b'other'),])
-        branch_tree.commit('b', rev_id=b'rev-b', committer="joe@foo.com", timestamp=1166046000.00, timezone=0)
+        branch_tree.commit('b', rev_id=b'rev-b', committer="joe@foo5.com", timestamp=1166046000.00, timezone=0)
         self.branch_tree = branch_tree
 
 
@@ -107,7 +107,7 @@ class TestTreeWidget(qtests.QTestCase):
         tree.add(['removed'], [b'removed-id'])
         tree.add(['missing'], [b'missing-id'])
         tree.add(['modified'], [b'modified-id'])
-        tree.commit('c', rev_id=b'rev-c', committer="joe@foo.com", timestamp=1166046000.00, timezone=0)
+        tree.commit('c', rev_id=b'rev-c', committer="joe@foo5.com", timestamp=1166046000.00, timezone=0)
 
         return tree, tree.branch
 
@@ -190,7 +190,7 @@ class TestTreeWidget(qtests.QTestCase):
         tree.add(['a'], [b'a-id'])
         tree.add(['b'], [b'b-id'])
         tree.add(['b/c'], [b'c-id'])
-        tree.commit('a', rev_id=b'rev-1', committer="joe@foo.com", timestamp=1166046000.00, timezone=0)
+        tree.commit('a', rev_id=b'rev-1', committer="joe@foo5.com", timestamp=1166046000.00, timezone=0)
         revtree = tree.branch.repository.revision_tree(b'rev-1')
         return revtree, tree.branch
 
@@ -213,44 +213,44 @@ class TestTreeWidget(qtests.QTestCase):
     def test_show_widget(self):
         widget = TreeWidget()
         self.widget = widget
-        QTest.qWaitForWindowShown(widget)
+        QTest.qWaitForWindowExposed(widget)
         self.run_model_tests()
 
         self.addCleanup(widget.close)
         # make the widget bigger so that we can see what is going on.
         widget.setGeometry(0,0,500,500)
         widget.show()
-        QTest.qWaitForWindowShown(widget)
+        QTest.qWaitForWindowExposed(widget)
         QtCore.QCoreApplication.processEvents()
         widget.set_tree(self.tree, self.branch, changes_mode=self.changes_mode)
         self.run_model_tests()
 
         widget.update()
-        QTest.qWaitForWindowShown(widget)
+        QTest.qWaitForWindowExposed(widget)
         QtCore.QCoreApplication.processEvents()
         widget.expandAll()
-        QTest.qWaitForWindowShown(widget)
+        QTest.qWaitForWindowExposed(widget)
         self.run_model_tests()
 
         widget.update()
-        QTest.qWaitForWindowShown(widget)
+        QTest.qWaitForWindowExposed(widget)
         QtCore.QCoreApplication.processEvents()
 
         self.modify_tree(self, self.tree)
-        QTest.qWaitForWindowShown(widget)
+        QTest.qWaitForWindowExposed(widget)
         widget.refresh()
-        QTest.qWaitForWindowShown(widget)
+        QTest.qWaitForWindowExposed(widget)
         self.run_model_tests()
 
         widget.update()
-        QTest.qWaitForWindowShown(widget)
+        QTest.qWaitForWindowExposed(widget)
         QtCore.QCoreApplication.processEvents()
         widget.expandAll()
-        QTest.qWaitForWindowShown(widget)
+        QTest.qWaitForWindowExposed(widget)
         self.run_model_tests()
 
         widget.update()
-        QTest.qWaitForWindowShown(widget)
+        QTest.qWaitForWindowExposed(widget)
         QtCore.QCoreApplication.processEvents()
 
 tree_scenarios = (
@@ -289,7 +289,7 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
         tree.add(['changed'], [b'changed-id'])
         ignores.tree_ignores_add_patterns(tree, ['ignored-dir-with-child', 'ignored'])
 
-        tree.commit('a', rev_id=b'rev-a', committer="joe@foo.com", timestamp=1166046000.00, timezone=0)
+        tree.commit('a', rev_id=b'rev-a', committer="joe@foo5.com", timestamp=1166046000.00, timezone=0)
 
         self.build_tree_contents([('tree/changed', b'bnew')])
 
@@ -383,7 +383,7 @@ class TestTreeWidgetSelectAll(qtests.QTestCase):
         tree.add(['changed'], [b'changed-id'])
         ignores.tree_ignores_add_patterns(tree, ['ignored-dir-with-child', 'ignored'])
 
-        tree.commit('a', rev_id=b'rev-a', committer="joe@foo.com", timestamp=1166046000.00, timezone=0)
+        tree.commit('a', rev_id=b'rev-a', committer="joe@foo5.com", timestamp=1166046000.00, timezone=0)
 
         self.build_tree_contents([('tree/changed', b'new')])
         self.tree = tree
@@ -401,10 +401,10 @@ class TestTreeWidgetSelectAll(qtests.QTestCase):
     def test_add_selectall(self):
         import breezy.plugins.qbrz.lib.add
         self.win = breezy.plugins.qbrz.lib.add.AddWindow(self.tree, None)
-        QTest.qWaitForWindowShown(self.win)
+        QTest.qWaitForWindowExposed(self.win)
         self.addCleanup(self.cleanup_win)
         self.win.initial_load()
-        QTest.qWaitForWindowShown(self.win)
+        QTest.qWaitForWindowExposed(self.win)
         # print('\ntest_add_select_all', self.win.filelist_widget)
         self.assertSelectedPaths(self.win.filelist_widget, ['dir-with-unversioned/child', 'unversioned', 'unversioned-with-ignored'])
 

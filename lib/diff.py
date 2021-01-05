@@ -118,9 +118,9 @@ def has_ext_diff():
 
 
 class ExtDiffMenu(QtWidgets.QMenu):
-    triggered = QtCore.pyqtSignal('QString')
+    _triggered = QtCore.pyqtSignal('QString')
 
-    def __init__ (self, parent=None, include_builtin=True, set_default=True):
+    def __init__(self, parent=None, include_builtin=True, set_default=True):
         QtWidgets.QMenu.__init__(self, gettext("Show &differences"), parent)
 
         for name, command in list(ext_diffs.items()):

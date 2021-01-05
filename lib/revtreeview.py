@@ -198,7 +198,8 @@ class RevNoItemDelegate(QtWidgets.QStyledItemDelegate):
         self.max_mainline_digits = max_mainline_digits
 
     def paint(self, painter, option, index):
-        option = QtGui.QStyleOptionViewItemV4(option)
+        # option = QtGui.QStyleOptionViewItemV4(option)
+        option = QtWidgets.QStyleOptionViewItem(option)
         self.initStyleOption(option, index)
         widget = self.parent()
         style = widget.style()

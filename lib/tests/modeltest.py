@@ -35,7 +35,7 @@ class ModelTest(QtCore.QObject):
         QtCore.QObject.__init__(self,parent)
         self._model = _model
         # QAbstractItemModel gives us a simple table of rows and columns. Each item in it (cell)
-        # has a unique index via QModelIndex with row, colum
+        # has a unique index via QtCore.QModelIndex with row, colum
         # for example:
         #   0 1 2
         # 0 . , ,
@@ -51,25 +51,27 @@ class ModelTest(QtCore.QObject):
         self.fetchingMore = False
         assert(self.model)
 
-        self.model.columnsAboutToBeInserted[QModelIndex, int, int].connect(self.runAllTests)
-        self.model.columnsAboutToBeRemoved[QModelIndex, int, int].connect(self.runAllTests)
-        self.model.columnsBeInserted[QModelIndex, int, int].connect(self.runAllTests)
-        self.model.columnsRemoved[QModelIndex, int, int].connect(self.runAllTests)
-        self.model.dataChanged[QModelIndex, QModelIndex].connect(self.runAllTests)
-        self.model.headerDataChanged[Qt.Orientation, int, int].connect(self.runAllTests)
+        self.model.columnsAboutToBeInserted[QtCore.QModelIndex, int, int].connect(self.runAllTests)
+        self.model.columnsAboutToBeRemoved[QtCore.QModelIndex, int, int].connect(self.runAllTests)
+        self.model.columnsInserted[QtCore.QModelIndex, int, int].connect(self.runAllTests)
+        self.model.columnsRemoved[QtCore.QModelIndex, int, int].connect(self.runAllTests)
+
+        # self.model.dataChanged[QtCore.QModelIndex, QtCore.QModelIndex].connect(self.runAllTests)
+
+        self.model.headerDataChanged[QtCore.Qt.Orientation, int, int].connect(self.runAllTests)
         self.model.layoutAboutToBeChanged.connect(self.runAllTests)
         self.model.layoutChanged.connect(self.runAllTests)
         self.model.modelReset.connect(self.runAllTests)
-        self.model.rowsAboutToBeInserted[QModelIndex, int, int].connect(self.runAllTests)
-        self.model.rowsAboutToBeRemoved[QModelIndex, int, int].connect(self.runAllTests)
-        self.model.rowsBeInserted[QModelIndex, int, int].connect(self.runAllTests)
-        self.model.rowsRemoved[QModelIndex, int, int].connect(self.runAllTests)
+        self.model.rowsAboutToBeInserted[QtCore.QModelIndex, int, int].connect(self.runAllTests)
+        self.model.rowsAboutToBeRemoved[QtCore.QModelIndex, int, int].connect(self.runAllTests)
+        self.model.rowsInserted[QtCore.QModelIndex, int, int].connect(self.runAllTests)
+        self.model.rowsRemoved[QtCore.QModelIndex, int, int].connect(self.runAllTests)
 
         # Special checks for inserting/removing
-        self.model.rowsAboutToBeInserted[QModelIndex, int, int].connect(self.rowsAboutToBeInserted)
-        self.model.rowsAboutToBeRemoved[QModelIndex, int, int].connect(self.rowsAboutToBeRemoved)
-        self.model.rowsBeInserted[QModelIndex, int, int].connect(self.rowsInserted)
-        self.model.rowsRemoved[QModelIndex, int, int].connect(self.rowsRemoved)
+        self.model.rowsAboutToBeInserted[QtCore.QModelIndex, int, int].connect(self.rowsAboutToBeInserted)
+        self.model.rowsAboutToBeRemoved[QtCore.QModelIndex, int, int].connect(self.rowsAboutToBeRemoved)
+        self.model.rowsInserted[QtCore.QModelIndex, int, int].connect(self.rowsInserted)
+        self.model.rowsRemoved[QtCore.QModelIndex, int, int].connect(self.rowsRemoved)
         self.runAllTests()
 
     def nonDestructiveBasicTest(self):
@@ -86,9 +88,9 @@ class ModelTest(QtCore.QObject):
         #
         # reads as:
         #
-        #   from the (.data) table at (an invalid QModelIndex) try to get a DisplayRole
+        #   from the (.data) table at (an invalid QtCore.QModelIndex) try to get a DisplayRole
         #
-        # A bare QModelIndex() creates a new empty index, and will be invalid: asking for the
+        # A bare QtCore.QModelIndex() creates a new empty index, and will be invalid: asking for the
         # displayRole will bring back (or used to bring back) an invalid QVariant rather than
         # raising an exception. With QVariant(2) set via sip, we don't get QVariants at all
         # but a NoneType.

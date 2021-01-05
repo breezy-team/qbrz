@@ -126,7 +126,7 @@ class LogWindow(QBzrWindow):
         else:
             self.branch = None
             self.locations = locations
-            #if self.locations is None:
+            # if self.locations is None:
             #    self.locations = [u"."]
             assert specific_file_ids is None, "specific_file_ids is ignored if branch is None"
 
@@ -155,27 +155,18 @@ class LogWindow(QBzrWindow):
 
         self.searchType = QtWidgets.QComboBox()
 
-        self.searchType.addItem(gettext("Messages"),
-                                self.FilterMessageRole)
-        self.searchType.addItem(gettext("Authors"),
-                                self.FilterAuthorRole)
-        self.searchType.addItem(gettext("Revision IDs"),
-                                self.FilterIdRole)
-        self.searchType.addItem(gettext("Revision Numbers"),
-                                self.FilterRevnoRole)
-        self.searchType.addItem(gettext("Tags"),
-                                self.FilterTagRole)
-        self.searchType.addItem(gettext("Bugs"),
-                                self.FilterBugRole)
+        self.searchType.addItem(gettext("Messages"), self.FilterMessageRole)
+        self.searchType.addItem(gettext("Authors"), self.FilterAuthorRole)
+        self.searchType.addItem(gettext("Revision IDs"), self.FilterIdRole)
+        self.searchType.addItem(gettext("Revision Numbers"), self.FilterRevnoRole)
+        self.searchType.addItem(gettext("Tags"), self.FilterTagRole)
+        self.searchType.addItem(gettext("Bugs"), self.FilterBugRole)
         searchbox.addWidget(self.searchType)
         self.searchType.currentIndexChanged[int].connect(self.updateSearchType)
 
         logbox.addLayout(searchbox)
 
-        self.log_list = LogList(self.processEvents,
-                                self.throbber,
-                                self,
-                                action_commands=True)
+        self.log_list = LogList(self.processEvents, self.throbber, self, action_commands=True)
 
         logbox.addWidget(self.throbber)
         logbox.addWidget(self.log_list)
@@ -183,12 +174,12 @@ class LogWindow(QBzrWindow):
         self.current_rev = None
 
         self.message = QtGui.QTextDocument()
-        self.message_browser = LogListRevisionMessageBrowser(self.log_list,
-                                                             self)
+        self.message_browser = LogListRevisionMessageBrowser(self.log_list, self)
         self.message_browser.setDocument(self.message)
 
         self.file_list_container = FileListContainer(self.log_list, self)
-        self.log_list.selectionModel().selectionChanged[QItemSelection, QItemSelection].connect(self.file_list_container.revision_selection_changed)
+        self.log_list.selectionModel().selectionChanged[QtCore.QItemSelection,
+            QtCore.QItemSelection].connect(self.file_list_container.revision_selection_changed)
 
         hsplitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(self.message_browser)
@@ -209,7 +200,7 @@ class LogWindow(QBzrWindow):
 
         self.diffbuttons = DiffButtons(self.centralwidget)
         self.diffbuttons.setEnabled(False)
-        self.diffbuttons.triggered['QString'].connect(self.log_list.show_diff_specified_files_ext)
+        self.diffbuttons._triggered['QString'].connect(self.log_list.show_diff_specified_files_ext)
 
         vbox = QtWidgets.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
@@ -240,10 +231,8 @@ class LogWindow(QBzrWindow):
             else:
                 gz_cls = logmodel.GraphVizLoader
 
-            self.log_list.load(branches, primary_bi, file_ids,
-                               self.no_graph, gz_cls)
-            self.log_list.selectionModel().selectionChanged[QItemSelection, QItemSelection].connect(self.update_selection)
-
+            self.log_list.load(branches, primary_bi, file_ids, self.no_graph, gz_cls)
+            self.log_list.selectionModel().selectionChanged[QtCore.QItemSelection, QtCore.QItemSelection].connect(self.update_selection)
             self.load_search_indexes(branches)
         finally:
             self.refresh_button.setDisabled(False)
@@ -367,8 +356,7 @@ class LogWindow(QBzrWindow):
                 self.completer.activated['QString'].connect(self.set_search_timer)
 
     no_usefull_info_in_location_re = re.compile(r'^[.:/\\]*$')
-    def branch_label(self, location, branch,
-                     shared_repo_location=None, shared_repo=None):
+    def branch_label(self, location, branch, shared_repo_location=None, shared_repo=None):
         # We should rather use QFontMetrics.elidedText. How do we decide on the
         # width.
         def elided_text(text, length=20):
@@ -396,10 +384,7 @@ class LogWindow(QBzrWindow):
         if location is None:
             return elided_text(branch.nick)
 
-        has_explicit_nickname = getattr(
-            branch.get_config(),
-            'has_explicit_nickname',
-            lambda: False)()
+        has_explicit_nickname = getattr(branch.get_config(), 'has_explicit_nickname', lambda: False)()
         append_nick = (
             location.startswith(':') or
             bool(self.no_usefull_info_in_location_re.match(location)) or
@@ -421,10 +406,8 @@ class LogWindow(QBzrWindow):
             replace = config.get_user_option("qlog_replace")
             if replace:
                 replace = replace.split("\n")
-                replace = [tuple(replace[2*i:2*i+2])
-                                for i in range(len(replace) // 2)]
+                replace = [tuple(replace[2*i:2*i+2]) for i in range(len(replace) // 2)]
             self.replace[branch.base] = replace
-
         return self.replace[branch.base]
 
     def show(self):
@@ -496,8 +479,7 @@ class LogWindow(QBzrWindow):
             self.suggestion_last_first_letter = first_letter
             if first_letter not in self.suggestion_letters_loaded:
                 suggestions = set()
-                indexes = [bi.index for bi in gv.branches
-                           if bi.index is not None]
+                indexes = [bi.index for bi in gv.branches if bi.index is not None]
                 for index in indexes:
                     for s in index.suggest(((first_letter,),)):
                         #if suggestions.count() % 100 == 0:
@@ -543,7 +525,7 @@ class FileListContainer(QtWidgets.QWidget):
         self.throbber.hide()
 
         self.file_list = QtWidgets.QListWidget()
-        self.file_list.doubleClicked[QModelIndex].connect(self.show_diff_files)
+        self.file_list.doubleClicked[QtCore.QModelIndex].connect(self.show_diff_files)
         self.file_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.file_list_context_menu = QtWidgets.QMenu(self)
         if has_ext_diff():
@@ -560,7 +542,7 @@ class FileListContainer(QtWidgets.QWidget):
             gettext("Save file on this revision as..."), self.save_old_revision_of_file)
         self.file_list_context_menu_revert_file = self.file_list_context_menu.addAction(gettext("Revert to this revision"), self.revert_file)
 
-        self.file_list.customContextMenuRequested[QPoint].connect(self.show_file_list_context_menu)
+        self.file_list.customContextMenuRequested[QtCore.QPoint].connect(self.show_file_list_context_menu)
 
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.setContentsMargins(0, 0, 0, 0)
@@ -819,8 +801,7 @@ class FileListContainer(QtWidgets.QWidget):
     def show_diff_files(self, index=None, ext_diff=None):
         """Show differences of a specific file in a single revision"""
         paths, ids = self.get_file_selection_paths_and_ids(index)
-        self.log_list.show_diff(specific_files=paths, specific_file_ids=ids,
-                                ext_diff=ext_diff)
+        self.log_list.show_diff(specific_files=paths, specific_file_ids=ids, ext_diff=ext_diff)
 
     @ui_current_widget
     def show_diff_files_ext(self, ext_diff=None):
@@ -832,8 +813,7 @@ class FileListContainer(QtWidgets.QWidget):
     def show_file_content(self):
         """Launch qcat for one selected file."""
         paths, file_ids = self.get_file_selection_paths_and_ids()
-        (top_revid, old_revid), count = \
-            self.log_list.get_selection_top_and_parent_revids_and_count()
+        (top_revid, old_revid), count = self.log_list.get_selection_top_and_parent_revids_and_count()
 
         gv = self.log_list.log_model.graph_viz
         branch = gv.get_revid_branch(top_revid)
@@ -842,8 +822,7 @@ class FileListContainer(QtWidgets.QWidget):
         else:
             tree = branch.repository.revision_tree(top_revid)
         encoding = get_set_encoding(None, branch)
-        window = QBzrCatWindow(filename = paths[0], tree = tree, parent=self,
-            encoding=encoding)
+        window = QBzrCatWindow(filename = paths[0], tree = tree, parent=self, encoding=encoding)
         window.show()
         self.window().windows.append(window)
 
@@ -851,8 +830,7 @@ class FileListContainer(QtWidgets.QWidget):
     def save_old_revision_of_file(self):
         """Saves the selected file in its revision to a directory."""
         paths, file_ids = self.get_file_selection_paths_and_ids()
-        (top_revid, old_revid), count = \
-            self.log_list.get_selection_top_and_parent_revids_and_count()
+        (top_revid, old_revid), count = self.log_list.get_selection_top_and_parent_revids_and_count()
 
         branch = self.log_list.log_model.graph_viz.get_revid_branch(top_revid)
         tree = branch.repository.revision_tree(top_revid)
@@ -870,8 +848,7 @@ class FileListContainer(QtWidgets.QWidget):
                 gettext("Operation is supported for a single file only,\n"
                         "not for a %s." % kind))
             return
-        filename = QtWidgets.QFileDialog.getSaveFileName(
-                self, gettext("Save file in this revision as..."))[0]
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, gettext("Save file in this revision as..."))[0]
         if filename:
             f = open(str(filename), 'wb')
             try:
@@ -889,29 +866,24 @@ class FileListContainer(QtWidgets.QWidget):
         if res == QtWidgets.QMessageBox.Yes:
           paths, file_ids = self.get_file_selection_paths_and_ids()
 
-          (top_revid, old_revid), count = \
-              self.log_list.get_selection_top_and_parent_revids_and_count()
+          (top_revid, old_revid), count = self.log_list.get_selection_top_and_parent_revids_and_count()
           gv = self.log_list.log_model.graph_viz
           assert(len(gv.branches)==1)
           branch_info = gv.branches[0]
           rev_tree = gv.get_revid_repo(top_revid).revision_tree(top_revid)
-          branch_info.tree.revert(paths, old_tree=rev_tree,
-                                  report_changes=True)
+          branch_info.tree.revert(paths, old_tree=rev_tree, report_changes=True)
 
     @ui_current_widget
     def show_file_annotate(self):
         """Show qannotate for selected file."""
         paths, file_ids = self.get_file_selection_paths_and_ids()
-        (top_revid, old_revid), count = \
-            self.log_list.get_selection_top_and_parent_revids_and_count()
+        (top_revid, old_revid), count = self.log_list.get_selection_top_and_parent_revids_and_count()
 
-        branch_info = \
-            self.log_list.log_model.graph_viz.get_revid_branch_info(top_revid)
+        branch_info = self.log_list.log_model.graph_viz.get_revid_branch_info(top_revid)
         if top_revid.startswith(CURRENT_REVISION):
             tree = branch_info.tree
         else:
             tree = branch_info.branch.repository.revision_tree(top_revid)
-        window = AnnotateWindow(branch_info.branch, branch_info.tree, tree,
-                                paths[0], file_ids[0])
+        window = AnnotateWindow(branch_info.branch, branch_info.tree, tree, paths[0], file_ids[0])
         window.show()
         self.window().windows.append(window)

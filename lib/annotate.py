@@ -137,13 +137,12 @@ class AnnotateBar(AnnotateBarBase):
         painter.save()
         if is_current and self.show_current_line:
             style = self.style()
-            option = QtGui.QStyleOptionViewItemV4()
+            option = QtWidgets.QStyleOptionViewItem()
             option.initFrom(self)
             option.state = option.state | QtWidgets.QStyle.State_Selected
             option.rect = rect.toRect()
             painter.fillRect(rect, QtGui.QBrush(option.palette.highlight()))
-            style.drawPrimitive(QtWidgets.QStyle.PE_PanelItemViewItem,
-                                       option, painter, self)
+            style.drawPrimitive(QtWidgets.QStyle.PE_PanelItemViewItem, option, painter, self)
 
             painter.setPen(get_text_color(option, style))
         elif self.annotate and line_number-1 < len(self.annotate):
@@ -151,8 +150,7 @@ class AnnotateBar(AnnotateBarBase):
             if revid in self.rev_colors:
                 painter.fillRect(rect, self.rev_colors[revid])
 
-        text_margin = self.style().pixelMetric(
-            QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1
+        text_margin = self.style().pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1
 
         if 0: rect = QtCore.QRect
         line_number_rect = QtCore.QRect(
@@ -161,8 +159,7 @@ class AnnotateBar(AnnotateBarBase):
             self.line_number_width - (2 * text_margin),
             rect.height())
 
-        painter.drawText(line_number_rect, QtCore.Qt.AlignRight,
-                         str(line_number))
+        painter.drawText(line_number_rect, QtCore.Qt.AlignRight, str(line_number))
 
         if self.annotate and line_number-1 < len(self.annotate):
             revid, is_top = self.annotate[line_number - 1]
@@ -177,9 +174,7 @@ class AnnotateBar(AnnotateBarBase):
                     rect.top(),
                     self.revno_width - (2 * text_margin),
                     rect.height())
-                paint_revno(painter, revno_rect,
-                            str(self.get_revno(revid)),
-                            self.max_mainline_digits)
+                paint_revno(painter, revno_rect, str(self.get_revno(revid)), self.max_mainline_digits)
 
                 if revid in cached_revisions:
                     rev = cached_revisions[revid]
@@ -191,8 +186,7 @@ class AnnotateBar(AnnotateBarBase):
                         rect.height())
                     author = get_apparent_author_name(rev)
                     if fm.width(author) > author_rect.width():
-                        author= fm.elidedText(author, QtCore.Qt.ElideRight,
-                                              author_rect.width())
+                        author= fm.elidedText(author, QtCore.Qt.ElideRight, author_rect.width())
                     painter.drawText(author_rect, 0, author)
         painter.restore()
 

@@ -626,18 +626,16 @@ class GraphTagsBugsItemDelegate(QtWidgets.QStyledItemDelegate):
         else:
             draw_graph = False
 
-        option = QtGui.QStyleOptionViewItemV4(option)
+        option = QtWidgets.QStyleOptionViewItem(option)
         self.initStyleOption(option, index)
         widget = self.parent()
         style = widget.style()
 
-        text_margin = style.pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin,
-                                        None, widget) + 1
+        text_margin = style.pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin, None, widget) + 1
 
         painter.save()
         painter.setClipRect(option.rect)
-        style.drawPrimitive(QtWidgets.QStyle.PE_PanelItemViewItem,
-                            option, painter, widget)
+        style.drawPrimitive(QtWidgets.QStyle.PE_PanelItemViewItem, option, painter, widget)
 
         graphCols = 0
         rect = option.rect
