@@ -55,7 +55,7 @@ class LogList(RevisionTreeView):
         self.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
         self.setUniformRowHeights(True)
         self.setAllColumnsShowFocus(True)
-        self.setRootIsDecorated (False)
+        self.setRootIsDecorated(False)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
 
         self.setItemDelegateForColumn(logmodel.COL_MESSAGE, GraphTagsBugsItemDelegate(self))
@@ -96,6 +96,8 @@ class LogList(RevisionTreeView):
             self.doubleClicked[QtCore.QModelIndex].connect(self.default_action)
         self.context_menu = QtWidgets.QMenu(self)
         self.context_menu_initialized = False
+        # RJLRJL an additional show was needed for qt5 for some reason
+        self.window().show()
 
     def load(self, *args, **kargs):
         self.load_args = (args, kargs)
@@ -162,9 +164,7 @@ class LogList(RevisionTreeView):
                 return action
 
             self.context_menu_tag = add_branch_action(gettext("Tag &revision..."), self.tag_revision)
-
             self.context_menu_revert = add_branch_action(gettext("R&evert to this revision"), self.revert_to_revision, require_wt=True)
-
             self.context_menu_update = add_branch_action(gettext("&Update to this revision"), self.update_to_revision, require_wt=True)
 
             # In theory we should have a select branch option like push.
@@ -201,7 +201,7 @@ class LogList(RevisionTreeView):
         c_rev = self.log_model.c_rev_from_index(index)
         if c_rev and c_rev.twisty_state is not None:
             twistyRect = QtCore.QRect (rect.x() + boxsize * c_rev.col_index,
-                                       rect.y() ,
+                                       rect.y(),
                                        boxsize,
                                        boxsize)
             if twistyRect.contains(pos):
@@ -217,7 +217,7 @@ class LogList(RevisionTreeView):
                 new_index = self.log_model.index_from_rev(c_rev.rev)
                 if new_index:
                     self.scrollTo(new_index)
-                e.accept ()
+                e.accept()
         if not collapse_expand_click:
             QtWidgets.QTreeView.mousePressEvent(self, e)
 
@@ -248,8 +248,7 @@ class LogList(RevisionTreeView):
                 else:
                     # Find the revision the merges us.
                     if c_rev.rev.merged_by:
-                        merged_by = self.log_model.computed.revisions[
-                                                        c_rev.rev.merged_by]
+                        merged_by = self.log_model.computed.revisions[c_rev.rev.merged_by]
                         self.setCurrentIndex(self.log_model.index_from_c_rev(merged_by))
             self.scrollTo(self.currentIndex())
         else:
@@ -273,42 +272,33 @@ class LogList(RevisionTreeView):
     def lines_updated_remember_selection(self):
         selection_model = self.selectionModel()
         rows = selection_model.selectedRows()
-        expand_indexes_to_ids = \
-            lambda l: [str(i.data(logmodel.RevIdRole))
-                       for i in l]
+        expand_indexes_to_ids = lambda l: [str(i.data(logmodel.RevIdRole)) for i in l]
         # Note: we don't do anything is there are 0 selected rows
         if rows:
-            self.lines_updated_selection = \
-                expand_indexes_to_ids((rows[0], rows[-1]))
+            self.lines_updated_selection = expand_indexes_to_ids((rows[0], rows[-1]))
         current_index = self.currentIndex()
         if current_index.isValid():
-            self.lines_updated_selection_current = \
-                str(current_index.data(logmodel.RevIdRole))
+            self.lines_updated_selection_current = str(current_index.data(logmodel.RevIdRole))
         else:
             self.lines_updated_selection_current = None
 
     def lines_updated_restore_selection(self):
         selection_model = self.selectionModel()
-        indexes = [self.log_model.index_from_revid(revid)
-                   for revid in self.lines_updated_selection]
+        indexes = [self.log_model.index_from_revid(revid) for revid in self.lines_updated_selection]
         selection_model.clear()
         if self.lines_updated_selection_current:
-            current_index = self.log_model.index_from_revid(
-                                    self.lines_updated_selection_current)
+            current_index = self.log_model.index_from_revid(self.lines_updated_selection_current)
             if current_index:
                 self.setCurrentIndex(current_index)
         if not len(indexes) == 0 and indexes[0]:
             if not indexes[1]:
                 indexes[1] = indexes[0]
             selection = QtCore.QItemSelection(*indexes)
-            selection_model.select(selection,
-                                   (QtCore.QItemSelectionModel.SelectCurrent |
-                                    QtCore.QItemSelectionModel.Rows))
+            selection_model.select(selection, (QtCore.QItemSelectionModel.SelectCurrent | QtCore.QItemSelectionModel.Rows))
 
     def get_selection_indexes(self, index=None):
         if index is None:
-            return sorted(self.selectionModel().selectedRows(0),
-                          key=lambda x: x.row())
+            return sorted(self.selectionModel().selectedRows(0), key=lambda x: x.row())
         else:
             return [index]
 
@@ -366,8 +356,7 @@ class LogList(RevisionTreeView):
         window.show()
         self.window().windows.append(window)
 
-    def sub_process_action(self, selected_branch_info, get_dialog,
-                           auto_run=False, refresh_method=None):
+    def sub_process_action(self, selected_branch_info, get_dialog, auto_run=False, refresh_method=None):
         gv = self.log_model.graph_viz
         (top_revid, old_revid), rev_count = \
                 self.get_selection_top_and_parent_revids_and_count()
@@ -391,10 +380,8 @@ class LogList(RevisionTreeView):
 
         if refresh_method:
             dialog.subprocessFinished[bool].connect(refresh_method)
-
         dialog.show()
         self.window().windows.append(dialog)
-
         if auto_run:
             dialog.do_accept()
 
@@ -403,7 +390,7 @@ class LogList(RevisionTreeView):
                        top_revid, old_revid,
                        top_revno_str, old_revno_str,
                        selected_branch_info, single_branch):
-            assert(rev_count==1)
+            assert(rev_count == 1)
 
             if single_branch:
                 desc = (gettext("Revert to revision %s revid:%s.") % (top_revno_str, top_revid))
@@ -411,7 +398,7 @@ class LogList(RevisionTreeView):
                 desc = (gettext("Revert %s to revision %s revid:%s.") % (selected_branch_info.label, top_revno_str, top_revid))
 
             args = ["revert", '-r', 'revid:%s' % top_revid]
-            return SimpleSubProcessDialog( gettext("Revert"), desc=desc, args=args, dir=selected_branch_info.tree.basedir, parent=self)
+            return SimpleSubProcessDialog(gettext("Revert"), desc=desc, args=args, dir=selected_branch_info.tree.basedir, parent=self)
 
         self.sub_process_action(selected_branch_info, get_dialog)
 
@@ -420,7 +407,7 @@ class LogList(RevisionTreeView):
                        top_revid, old_revid,
                        top_revno_str, old_revno_str,
                        selected_branch_info, single_branch):
-            assert(rev_count==1)
+            assert(rev_count == 1)
 
             if single_branch:
                 desc = (gettext("Update to revision %s revid:%s.") % (top_revno_str, top_revid))
@@ -430,8 +417,7 @@ class LogList(RevisionTreeView):
             args = ["update", '-r', 'revid:%s' % top_revid]
             return SimpleSubProcessDialog(gettext("Update"), desc=desc, args=args, dir=selected_branch_info.tree.basedir, parent=self)
 
-        self.sub_process_action(selected_branch_info, get_dialog, True,
-                                self.refresh)
+        self.sub_process_action(selected_branch_info, get_dialog, True, self.refresh)
         # TODO, we should just update the branch tags, rather than a full
         # refresh.
 
@@ -443,15 +429,12 @@ class LogList(RevisionTreeView):
             from_branch_info = self.log_model.graph_viz.get_revid_branch_info(top_revid)
 
             desc = (gettext("Cherry-pick revisions %s - %s from %s to %s.") %
-                    (old_revno_str, top_revno_str,
-                     from_branch_info.label, selected_branch_info.label))
+                    (old_revno_str, top_revno_str, from_branch_info.label, selected_branch_info.label))
 
-            args = ["merge", from_branch_info.branch.base,
-                    '-r', 'revid:%s..revid:%s' % (old_revid, top_revid)]
+            args = ["merge", from_branch_info.branch.base, '-r', 'revid:%s..revid:%s' % (old_revid, top_revid)]
             return SimpleSubProcessDialog(
                 gettext("Cherry-pick"), desc=desc, args=args,
-                dir=selected_branch_info.tree.basedir,
-                parent=self)
+                dir=selected_branch_info.tree.basedir, parent=self)
 
         self.sub_process_action(selected_branch_info, get_dialog)
         # No refresh, because we don't track cherry-picks yet :-(
@@ -462,14 +445,12 @@ class LogList(RevisionTreeView):
                        top_revno_str, old_revno_str,
                        selected_branch_info, single_branch):
             if single_branch:
-                desc = (gettext("Reverse cherry-pick revisions %s - %s") %
-                        (old_revno_str, top_revno_str))
+                desc = (gettext("Reverse cherry-pick revisions %s - %s") % (old_revno_str, top_revno_str))
             else:
                 desc = (gettext("Reverse cherry-pick revisions %s - %s in %s.") %
                         (old_revno_str, top_revno_str, selected_branch_info.label))
 
-            args = ["merge", '.',
-                    '-r', 'revid:%s..revid:%s' % (top_revid, old_revid)]
+            args = ["merge", '.', '-r', 'revid:%s..revid:%s' % (top_revid, old_revid)]
             return SimpleSubProcessDialog(
                 gettext("Reverse cherry-pick"), desc=desc, args=args,
                 dir=selected_branch_info.tree.basedir,
@@ -478,22 +459,17 @@ class LogList(RevisionTreeView):
         self.sub_process_action(selected_branch_info, get_dialog)
         # No refresh, because we don't track cherry-picks yet :-(
 
-    def show_diff(self, index=None,
-                  specific_files=None, specific_file_ids=None,
-                  ext_diff=None):
+    def show_diff(self, index=None, specific_files=None, specific_file_ids=None, ext_diff=None):
 
-        (new_revid, old_revid), count = \
-            self.get_selection_top_and_parent_revids_and_count(index)
+        (new_revid, old_revid), count = self.get_selection_top_and_parent_revids_and_count(index)
         if new_revid is None and old_revid is None:
             # No revision selection.
             return
         new_branch = self.log_model.graph_viz.get_revid_branch(new_revid)
-        old_branch =  self.log_model.graph_viz.get_revid_branch(old_revid)
+        old_branch = self.log_model.graph_viz.get_revid_branch(old_revid)
 
         def get_tree_if_current(revid):
-            if (revid.startswith(CURRENT_REVISION) and
-                isinstance(self.log_model.graph_viz,
-                            logmodel.WithWorkingTreeGraphVizLoader)):
+            if (revid.startswith(CURRENT_REVISION) and isinstance(self.log_model.graph_viz, logmodel.WithWorkingTreeGraphVizLoader)):
                 return self.log_model.graph_viz.working_trees[revid]
 
         arg_provider = diff.InternalDiffArgProvider(
@@ -503,16 +479,11 @@ class LogList(RevisionTreeView):
             new_tree=get_tree_if_current(new_revid),
             specific_files = specific_files,
             specific_file_ids = specific_file_ids)
-
-
-        diff.show_diff(arg_provider, ext_diff=ext_diff,
-                       parent_window=self.window(), context=self.diff_context)
+        diff.show_diff(arg_provider, ext_diff=ext_diff, parent_window=self.window(), context=self.diff_context)
 
     def show_diff_specified_files(self, ext_diff=None):
         if self.log_model.file_id_filter:
-            self.show_diff(
-                ext_diff=ext_diff,
-                specific_file_ids = self.log_model.file_id_filter.file_ids)
+            self.show_diff(ext_diff=ext_diff, specific_file_ids = self.log_model.file_id_filter.file_ids)
         else:
             self.show_diff(ext_diff=ext_diff)
 
@@ -532,23 +503,20 @@ class LogList(RevisionTreeView):
         else:
             revno = gv.revid_rev[revid].revno_str
             branch = gv.get_revid_branch(revid)
-            window = BrowseWindow(branch=branch, revision_id=revid,
-                                  revision_spec=revno, parent=self)
+            window = BrowseWindow(branch=branch, revision_id=revid, revision_spec=revno, parent=self)
         window.show()
         self.window().windows.append(window)
 
     def show_context_menu(self, pos):
         branch_count = len(self.log_model.graph_viz.branches)
-        (top_revid, old_revid), count = \
-              self.get_selection_top_and_parent_revids_and_count()
+        (top_revid, old_revid), count = self.get_selection_top_and_parent_revids_and_count()
 
         wt_selected = top_revid.startswith(CURRENT_REVISION)
 
         def filter_rev_ancestor(action, is_ancestor=True):
             branch_menu = action.menu()
             if branch_menu:
-                vis_branch_count = branch_menu.filter_rev_ancestor(
-                                                        top_revid, is_ancestor)
+                vis_branch_count = branch_menu.filter_rev_ancestor(top_revid, is_ancestor)
                 if vis_branch_count == 0:
                     action.setVisible(False)
 
@@ -562,12 +530,11 @@ class LogList(RevisionTreeView):
             self.context_menu_revert.setVisible(count == 1 and not wt_selected)
             self.context_menu_update.setVisible(count == 1 and not wt_selected)
 
-            if branch_count>1:
+            if branch_count > 1:
                 if wt_selected:
                     self.context_menu_cherry_pick.setVisible(False)
                 else:
-                    filter_rev_ancestor(self.context_menu_cherry_pick,
-                                        is_ancestor=False)
+                    filter_rev_ancestor(self.context_menu_cherry_pick, is_ancestor=False)
 
             if wt_selected:
                 self.context_menu_reverse_cherry_pick.setVisible(False)
@@ -580,7 +547,7 @@ class LogList(RevisionTreeView):
 class BranchMenu(QtWidgets.QMenu):
     bm_triggered = QtCore.pyqtSignal()
 
-    def __init__ (self, text, parent, graphprovider, require_wt):
+    def __init__(self, text, parent, graphprovider, require_wt):
         QtWidgets.QMenu.__init__(self, text, parent)
         self.graphprovider = graphprovider
         for branch in self.graphprovider.branches:
@@ -742,8 +709,9 @@ class GraphTagsBugsItemDelegate(QtWidgets.QStyledItemDelegate):
             text_width = fm.width(option.text)
             text = option.text
             if text_width > text_rect.width():
-                text = self.elidedText(fm, text_rect.width(),
-                                       QtCore.Qt.ElideRight, text)
+                # RJLRJL obsolete, so changed to fm (fontMetrics) instead
+                # text = self.elidedText(fm, text_rect.width(), QtCore.Qt.ElideRight, text)
+                text = fm.elidedText(text, QtCore.Qt.ElideRight, text_rect.width())
 
             painter.drawText(text_rect, QtCore.Qt.AlignLeft, text)
 

@@ -1447,9 +1447,10 @@ class TreeFilterMenu(QtWidgets.QMenu):
             self.addAction(action)
             self.actions.append(action)
 
-        self.triggered[QAction].connect(self.triggered)
+        # self.triggered[QtWidgets.QAction].connect(self.triggered)
+        self.triggered.connect(self._triggered)
 
-    def triggered(self, action):
+    def _triggered(self, action):
         # filter = action.data().toInt()[0]
         filter = int(action.data())
         checked = action.isChecked()
