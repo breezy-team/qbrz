@@ -339,7 +339,7 @@ class QBzrMainWindow(QBzrWindow):
         self.sideBarView.customContextMenuRequested[QPoint].connect(self.sideBarModel.showContextMenu)
         self.sideBarView.selectionModel().selectionChanged[QItemSelection, QItemSelection].connect(self.updateFileList)
         header = self.sideBarView.header()
-        header.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         header.setStretchLastSection(False)
         header.setVisible(False)
 

@@ -26,34 +26,52 @@ from breezy.plugins.qbrz.lib.i18n import gettext, N_
 from breezy.plugins.qbrz.lib.decorators import lazy_call
 import sip
 
+# def create_toolbar_button(text, parent=None, icon_name=None, icon_size=22,
+#                 enabled=True, checkable=False, checked=False, shortcut=None, onclick=None):
+#     if icon_name:
+#         button = QtWidgets.QAction(get_icon(icon_name, size=icon_size), gettext(text), parent)
+#     else:
+#         button = QtWidgets.QAction(gettext(text), parent)
+#     if checkable:
+#         button.setCheckable(True)
+#         button.setChecked(checked)
+#         signal = "toggled(bool)"
+#     else:
+#         signal = "triggered()"
+#     if not enabled:
+#         button.setEnabled(False)
+#     if shortcut:
+#         button.setShortcut(shortcut)
+#         show_shortcut_hint(button)
+#     if onclick:
+#         button.signal.connect(onclick)
+#     return button
+
 def create_toolbar_button(text, parent=None, icon_name=None, icon_size=22,
-                enabled=True, checkable=False, checked=False, 
-                shortcut=None, onclick=None):
+                enabled=True, checkable=False, checked=False, shortcut=None, onclick=None):
+    # RJLRJL modified to work with PyQt5
     if icon_name:
-        button = QtWidgets.QAction(get_icon(icon_name, size=icon_size),
-                                gettext(text), parent)
+        button = QtWidgets.QAction(get_icon(icon_name, size=icon_size), gettext(text), parent)
     else:
         button = QtWidgets.QAction(gettext(text), parent)
     if checkable:
         button.setCheckable(True)
         button.setChecked(checked)
-        signal = "toggled(bool)"
-    else:
-        signal = "triggered()"
     if not enabled:
         button.setEnabled(False)
     if shortcut:
         button.setShortcut(shortcut)
         show_shortcut_hint(button)
     if onclick:
-        button.signal.connect(onclick)
+        if checkable:
+            button.toggled[bool].connect(onclick)
+        else:
+            button.triggered.connect(onclick)
     return button
 
 def add_toolbar_button(toolbar, text, parent, icon_name=None, icon_size=22,
-                        enabled=True, checkable=False, checked=False,
-                        shortcut=None, onclick=None): 
-    button = create_toolbar_button(text, parent, icon_name, icon_size, 
-                        enabled, checkable, checked, shortcut, onclick)
+                        enabled=True, checkable=False, checked=False, shortcut=None, onclick=None):
+    button = create_toolbar_button(text, parent, icon_name, icon_size, enabled, checkable, checked, shortcut, onclick)
     toolbar.addAction(button)
     return button
 
@@ -69,42 +87,37 @@ class FindToolbar(QtWidgets.QToolBar):
         else:
             self.set_text_edits([text_edit])
         self.show_action = show_action
-        
+
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.setMovable (False)
-        
+
         find_label = QtWidgets.QLabel(gettext("Find: "), self)
         self.addWidget(find_label)
-        
+
         self.find_text = QtWidgets.QLineEdit(self)
         self.addWidget(self.find_text)
         find_label.setBuddy(self.find_text)
 
         self.found_palette = QtGui.QPalette()
         self.not_found_palette = QtGui.QPalette()
-        self.not_found_palette.setColor(QtGui.QPalette.Active,
-                QtGui.QPalette.Base,
-                QtCore.Qt.red)
-        self.not_found_palette.setColor(QtGui.QPalette.Active,
-                QtGui.QPalette.Text,
-                QtCore.Qt.white)
-        
+        self.not_found_palette.setColor(QtGui.QPalette.Active, QtGui.QPalette.Base, QtCore.Qt.red)
+        self.not_found_palette.setColor(QtGui.QPalette.Active, QtGui.QPalette.Text, QtCore.Qt.white)
+
         prev = self.addAction(get_icon("go-previous"), gettext("Previous"))
         prev.setShortcut(QtGui.QKeySequence.FindPrevious)
         show_shortcut_hint(prev)
-        
+
         next = self.addAction(get_icon("go-next"), gettext("Next"))
         next.setShortcut(QtGui.QKeySequence.FindNext)
         show_shortcut_hint(next)
-        
+
         self.case_sensitive = QtWidgets.QCheckBox(gettext("Case sensitive"), self)
         self.addWidget(self.case_sensitive)
         self.whole_words = QtWidgets.QCheckBox(gettext("Whole words"), self)
         self.addWidget(self.whole_words)
-        
+
         close_find = QtWidgets.QAction(self)
-        close_find.setIcon(self.style().standardIcon(
-                                        QtWidgets.QStyle.SP_DialogCloseButton))
+        close_find.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogCloseButton))
         self.addAction(close_find)
         close_find.setShortcut((QtCore.Qt.Key_Escape))
         close_find.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
@@ -124,14 +137,14 @@ class FindToolbar(QtWidgets.QToolBar):
             self.find_text.setFocus()
         else:
             self.find_text.setText('')
-    
+
     def close_triggered(self, state):
         self.show_action.setChecked(False)
-    
+
     def find_text_changed(self, text):
         self.find_avoid_moving()
         self.highlight()
-    
+
     def find_get_flags(self):
         flags = QtGui.QTextDocument.FindFlags()
         if self.case_sensitive.isChecked():
@@ -139,20 +152,18 @@ class FindToolbar(QtWidgets.QToolBar):
         if self.whole_words.isChecked():
             flags = flags | QtGui.QTextDocument.FindWholeWords
         return flags
-    
+
     def find_avoid_moving(self):
-        self.find(self.text_edit.textCursor().selectionStart(), 0,
-                  self.find_get_flags())
-    
+        self.find(self.text_edit.textCursor().selectionStart(), 0, self.find_get_flags())
+
     def find_next(self):
-        self.find(self.text_edit.textCursor().selectionEnd(), 0,
-                  self.find_get_flags())
-    
+        self.find(self.text_edit.textCursor().selectionEnd(), 0, self.find_get_flags())
+
     def find_prev(self, state):
         self.find(self.text_edit.textCursor().selectionStart(),
                   self.text_edit.document().characterCount(),
                   self.find_get_flags() | QtGui.QTextDocument.FindBackward)
-    
+
     def find(self, from_pos, restart_pos, flags):
         doc = self.text_edit.document()
         text = self.find_text.text()
@@ -245,10 +256,10 @@ class ToolbarPanel(QtWidgets.QWidget):
         self.vbox = vbox
         self.toolbar = toolbar
 
-    def add_toolbar_button(self, text, icon_name=None, icon_size=0, enabled=True, 
+    def add_toolbar_button(self, text, icon_name=None, icon_size=0, enabled=True,
             checkable=False, checked=False, shortcut=None, onclick=None, menu=None):
         button = create_toolbar_button(text, self, icon_name=icon_name,
-                icon_size=icon_size or self.icon_size, enabled=enabled, 
+                icon_size=icon_size or self.icon_size, enabled=enabled,
                 checkable=checkable, checked=checked, shortcut=shortcut, onclick=onclick)
         if menu is not None:
             button.setMenu(menu)
@@ -256,7 +267,7 @@ class ToolbarPanel(QtWidgets.QWidget):
         return button
 
     def add_toolbar_menu(self, text, menu, icon_name=None, icon_size=0, enabled=True, shortcut=None):
-        button = self.add_toolbar_button(text, icon_name=icon_name, 
+        button = self.add_toolbar_button(text, icon_name=icon_name,
                     icon_size=icon_size or self.icon_size, enabled=enabled, menu=menu)
         widget = self.toolbar.widgetForAction(button)
         widget.setPopupMode(QtWidgets.QToolButton.InstantPopup)
@@ -267,8 +278,8 @@ class ToolbarPanel(QtWidgets.QWidget):
 
     def create_button(self, text, icon_name=None, icon_size=0, enabled=True,
             checkable=False, checked=False, shortcut=None, onclick=None):
-        return create_toolbar_button(text, self, icon_name=icon_name, 
-                icon_size=icon_size or self.icon_size, enabled=enabled, 
+        return create_toolbar_button(text, self, icon_name=icon_name,
+                icon_size=icon_size or self.icon_size, enabled=enabled,
                 checkable=checkable, checked=checked, shortcut=shortcut, onclick=onclick)
 
     def add_separator(self):
@@ -286,21 +297,20 @@ class LayoutSelector(QtWidgets.QMenu):
         QtWidgets.QMenu.__init__(self, gettext('Layout'), parent)
 
         self.current = initial_no
-        
+
         def selected(no):
             self.current = initial_no
             onchanged(no)
 
         def get_handler(no):
             return lambda:selected(no)
-        
+
         group = QtWidgets.QActionGroup(self)
         self.buttons = []
         for i in range(1, num + 1):
             btn = create_toolbar_button(gettext("Layout %d") % i, self,
-                        checkable=True, shortcut="Ctrl+%d" % i, 
-                        checked=(i == initial_no),
-                        onclick=get_handler(i))
+                        checkable=True, shortcut="Ctrl+%d" % i,
+                        checked=(i == initial_no), onclick=get_handler(i))
             group.addAction(btn)
             self.addAction(btn)
             self.buttons.append(btn)

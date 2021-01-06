@@ -23,7 +23,7 @@ from PyQt5.QtGui import QKeySequence
 
 from breezy.revision import CURRENT_REVISION
 from breezy.errors import (
-        NoSuchRevision, 
+        NoSuchRevision,
         NoSuchRevisionInTree,
         PathsNotVersionedError)
 from breezy.plugins.qbrz.lib.i18n import gettext, N_
@@ -40,7 +40,7 @@ from breezy.plugins.qbrz.lib.util import (
     get_qbrz_config,
     )
 from breezy.plugins.qbrz.lib.widgets.toolbars import (
-    FindToolbar, ToolbarPanel, LayoutSelector 
+    FindToolbar, ToolbarPanel, LayoutSelector
     )
 from breezy.plugins.qbrz.lib.widgets.tab_width_selector import TabWidthMenuSelector
 from breezy.plugins.qbrz.lib.diffview import (
@@ -70,7 +70,7 @@ class ShelveListWidget(ToolbarPanel):
     documentChangeFinished = QtCore.pyqtSignal()
     unshelved = QtCore.pyqtSignal(int, 'QString')
 
-    def __init__(self, directory=None, complete=False, ignore_whitespace=False, 
+    def __init__(self, directory=None, complete=False, ignore_whitespace=False,
                  encoding=None, splitters=None, parent=None):
         ToolbarPanel.__init__(self, slender=False, icon_size=22, parent=parent)
 
@@ -87,15 +87,15 @@ class ShelveListWidget(ToolbarPanel):
         self.shelve_view = QtWidgets.QTreeWidget(self)
         self.shelve_view.setHeaderLabels([gettext("Id"), gettext("Message")])
         header = self.shelve_view.header()
-        header.setResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
 
         self.file_view = QtWidgets.QTreeWidget(self)
         self.file_view.setHeaderLabels([gettext("File Name"), gettext("Status")])
         self.file_view.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         header = self.file_view.header()
         header.setStretchLastSection(False)
-        header.setResizeMode(0, QtWidgets.QHeaderView.Stretch)
-        header.setResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         self.stack = QtWidgets.QStackedWidget(self)
         self.diffviews = (SidebySideDiffView(self), SimpleDiffView(self))
         for view in self.diffviews:
@@ -110,19 +110,19 @@ class ShelveListWidget(ToolbarPanel):
                         N_("Find"), icon_name="edit-find", checkable=True,
                         shortcut=QtGui.QKeySequence.Find)
         diff_panel.add_separator()
-        diff_panel.add_toolbar_button(N_("Unidiff"), icon_name="unidiff", 
+        diff_panel.add_toolbar_button(N_("Unidiff"), icon_name="unidiff",
                 checkable=True, shortcut="Ctrl+U", onclick=self.unidiff_toggled)
 
         view_menu = QtWidgets.QMenu(gettext('View Options'), self)
         view_menu.addAction(
-                diff_panel.create_button(N_("&Complete"), icon_name="complete", 
+                diff_panel.create_button(N_("&Complete"), icon_name="complete",
                     checkable=True, checked=complete, onclick=self.complete_toggled)
                 )
         view_menu.addAction(
-                diff_panel.create_button(N_("Ignore whitespace"), icon_name="whitespace", 
+                diff_panel.create_button(N_("Ignore whitespace"), icon_name="whitespace",
                     checkable=True, checked=ignore_whitespace, onclick=self.whitespace_toggled)
                 )
-        self.tabwidth_selector = TabWidthMenuSelector(label_text=gettext("Tab width"), 
+        self.tabwidth_selector = TabWidthMenuSelector(label_text=gettext("Tab width"),
                                     onChanged=self.on_tabwidth_changed)
         view_menu.addMenu(self.tabwidth_selector)
         self.encoding_selector = EncodingMenuSelector(encoding,
@@ -172,18 +172,18 @@ class ShelveListWidget(ToolbarPanel):
         layout.setContentsMargins(10, 10, 10, 10)
         layout.addWidget(self.splitter)
         self.add_layout(layout)
-        
+
         # build main toolbar
         unshelve_menu = QtWidgets.QMenu(gettext("Unshelve"), self)
-        unshelve_menu.addAction(self.create_button(N_("Dry run"), 
+        unshelve_menu.addAction(self.create_button(N_("Dry run"),
                                     onclick=lambda:self.do_unshelve('dry-run')))
         unshelve_menu.addAction(self.create_button(N_("Keep"),
                                     onclick=lambda:self.do_unshelve('keep')))
         unshelve_menu.addAction(self.create_button(N_("Delete"),
                                     onclick=lambda:self.do_unshelve('delete-only')))
-        
-        self.unshelve_button = self.add_toolbar_button(N_("Unshelve"), icon_name="unshelve", 
-                                    enabled=False, onclick=lambda:self.do_unshelve('apply'), 
+
+        self.unshelve_button = self.add_toolbar_button(N_("Unshelve"), icon_name="unshelve",
+                                    enabled=False, onclick=lambda:self.do_unshelve('apply'),
                                     menu=unshelve_menu)
         self.add_separator()
 
@@ -194,15 +194,15 @@ class ShelveListWidget(ToolbarPanel):
         layout_selector.addSeparator()
         layout_selector.addAction(
                 self.create_button(gettext("Show filelist"),
-                    icon_name="file", icon_size=16, checkable=True, 
-                    checked=self.show_files, shortcut="Ctrl+L", 
+                    icon_name="file", icon_size=16, checkable=True,
+                    checked=self.show_files, shortcut="Ctrl+L",
                     onclick=lambda val:self.set_layout(show_files=val))
                 )
 
-        self.add_toolbar_menu(N_("&Layout"), layout_selector, 
+        self.add_toolbar_menu(N_("&Layout"), layout_selector,
                 icon_name="internet-news-reader", shortcut="Alt+L")
 
-        self.add_toolbar_button(N_("&Refresh"), icon_name="view-refresh", 
+        self.add_toolbar_button(N_("&Refresh"), icon_name="view-refresh",
                 shortcut="Ctrl+R", onclick=self.refresh)
 
         self.shelf_id = None
@@ -329,7 +329,7 @@ class ShelveListWidget(ToolbarPanel):
             tabwidth = get_tab_width_pixels(self.tree.branch)
             self.diffviews[0].setTabStopWidths((tabwidth, tabwidth))
             self.diffviews[1].setTabStopWidth(tabwidth)
-            
+
             self.load_diff(preview.get_preview_tree(), base_tree)
 
         finally:
@@ -338,7 +338,7 @@ class ShelveListWidget(ToolbarPanel):
 
     def load_diff(self, tree, base_tree):
         self.file_view.clear()
-        
+
         for di in DiffItem.iter_items((base_tree, tree), lock_trees=False):
             di.load()
 
@@ -351,7 +351,7 @@ class ShelveListWidget(ToolbarPanel):
                 text = '%s => %s' % (old_path, new_path)
             else:
                 text = old_path
-                
+
             item = QtWidgets.QTreeWidgetItem()
             item.setText(0, text)
             item.setText(1, gettext(di.status))
@@ -371,11 +371,11 @@ class ShelveListWidget(ToolbarPanel):
     def _show_selected_diff(self):
         if sip.isdeleted(self):
             return
-        self._interrupt_switch = False 
+        self._interrupt_switch = False
         try:
             refresh = self._need_refresh
             self._need_refresh = False
-            
+
             diffs = [x.diffitem for x in self.file_view.selectedItems()]
             diffs.sort(key=lambda x:x.paths[0] or x.paths[1])
 
@@ -387,7 +387,7 @@ class ShelveListWidget(ToolbarPanel):
                     view.set_complete(self.complete)
                     view.clear()
                 self.current_diffs = []
-                appends = diffs 
+                appends = diffs
             for d in appends:
                 lines = d.lines
                 groups = d.groups(self.complete, self.ignore_whitespace)
@@ -397,8 +397,8 @@ class ShelveListWidget(ToolbarPanel):
                      self.encoding_selector.encoding))
                 data = [''.join(l) for l in ulines]
                 for view in self.diffviews:
-                    view.append_diff(list(d.paths), d.file_id, d.kind, d.status, dates, 
-                                     d.versioned, d.binary, ulines, groups, 
+                    view.append_diff(list(d.paths), d.file_id, d.kind, d.status, dates,
+                                     d.versioned, d.binary, ulines, groups,
                                      data, d.properties_changed)
                 self.current_diffs.append(d)
                 if self._interrupt_switch:
@@ -475,7 +475,7 @@ class ShelveListWidget(ToolbarPanel):
             func = QtWidgets.QMessageBox.warning
         else:
             func = QtWidgets.QMessageBox.question
-        ret = func(self, gettext('Shelve'), gettext(prompt), 
+        ret = func(self, gettext('Shelve'), gettext(prompt),
                     QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
         return (ret == QtWidgets.QMessageBox.Ok)
 
@@ -493,7 +493,7 @@ class ShelveListWidget(ToolbarPanel):
     def do_unshelve(self, action):
         if not self.shelf_id:
             return
-        
+
         prompt = gettext(self.prompts[action]) % {"id":self.shelf_id}
         if action != "dry-run":
             if not self.prompt_bool(prompt, warning=(action=="delete-only")):
@@ -520,13 +520,13 @@ class ShelveListWidget(ToolbarPanel):
 
     def encoding_changed(self, encoding):
         self.show_selected_diff(refresh = True)
-        
+
     def eventFilter(self, object, event):
         if event.type() == QtCore.QEvent.FocusIn:
             if object in self.diffviews[0].browsers:
                 self.find_toolbar.set_text_edit(object)
         return ToolbarPanel.eventFilter(self, object, event)
-    
+
     def load_settings(self):
         config = get_qbrz_config()
         layout = config.get_option("shelvelist_layout")

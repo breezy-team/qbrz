@@ -95,6 +95,8 @@ for kind, cols in list(colors.items()):
 
 class DiffSourceView(QtWidgets.QTextBrowser):
     resized = QtCore.pyqtSignal()
+    # RJL added for qt5
+    documentChangeFinished = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         QtWidgets.QTextBrowser.__init__(self, parent)
@@ -418,10 +420,8 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
         self.metadataLabelFormat = QtGui.QTextCharFormat()
         self.metadataLabelFormat.setFont(metadataLabelFont)
 
-        self.docs = (QtGui.QTextDocument(),
-                     QtGui.QTextDocument())
-        self.browsers = (DiffSourceView(self),
-                         DiffSourceView(self))
+        self.docs = (QtGui.QTextDocument(), QtGui.QTextDocument())
+        self.browsers = (DiffSourceView(self), DiffSourceView(self))
 
         self.guidebar_panels = [
             GuideBarPanel(b, align=a)
@@ -820,6 +820,7 @@ class SimpleDiffView(GuideBarPanel):
 
 class _SimpleDiffView(QtWidgets.QTextBrowser):
     """Widget to show differences in unidiff format."""
+    documentChangeFinished = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         QtWidgets.QTextBrowser.__init__(self, parent)

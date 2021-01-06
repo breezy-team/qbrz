@@ -21,7 +21,7 @@ from PyQt5.QtCore import Qt
 
 class QBzrConditionalDataView(QtWidgets.QFrame):
     """A list/table/tree with a label.
-    
+
     Only the label is shown when the data model is empty.
     """
 
@@ -45,7 +45,7 @@ class QBzrConditionalDataView(QtWidgets.QFrame):
         columns = listmode_or_headers
         if type == 'list':
             self._view = QtWidgets.QListView()
-            self._view.setResizeMode(QtWidgets.QListView.Adjust)
+            self._view.setSectionResizeMode(QtWidgets.QListView.Adjust)
             self._view.setWrapping(True)
             if listmode_or_headers:
                 self._view.setViewMode(QtWidgets.QListView.ListMode)

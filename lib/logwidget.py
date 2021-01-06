@@ -75,7 +75,7 @@ class LogList(RevisionTreeView):
         # header.setResizeMode(logmodel.COL_MESSAGE, QtWidgets.QHeaderView.Stretch)
         # header.setResizeMode(logmodel.COL_DATE, QtWidgets.QHeaderView.Interactive)
         # header.setResizeMode(logmodel.COL_AUTHOR, QtWidgets.QHeaderView.Interactive)
-        # RJLRJL: for PyQt5, use setSectionResizeMode instead, apparently
+        # RJLRJL: for PyQt5, use setSectionResizeMode instead
         header.setSectionResizeMode(logmodel.COL_REV, QtWidgets.QHeaderView.Interactive)
         header.setSectionResizeMode(logmodel.COL_MESSAGE, QtWidgets.QHeaderView.Stretch)
         header.setSectionResizeMode(logmodel.COL_DATE, QtWidgets.QHeaderView.Interactive)
@@ -84,10 +84,9 @@ class LogList(RevisionTreeView):
 
         col_margin = (self.style().pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1) *2
         header.resizeSection(logmodel.COL_REV, fm.width("8888.8.888") + col_margin)
-        header.resizeSection(logmodel.COL_DATE,
-                             # [bialix 2013/07/11]     v  I've added a space to sample string below to workaround bug https://bugs.launchpad.net/qbrz/+bug/430502
-                             #                         v  If this is a problem on non-Windows platforms - please let me know and I'll add a platform check
-                             fm.width("88-88-8888 88:88 ") + col_margin)
+        # [bialix 2013/07/11]     v  I've added a space to sample string below to workaround bug https://bugs.launchpad.net/qbrz/+bug/430502
+        #                         v  If this is a problem on non-Windows platforms - please let me know and I'll add a platform check
+        header.resizeSection(logmodel.COL_DATE, fm.width("88-88-8888 88:88 ") + col_margin)
         header.resizeSection(logmodel.COL_AUTHOR, fm.width("Joe I have a Long Name") + col_margin)
 
         self.view_commands = view_commands
