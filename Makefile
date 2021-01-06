@@ -72,7 +72,7 @@ check:
 # Stop on first error, ignore TestTreeFilterProxyModel for now
 
 checkone:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x  TestTreeFilterProxyModel -x TestTreeWidget
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x  TestTreeFilterProxyModel
 
 # Test specific item - e.g. for internationalisation, use:
 #

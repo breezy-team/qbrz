@@ -45,16 +45,10 @@ from breezy.plugins.qbrz.lib.tests.modeltest import ModelTest
 def load_tests(loader, basic_tests, pattern):
     result = loader.suiteClass()
 
-    tree_tests, remaining_tests = tests.split_suite_by_condition(
-        basic_tests, tests.condition_isinstance((
-                TestTreeWidget,
-                )))
+    tree_tests, remaining_tests = tests.split_suite_by_condition(basic_tests, tests.condition_isinstance((TestTreeWidget,)))
     tests.multiply_tests(tree_tests, tree_scenarios, result)
 
-    filter_tests, remaining_tests = tests.split_suite_by_condition(
-        remaining_tests, tests.condition_isinstance((
-                TestTreeFilterProxyModel,
-                )))
+    filter_tests, remaining_tests = tests.split_suite_by_condition(remaining_tests, tests.condition_isinstance((TestTreeFilterProxyModel,)))
     tests.multiply_tests(filter_tests, filter_scenarios, result)
 
     # No parametrization for the remaining tests
@@ -304,7 +298,6 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
         self.expected_visible.sort()
         # print('\n*=*=*= after-sort expected', self.expected_visible, type(self.expected_visible))
         self.assertEqual(self.getVisiblePaths(), self.expected_visible)
-
 
     def getVisiblePaths(self):
         # RJLRJL this appears to have an off-by-one error which does seem

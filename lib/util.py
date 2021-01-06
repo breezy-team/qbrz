@@ -442,14 +442,10 @@ class _QBzrWindowBase(object):
         self.show_warning(message)
 
     def show_error(self, message):
-        QtWidgets.QMessageBox.critical(self,
-            gettext("Error"),
-            message)
+        QtWidgets.QMessageBox.critical(self, gettext("Error"), message)
 
     def show_warning(self, message):
-        QtWidgets.QMessageBox.warning(self,
-            gettext("Warning"),
-            message)
+        QtWidgets.QMessageBox.warning(self, gettext("Warning"), message)
 
     def ask_confirmation(self, message, type='question'):
         """Return True if user selected Yes.
