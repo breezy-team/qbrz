@@ -67,6 +67,7 @@ from breezy.plugins.qbrz.lib.loggraphviz import BranchInfo
 from patiencediff import PatienceSequenceMatcher as SequenceMatcher
 ''')
 
+
 class AnnotateBar(AnnotateBarBase):
 
     def __init__(self, edit, parent, get_revno):
@@ -114,8 +115,7 @@ class AnnotateBar(AnnotateBarBase):
 
     def adjustWidth(self, lines, max_revno):
         fm = self.fontMetrics()
-        text_margin = self.style().pixelMetric(
-            QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1
+        text_margin = self.style().pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1
 
         self.line_number_width = fm.width(str(lines))
         self.line_number_width += (text_margin * 2)
@@ -232,12 +232,9 @@ class AnnotatedTextEdit(QtWidgets.QPlainTextEdit):
         the top of the viewport to the center of the viewport."""
         old_cursor = self.textCursor()
         old_center = self.cursorForPosition(QtCore.QPoint(0, self.height() / 2))
-        lines_to_center = (old_center.block().blockNumber() -
-                           self.verticalScrollBar().value())
+        lines_to_center = (old_center.block().blockNumber() - self.verticalScrollBar().value())
 
-        return (old_cursor.selectionStart(),
-                old_cursor.selectionEnd(),
-                old_center.position()) , lines_to_center
+        return (old_cursor.selectionStart(), old_cursor.selectionEnd(), old_center.position()) , lines_to_center
 
     def set_positions(self, new_positions, lines_to_center):
         new_start, new_end, new_center = new_positions
@@ -248,12 +245,8 @@ class AnnotatedTextEdit(QtWidgets.QPlainTextEdit):
             self.verticalScrollBar().setValue(new_scroll)
 
         new_selection_cursor = QtGui.QTextCursor(self.document())
-        new_selection_cursor.movePosition(QtGui.QTextCursor.Right,
-                                          QtGui.QTextCursor.MoveAnchor,
-                                          new_start)
-        new_selection_cursor.movePosition(QtGui.QTextCursor.Right,
-                                          QtGui.QTextCursor.KeepAnchor,
-                                          new_end - new_start)
+        new_selection_cursor.movePosition(QtGui.QTextCursor.Right, QtGui.QTextCursor.MoveAnchor, new_start)
+        new_selection_cursor.movePosition(QtGui.QTextCursor.Right, QtGui.QTextCursor.KeepAnchor, new_end - new_start)
         self.setTextCursor(new_selection_cursor)
 
 
@@ -263,9 +256,7 @@ class AnnotateWindow(QBzrWindow):
     def __init__(self, branch, working_tree, annotate_tree, path, fileId,
                  encoding=None, parent=None, ui_mode=True, no_graph=False,
                  loader=None, loader_args=None, activate_line=None):
-        QBzrWindow.__init__(self,
-                            [gettext("Annotate"), gettext("Loading...")],
-                            parent, ui_mode=ui_mode)
+        QBzrWindow.__init__(self, [gettext("Annotate"), gettext("Loading...")], parent, ui_mode=ui_mode)
         self.restoreSize("annotate", (780, 680))
 
         self.activate_line_after_load = activate_line
@@ -275,8 +266,7 @@ class AnnotateWindow(QBzrWindow):
         self.branch = branch
         self.annotate_tree = annotate_tree
         self.working_tree = working_tree
-        if (self.working_tree is None and
-            isinstance(annotate_tree, WorkingTree)):
+        if (self.working_tree is None and isinstance(annotate_tree, WorkingTree)):
             self.working_tree = annotate_tree
 
         self.no_graph = no_graph
@@ -293,9 +283,7 @@ class AnnotateWindow(QBzrWindow):
         self.text_edit_frame = AnnotateEditerFrameBase(self)
         self.text_edit = AnnotatedTextEdit(self)
         self.text_edit.setFrameStyle(QtWidgets.QFrame.NoFrame)
-        self.text_edit.setTextInteractionFlags(
-            QtCore.Qt.TextSelectableByMouse|
-            QtCore.Qt.TextSelectableByKeyboard)
+        self.text_edit.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse | QtCore.Qt.TextSelectableByKeyboard)
         self.text_edit.setLineWrapMode(QtWidgets.QPlainTextEdit.NoWrap)
 
         self.text_edit.document().setDefaultFont(get_monospace_font())
@@ -322,9 +310,7 @@ class AnnotateWindow(QBzrWindow):
 
         self.message = LogListRevisionMessageBrowser(self.log_list, self)
 
-        self.encoding_selector = EncodingMenuSelector(self.encoding,
-            gettext("Encoding"),
-            self._on_encoding_changed)
+        self.encoding_selector = EncodingMenuSelector(self.encoding, gettext("Encoding"), self._on_encoding_changed)
 
         hsplitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(self.log_list)
@@ -364,9 +350,7 @@ class AnnotateWindow(QBzrWindow):
         def setTabStopWidth(tw):
             self.text_edit.setTabStopWidth(get_tab_width_pixels(tab_width_chars=tw))
             get_set_tab_width_chars(branch=self.branch,tab_width_chars=tw)
-        self.tab_width_selector = TabWidthMenuSelector(get_set_tab_width_chars(branch=branch),
-                gettext("Tab Width"),
-                setTabStopWidth)
+        self.tab_width_selector = TabWidthMenuSelector(get_set_tab_width_chars(branch=branch), gettext("Tab Width"), setTabStopWidth)
 
         view_menu.addMenu(self.tab_width_selector)
         view_menu.addMenu(self.encoding_selector)
@@ -457,8 +441,7 @@ class AnnotateWindow(QBzrWindow):
         if isinstance(self.annotate_tree, RevisionTree):
             revno = self.get_revno(self.annotate_tree.get_revision_id())
             if revno:
-                self.set_title_and_icon([gettext("Annotate"), self.path,
-                                         gettext("Revision %s") % revno])
+                self.set_title_and_icon([gettext("Annotate"), self.path, gettext("Revision %s") % revno])
                 return
 
         self.set_title_and_icon([gettext("Annotate"), self.path])
@@ -505,8 +488,7 @@ class AnnotateWindow(QBzrWindow):
         if self.old_lines:
             # Try keep the scroll, and selection stable.
             old_positions, lines_to_center = self.text_edit.get_positions()
-            new_positions = self.translate_positions(
-                                    self.old_lines, lines, old_positions)
+            new_positions = self.translate_positions(self.old_lines, lines, old_positions)
 
         self.text_edit.annotate = None
         self.text_edit.setPlainText("".join(lines))
@@ -527,13 +509,10 @@ class AnnotateWindow(QBzrWindow):
         if not self.log_branch_loaded:
             self.log_branch_loaded = True
             bi = BranchInfo('', self.working_tree, self.branch)
-            self.log_list.load(
-                (bi,), bi, [self.fileId], self.no_graph,
-                logmodel.WithWorkingTreeGraphVizLoader)
+            self.log_list.load((bi,), bi, [self.fileId], self.no_graph, logmodel.WithWorkingTreeGraphVizLoader)
 
             gv = self.log_list.log_model.graph_viz
-            self.annotate_bar.adjustWidth(len(lines),
-                                          gv.revisions[0].revno_sequence[0])
+            self.annotate_bar.adjustWidth(len(lines), gv.revisions[0].revno_sequence[0])
 
             just_loaded_log = True
 
@@ -549,17 +528,14 @@ class AnnotateWindow(QBzrWindow):
         self.processEvents()
         highlight_document(self.text_edit, path)
         self.processEvents()
-        load_revisions(ordered_revids, self.branch.repository,
-                       revisions_loaded = self.revisions_loaded,
-                       pass_prev_loaded_rev = True)
+        load_revisions(ordered_revids, self.branch.repository, revisions_loaded = self.revisions_loaded, pass_prev_loaded_rev = True)
         self.processEvents()
 
         if just_loaded_log:
             # Check for any other revisions we don't know about
 
             filter = self.log_list.log_model.file_id_filter
-            revids = [rev.revid for rev in gv.revisions
-                      if rev.revid not in self.rev_indexes]
+            revids = [rev.revid for rev in gv.revisions if rev.revid not in self.rev_indexes]
             filter.load(revids)
 
     def translate_positions(self, old_lines, new_lines, old_positions):
@@ -609,7 +585,7 @@ class AnnotateWindow(QBzrWindow):
 
             alpha = 0.5/((days/50) + 1)
             h_sh = self._get_hash(author_id)
-            hue =  1-float(h_sh) / sys.maxsize
+            hue = 1-float(h_sh) / sys.maxsize
             color = QtGui.QColor.fromHsvF(hue, 1, 1, alpha)
             brush = QtGui.QBrush(color)
 
@@ -725,7 +701,7 @@ class AnnotateWindow(QBzrWindow):
 # RJLRJL QIntValidator seems to be working in 2020, whereas this isn't
 # so ignored for now.
 class IntValidator(QtGui.QValidator):
-    def validate (self, input, pos):
+    def validate(self, input, pos):
         if input == '':
             return (QtGui.QValidator.Intermediate, pos)
         try:
@@ -744,11 +720,12 @@ class GotoLineToolbar(QtWidgets.QToolBar):
     def __init__(self, anotate_window, show_action):
         QtWidgets.QToolBar.__init__(self, gettext("Goto Line"), anotate_window)
         self.anotate_window = anotate_window
-        if 0: self.anotate_window = AnnotateWindow()
+        if 0:
+            self.anotate_window = AnnotateWindow()
         self.show_action = show_action
 
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self.setMovable (False)
+        self.setMovable(False)
 
         label = QtWidgets.QLabel(gettext("Goto Line: "), self)
         self.addWidget(label)
@@ -763,8 +740,7 @@ class GotoLineToolbar(QtWidgets.QToolBar):
         go = self.addAction(get_icon("go-next"), gettext("Go"))
 
         spacer = QtWidgets.QWidget()
-        spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                             QtWidgets.QSizePolicy.Expanding)
+        spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.addWidget(spacer)
 
         close = QtWidgets.QAction(self)
