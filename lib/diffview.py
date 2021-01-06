@@ -145,8 +145,15 @@ class DiffSourceView(QtWidgets.QTextBrowser):
         del painter
         QtWidgets.QTextBrowser.paintEvent(self, event)
 
+    # def wheelEvent(self, event):
+    #     if event.orientation() == QtCore.Qt.Vertical and self.scrollbar:
+    #         self.scrollbar.wheelEvent(event)
+    #     else:
+    #         QtWidgets.QTextBrowser.wheelEvent(self, event)
+
     def wheelEvent(self, event):
-        if event.orientation() == QtCore.Qt.Vertical and self.scrollbar:
+        # RJLRJL orientation is no longer in qt5, so replaed with angleDelta().y() > 0
+        if event.angleDelta().y() > 0 and self.scrollbar:
             self.scrollbar.wheelEvent(event)
         else:
             QtWidgets.QTextBrowser.wheelEvent(self, event)

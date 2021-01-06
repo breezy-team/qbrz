@@ -24,7 +24,7 @@ QBzr is a cross platform, Qt-based front-end for Bazaar, providing GUI
 applications for many core bzr commands. In addition, it provides several
 special dialogs and helper commands. Equivalents for core bzr commands have
 the same names as CLI commands but with a prefix of "q".
-QBzr requires Qt/PyQt 4.4.x or later to be installed.
+QBzr requires Qt/PyQt 5 to be installed.
 
 Basic q-commands:
 
@@ -72,7 +72,7 @@ Miscellaneous:
  * bug-url - print full URL to a specific bug, or open it in your browser.
 
 RJL 2020:
-This is the updated version for QBrz
+This is the updated version for QBrz and Qt5
 """
 
 import sys
@@ -81,7 +81,7 @@ if sys.version_info < (3,4,0):
     sys.stderr.write("You need python 3.4.0 or later to run this script\n")
     exit(1)
 
-
+# TODO: this might not be necessary now
 # RJL to speed development, retain Qt4 for now: use ``sip.setapi`` to request
 # version 1 behaviour for ``QVariant`` (otherwise it's not available for python3)
 import sip

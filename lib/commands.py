@@ -111,7 +111,7 @@ class PyQt4NotInstalled(errors.BzrError):
 
     _fmt = ('QBrz requires at least PyQt 4.4 and Qt 4.4 to run. Please check your install')
 
-
+# TODO: test this with qt5
 def report_missing_pyqt(unbound):
     """Decorator for q-commands run method to catch ImportError PyQt4
     and show explanation to user instead of scary traceback.

@@ -725,7 +725,7 @@ class FileListContainer(QtWidgets.QWidget):
                 item.setData(file_idRole, id)
                 item.setData(AliveRole, is_alive)
                 if color:
-                    item.setTextColor(QtGui.QColor(color))
+                    item.setForeground(QtGui.QColor(color))
                 if not is_not_specific_file_id:
                     f = item.font()
                     f.setBold(True)

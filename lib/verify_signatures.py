@@ -37,8 +37,8 @@ from breezy import (
     revision as _mod_revision,
     )
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 
 from io import StringIO
 
