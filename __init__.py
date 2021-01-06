@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-"""QBzr - Qt-based frontend for Bazaar
+"""QBzr - Qt5-based frontend for Bazaar
 
 QBzr is a cross platform, Qt-based front-end for Bazaar, providing GUI
 applications for many core bzr commands. In addition, it provides several

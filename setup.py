@@ -36,7 +36,7 @@ with open('version.txt', encoding='utf-8') as f:
 ext_modules = []
 
 setup(name='qbrz',
-      description='Qt4 frontend for Breezy',
+      description='Qt5 frontend for Breezy',
       keywords='plugin brz qt qbrz',
       version=version_str,
       url='https://www.breezy-vcs.org/',
