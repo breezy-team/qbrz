@@ -140,8 +140,9 @@ class RevisionMessageBrowser(QtWidgets.QTextBrowser):
             self.document().addResource(QtGui.QTextDocument.ImageResource, QtCore.QUrl("dot%d" % color), image)
             self.images.append(image)
 
-        # TODO: RJLRJL - put this back in
+        # RJLRJL - background() is obsolete in Qt5 - use window() instead
         # self.props_back_color_str = ("#%02X%02X%02X" % self.palette().background().color().getRgb()[:3])
+        self.props_back_color_str = ("#%02X%02X%02X" % self.palette().window().color().getRgb()[:3])
 
     def get_act_color(self, color, back):
         qcolor = QtGui.QColor()

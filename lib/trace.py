@@ -84,8 +84,7 @@ def create_lockerror_dialog(type, window=None):
         msgbox.addButton(QtWidgets.QMessageBox.Ok)
     return msgbox
 
-def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
-                     ui_mode=False):
+def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None, ui_mode=False):
     """Report an exception.
 
     The error is reported to the console or a message box, depending on the type.
@@ -108,9 +107,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
         # Do we maybe want to log this?
         return
     # RJLRJL check for bzr / brz issues
-    msg_box = ((type == MAIN_LOAD_METHOD and
-                (window and window.ui_mode or ui_mode))
-               or not type == MAIN_LOAD_METHOD)
+    msg_box = ((type == MAIN_LOAD_METHOD and (window and window.ui_mode or ui_mode)) or not type == MAIN_LOAD_METHOD)
     pdb = os.environ.get('BZR_PDB')
     if pdb:
         msg_box = False
@@ -182,8 +179,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
                     os.environ.get('LANG')))
             traceback_file.write("plugins:\n")
             for name, a_plugin in sorted(plugin.plugins().items()):
-                traceback_file.write("  %-20s %s [%s]\n" %
-                    (name, a_plugin.path(), a_plugin.__version__))
+                traceback_file.write("  %-20s %s [%s]\n" % (name, a_plugin.path(), a_plugin.__version__))
 
 
             msg_box = ErrorReport(gettext("Error"),
@@ -314,7 +310,7 @@ class ErrorReport(QtWidgets.QDialog):
         self.trace_back_label.setReadOnly(True)
         self.trace_back_label.hide()
 
-        self.buttonbox.clicked [QAbstractButton].connect(self.clicked)
+        self.buttonbox.clicked [QtWidgets.QAbstractButton].connect(self.clicked)
 
         vbox = QtWidgets.QVBoxLayout()
 

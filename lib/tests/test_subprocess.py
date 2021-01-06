@@ -188,12 +188,12 @@ class TestSubprocessProgressView(TestCase):
         sio, task = self.make_stream_and_task()
         task.update("Finding revisions", 0, 2)
         self.refresh(task)
-        try:
-            task.finished()
-        except AttributeError as e:
-            self.knownFailure("No ui_factory so calls missing task_finished")
-        self.assertEqual([(0, "", "Finding revisions /  0/2")],
-            self.decode_progress(sio.getvalue()))
+        # RJLRJL task.finished() no longer exists...
+        # try:
+        #     task.finished()
+        # except AttributeError:
+        #     self.knownFailure("No ui_factory so calls missing task_finished")
+        self.assertEqual([(0, "", "Finding revisions /  0/2")], self.decode_progress(sio.getvalue()))
 
     def test_task_non_ascii_message(self):
         """A localised progress message should be transmitted cleanly"""

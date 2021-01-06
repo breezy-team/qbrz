@@ -117,7 +117,7 @@ class LogList(RevisionTreeView):
         has_file_filter = bool(self.log_model.file_id_filter)
 
         self.context_menu = QtWidgets.QMenu(self)
-        self.customContextMenuRequested[QPoint].connect(self.show_context_menu)
+        self.customContextMenuRequested[QtCore.QPoint].connect(self.show_context_menu)
 
         if self.view_commands:
             if has_file_filter:
