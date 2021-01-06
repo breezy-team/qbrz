@@ -335,11 +335,11 @@ class _QBzrWindowBase(object):
         if BTN_CANCEL in buttons:
             btn = StandardButton(BTN_CANCEL)
             buttonbox.addButton(btn, QtWidgets.QDialogButtonBox.RejectRole)
-            buttonbox.accepted.connect(self.do_reject)
+            buttonbox.rejected.connect(self.do_reject)
         if BTN_CLOSE in buttons:
             btn = StandardButton(BTN_CLOSE)
             buttonbox.addButton(btn, QtWidgets.QDialogButtonBox.RejectRole)
-            buttonbox.accepted.connect(self.do_close)
+            buttonbox.rejected.connect(self.do_close)
         return buttonbox
 
     def _saveSize(self, config):
