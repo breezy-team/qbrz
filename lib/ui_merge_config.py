@@ -2,19 +2,15 @@
 
 # Form implementation generated from reading ui file 'ui/merge_config.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.3
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
+from breezy.plugins.qbrz.lib.i18n import gettext
+
+
 
 class Ui_MergeConfig(object):
     def setupUi(self, MergeConfig):
@@ -39,7 +35,6 @@ class Ui_MergeConfig(object):
         self.widget = QtWidgets.QWidget(self.groupBox)
         self.widget.setObjectName("widget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.widget)
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
@@ -61,10 +56,10 @@ class Ui_MergeConfig(object):
         QtCore.QMetaObject.connectSlotsByName(MergeConfig)
 
     def retranslateUi(self, MergeConfig):
-        MergeConfig.setWindowTitle(_translate("MergeConfig", "Form", None))
-        self.groupBox.setTitle(_translate("MergeConfig", "External Merge Tools", None))
-        self.add.setText(_translate("MergeConfig", "Add", None))
-        self.remove.setText(_translate("MergeConfig", "Remove", None))
-        self.set_default.setToolTip(_translate("MergeConfig", "Sets the selected merge tool as the default to use in qconflicts.", None))
-        self.set_default.setText(_translate("MergeConfig", "Set Default", None))
-
+        _translate = QtCore.QCoreApplication.translate
+        MergeConfig.setWindowTitle(_translate("MergeConfig", "Form"))
+        self.groupBox.setTitle(_translate("MergeConfig", "External Merge Tools"))
+        self.add.setText(_translate("MergeConfig", "Add"))
+        self.remove.setText(_translate("MergeConfig", "Remove"))
+        self.set_default.setToolTip(_translate("MergeConfig", "Sets the selected merge tool as the default to use in qconflicts."))
+        self.set_default.setText(_translate("MergeConfig", "Set Default"))

@@ -2,19 +2,15 @@
 
 # Form implementation generated from reading ui file 'ui/init.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.3
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
+from breezy.plugins.qbrz.lib.i18n import gettext
+
+
 
 class Ui_InitForm(object):
     def setupUi(self, InitForm):
@@ -113,31 +109,31 @@ class Ui_InitForm(object):
         self.retranslateUi(InitForm)
         self.link_help.linkActivated['QString'].connect(InitForm.linkActivated)
         self.link_help_formats.linkActivated['QString'].connect(InitForm.linkActivated)
-        InitForm.disableUi[bool].connect(self.groupBox_3.setDisabled)
-        InitForm.disableUi[bool].connect(self.groupBox.setDisabled)
-        self.but_init.toggled[bool].connect(self.but_append_only.setEnabled)
-        self.radioButton_2.toggled[bool].connect(self.but_no_trees.setEnabled)
+        InitForm.disableUi['bool'].connect(self.groupBox_3.setDisabled)
+        InitForm.disableUi['bool'].connect(self.groupBox.setDisabled)
+        self.but_init.toggled['bool'].connect(self.but_append_only.setEnabled)
+        self.radioButton_2.toggled['bool'].connect(self.but_no_trees.setEnabled)
         QtCore.QMetaObject.connectSlotsByName(InitForm)
 
     def retranslateUi(self, InitForm):
-        InitForm.setWindowTitle(_translate("InitForm", "Initialize", None))
-        self.groupBox_3.setTitle(_translate("InitForm", "Local Directory", None))
-        self.location_picker.setText(_translate("InitForm", "Browse...", None))
-        self.groupBox.setTitle(_translate("InitForm", "Repository", None))
-        self.but_init.setText(_translate("InitForm", "Create a new standalone tree", None))
-        self.but_append_only.setText(_translate("InitForm", "Ensure all revisions are appended to the log", None))
-        self.radioButton_2.setText(_translate("InitForm", "Create a new shared repository", None))
-        self.but_no_trees.setText(_translate("InitForm", "Skip the creation of working trees in this repository", None))
+        _translate = QtCore.QCoreApplication.translate
+        InitForm.setWindowTitle(_translate("InitForm", "Initialize"))
+        self.groupBox_3.setTitle(_translate("InitForm", "Local Directory"))
+        self.location_picker.setText(_translate("InitForm", "Browse..."))
+        self.groupBox.setTitle(_translate("InitForm", "Repository"))
+        self.but_init.setText(_translate("InitForm", "Create a new standalone tree"))
+        self.but_append_only.setText(_translate("InitForm", "Ensure all revisions are appended to the log"))
+        self.radioButton_2.setText(_translate("InitForm", "Create a new shared repository"))
+        self.but_no_trees.setText(_translate("InitForm", "Skip the creation of working trees in this repository"))
         self.link_help.setText(_translate("InitForm", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Tell me more about <a href=\"bzrtopic:standalone-trees\"><span style=\" text-decoration: underline; color:#0000ff;\">standalone trees</span></a>, <a href=\"bzrtopic:repositories\"><span style=\" text-decoration: underline; color:#0000ff;\">repositories</span></a> and <a href=\"bzrtopic:branches\"><span style=\" text-decoration: underline; color:#0000ff;\">branches</span></a>.</p></body></html>", None))
-        self.label.setText(_translate("InitForm", "Repository Format:", None))
-        self.format_desc.setText(_translate("InitForm", "Description of format", None))
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Tell me more about <a href=\"bzrtopic:standalone-trees\"><span style=\" text-decoration: underline; color:#0000ff;\">standalone trees</span></a>, <a href=\"bzrtopic:repositories\"><span style=\" text-decoration: underline; color:#0000ff;\">repositories</span></a> and <a href=\"bzrtopic:branches\"><span style=\" text-decoration: underline; color:#0000ff;\">branches</span></a>.</p></body></html>"))
+        self.label.setText(_translate("InitForm", "Repository Format:"))
+        self.format_desc.setText(_translate("InitForm", "Description of format"))
         self.link_help_formats.setText(_translate("InitForm", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"bzrtopic:formats\"><span style=\" text-decoration: underline; color:#0000ff;\">More information about repository formats.</span></a></p></body></html>", None))
-
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"bzrtopic:formats\"><span style=\" text-decoration: underline; color:#0000ff;\">More information about repository formats.</span></a></p></body></html>"))

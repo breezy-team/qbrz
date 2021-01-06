@@ -2,13 +2,14 @@
 
 # Form implementation generated from reading ui file 'ui/push.ui'
 #
-# Created: Mon Oct 05 19:41:19 2009
-#      by: PyQt4 UI code generator 4.4.3
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from breezy.plugins.qbrz.lib.i18n import gettext
+
 
 
 class Ui_PushForm(object):
@@ -26,8 +27,7 @@ class Ui_PushForm(object):
         self.label_2.setObjectName("label_2")
         self.gridLayout.addWidget(self.label_2, 0, 0, 1, 1)
         self.location = QtWidgets.QComboBox(self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                           QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.location.sizePolicy().hasHeightForWidth())
@@ -56,16 +56,16 @@ class Ui_PushForm(object):
         self.label_2.setBuddy(self.location)
 
         self.retranslateUi(PushForm)
-        PushForm.disableUi[bool].connect(self.groupBox.setDisabled)
+        PushForm.disableUi['bool'].connect(self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(PushForm)
 
     def retranslateUi(self, PushForm):
-        PushForm.setWindowTitle(gettext("Push"))
-        self.groupBox.setTitle(gettext("Options"))
-        self.label_2.setText(gettext("&Location:"))
-        self.location_picker.setText(gettext("Browse..."))
-        self.remember.setText(gettext("Remember this location as a default"))
-        self.overwrite.setText(gettext("Overwrite differences between branches"))
-        self.use_existing_dir.setText(gettext("Use existing directory"))
-        self.create_prefix.setText(gettext("Create the path up to the branch if it does not exist"))
-
+        _translate = QtCore.QCoreApplication.translate
+        PushForm.setWindowTitle(_translate("PushForm", "Push"))
+        self.groupBox.setTitle(_translate("PushForm", "Options"))
+        self.label_2.setText(_translate("PushForm", "&Location:"))
+        self.location_picker.setText(_translate("PushForm", "Browse..."))
+        self.remember.setText(_translate("PushForm", "Remember this location as a default"))
+        self.overwrite.setText(_translate("PushForm", "Overwrite differences between branches"))
+        self.use_existing_dir.setText(_translate("PushForm", "Use existing directory"))
+        self.create_prefix.setText(_translate("PushForm", "Create the path up to the branch if it does not exist"))

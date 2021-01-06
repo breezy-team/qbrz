@@ -2,19 +2,15 @@
 
 # Form implementation generated from reading ui file 'ui/info.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.3
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
+from breezy.plugins.qbrz.lib.i18n import gettext
+
+
 
 class Ui_InfoForm(object):
     def setupUi(self, InfoForm):
@@ -40,7 +36,6 @@ class Ui_InfoForm(object):
         self.tab_basic = QtWidgets.QWidget()
         self.tab_basic.setObjectName("tab_basic")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.tab_basic)
-        self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
         self.frame = QtWidgets.QFrame(self.tab_basic)
         self.frame.setFrameShape(QtWidgets.QFrame.NoFrame)
@@ -58,7 +53,6 @@ class Ui_InfoForm(object):
         self.tab_detailed = QtWidgets.QWidget()
         self.tab_detailed.setObjectName("tab_detailed")
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.tab_detailed)
-        self.verticalLayout_6.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_6.setObjectName("verticalLayout_6")
         self.scrollArea = QtWidgets.QScrollArea(self.tab_detailed)
         self.scrollArea.setFrameShape(QtWidgets.QFrame.NoFrame)
@@ -70,7 +64,6 @@ class Ui_InfoForm(object):
         self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 539, 179))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.detailed_info = QtWidgets.QLabel(self.scrollAreaWidgetContents)
         self.detailed_info.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
@@ -86,10 +79,10 @@ class Ui_InfoForm(object):
         QtCore.QMetaObject.connectSlotsByName(InfoForm)
 
     def retranslateUi(self, InfoForm):
-        self.label_2.setText(_translate("InfoForm", "Location:", None))
-        self.local_location.setText(_translate("InfoForm", "...", None))
-        self.basic_info.setText(_translate("InfoForm", "Info", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_basic), _translate("InfoForm", "&Basic", None))
-        self.detailed_info.setText(_translate("InfoForm", "Info", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_detailed), _translate("InfoForm", "&Detailed", None))
-
+        _translate = QtCore.QCoreApplication.translate
+        self.label_2.setText(_translate("InfoForm", "Location:"))
+        self.local_location.setText(_translate("InfoForm", "..."))
+        self.basic_info.setText(_translate("InfoForm", "Info"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_basic), _translate("InfoForm", "&Basic"))
+        self.detailed_info.setText(_translate("InfoForm", "Info"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_detailed), _translate("InfoForm", "&Detailed"))

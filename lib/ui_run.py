@@ -2,19 +2,15 @@
 
 # Form implementation generated from reading ui file 'ui/run.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.3
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
+from breezy.plugins.qbrz.lib.i18n import gettext
+
+
 
 class Ui_RunDialog(object):
     def setupUi(self, RunDialog):
@@ -97,7 +93,7 @@ class Ui_RunDialog(object):
         self.opt_arg_label.setBuddy(self.opt_arg_edit)
 
         self.retranslateUi(RunDialog)
-        RunDialog.disableUi[bool].connect(self.run_container.setDisabled)
+        RunDialog.disableUi['bool'].connect(self.run_container.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(RunDialog)
         RunDialog.setTabOrder(self.wd_edit, self.browse_button)
         RunDialog.setTabOrder(self.browse_button, self.hidden_checkbox)
@@ -108,14 +104,14 @@ class Ui_RunDialog(object):
         RunDialog.setTabOrder(self.filenames_button, self.help_browser)
 
     def retranslateUi(self, RunDialog):
-        RunDialog.setWindowTitle(_translate("RunDialog", "Run bzr command", None))
-        self.run_container.setTitle(_translate("RunDialog", "Options", None))
-        self.wd_label.setText(_translate("RunDialog", "&Working directory:", None))
-        self.browse_button.setText(_translate("RunDialog", "&Browse...", None))
-        self.cat_label.setText(_translate("RunDialog", "C&ategory:", None))
-        self.cmd_label.setText(_translate("RunDialog", "&Command:", None))
-        self.hidden_checkbox.setText(_translate("RunDialog", "&Show hidden commands", None))
-        self.opt_arg_label.setText(_translate("RunDialog", "&Options and arguments for command:", None))
-        self.directory_button.setText(_translate("RunDialog", "Insert &directory...", None))
-        self.filenames_button.setText(_translate("RunDialog", "Insert &filenames...", None))
-
+        _translate = QtCore.QCoreApplication.translate
+        RunDialog.setWindowTitle(_translate("RunDialog", "Run bzr command"))
+        self.run_container.setTitle(_translate("RunDialog", "Options"))
+        self.wd_label.setText(_translate("RunDialog", "&Working directory:"))
+        self.browse_button.setText(_translate("RunDialog", "&Browse..."))
+        self.cat_label.setText(_translate("RunDialog", "C&ategory:"))
+        self.cmd_label.setText(_translate("RunDialog", "&Command:"))
+        self.hidden_checkbox.setText(_translate("RunDialog", "&Show hidden commands"))
+        self.opt_arg_label.setText(_translate("RunDialog", "&Options and arguments for command:"))
+        self.directory_button.setText(_translate("RunDialog", "Insert &directory..."))
+        self.filenames_button.setText(_translate("RunDialog", "Insert &filenames..."))

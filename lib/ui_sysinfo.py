@@ -2,21 +2,15 @@
 
 # Form implementation generated from reading ui file 'ui/sysinfo.ui'
 #
-# Created by: PyQt4 UI code generator 4.11.4
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
+
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from breezy.plugins.qbrz.lib.i18n import gettext
 
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -94,22 +88,22 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "System Information", None))
-        self.bazaar_library.setTitle(_translate("MainWindow", "Breezy Library", None))
-        self.label.setText(_translate("MainWindow", "Version:", None))
-        self.bzr_version.setText(_translate("MainWindow", "(bzr-version)", None))
-        self.label_3.setText(_translate("MainWindow", "Path:", None))
-        self.bzr_lib_path.setText(_translate("MainWindow", "(bzr-lib-path)", None))
-        self.bazaar_configuration.setTitle(_translate("MainWindow", "Breezy Configuration", None))
-        self.label_2.setText(_translate("MainWindow", "Settings:", None))
-        self.bzr_config_dir.setText(_translate("MainWindow", "(bzr-config-dir)", None))
-        self.label_4.setText(_translate("MainWindow", "Log File:", None))
-        self.bzr_log_file.setText(_translate("MainWindow", "(bzr-log-file)", None))
-        self.python_interpreter.setTitle(_translate("MainWindow", "Python Interpreter", None))
-        self.label_5.setText(_translate("MainWindow", "Version:", None))
-        self.python_version.setText(_translate("MainWindow", "(python-version)", None))
-        self.label_9.setText(_translate("MainWindow", "Path:", None))
-        self.python_file.setText(_translate("MainWindow", "(python-file)", None))
-        self.label_7.setText(_translate("MainWindow", "Library:", None))
-        self.python_lib_dir.setText(_translate("MainWindow", "(python-lib-dir)", None))
-
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "System Information"))
+        self.bazaar_library.setTitle(_translate("MainWindow", "Breezy Library"))
+        self.label.setText(_translate("MainWindow", "Version:"))
+        self.bzr_version.setText(_translate("MainWindow", "(bzr-version)"))
+        self.label_3.setText(_translate("MainWindow", "Path:"))
+        self.bzr_lib_path.setText(_translate("MainWindow", "(bzr-lib-path)"))
+        self.bazaar_configuration.setTitle(_translate("MainWindow", "Breezy Configuration"))
+        self.label_2.setText(_translate("MainWindow", "Settings:"))
+        self.bzr_config_dir.setText(_translate("MainWindow", "(bzr-config-dir)"))
+        self.label_4.setText(_translate("MainWindow", "Log File:"))
+        self.bzr_log_file.setText(_translate("MainWindow", "(bzr-log-file)"))
+        self.python_interpreter.setTitle(_translate("MainWindow", "Python Interpreter"))
+        self.label_5.setText(_translate("MainWindow", "Version:"))
+        self.python_version.setText(_translate("MainWindow", "(python-version)"))
+        self.label_9.setText(_translate("MainWindow", "Path:"))
+        self.python_file.setText(_translate("MainWindow", "(python-file)"))
+        self.label_7.setText(_translate("MainWindow", "Library:"))
+        self.python_lib_dir.setText(_translate("MainWindow", "(python-lib-dir)"))

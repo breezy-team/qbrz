@@ -2,19 +2,15 @@
 
 # Form implementation generated from reading ui file 'ui/branch.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.3
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
+from breezy.plugins.qbrz.lib.i18n import gettext
+
+
 
 class Ui_BranchForm(object):
     def setupUi(self, BranchForm):
@@ -92,17 +88,17 @@ class Ui_BranchForm(object):
         self.revision_label.setBuddy(self.revision)
 
         self.retranslateUi(BranchForm)
-        BranchForm.disableUi[bool].connect(self.groupBox.setDisabled)
+        BranchForm.disableUi['bool'].connect(self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(BranchForm)
 
     def retranslateUi(self, BranchForm):
-        BranchForm.setWindowTitle(_translate("BranchForm", "Branch", None))
-        self.groupBox.setTitle(_translate("BranchForm", "Locations", None))
-        self.from_label.setText(_translate("BranchForm", "&From:", None))
-        self.from_picker.setText(_translate("BranchForm", "Browse...", None))
-        self.to_label.setText(_translate("BranchForm", "&To:", None))
-        self.to_picker.setText(_translate("BranchForm", "Browse...", None))
-        self.groupBox_2.setTitle(_translate("BranchForm", "Options", None))
-        self.bind.setText(_translate("BranchForm", "Bind new branch to parent location", None))
-        self.revision_label.setText(_translate("BranchForm", "&Revision:", None))
-
+        _translate = QtCore.QCoreApplication.translate
+        BranchForm.setWindowTitle(_translate("BranchForm", "Branch"))
+        self.groupBox.setTitle(_translate("BranchForm", "Locations"))
+        self.from_label.setText(_translate("BranchForm", "&From:"))
+        self.from_picker.setText(_translate("BranchForm", "Browse..."))
+        self.to_label.setText(_translate("BranchForm", "&To:"))
+        self.to_picker.setText(_translate("BranchForm", "Browse..."))
+        self.groupBox_2.setTitle(_translate("BranchForm", "Options"))
+        self.bind.setText(_translate("BranchForm", "Bind new branch to parent location"))
+        self.revision_label.setText(_translate("BranchForm", "&Revision:"))

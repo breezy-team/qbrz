@@ -2,19 +2,15 @@
 
 # Form implementation generated from reading ui file 'ui/update_checkout.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.3
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
+from breezy.plugins.qbrz.lib.i18n import gettext
+
+
 
 class Ui_UpdateCheckoutForm(object):
     def setupUi(self, UpdateCheckoutForm):
@@ -69,18 +65,18 @@ class Ui_UpdateCheckoutForm(object):
         self.verticalLayout.addWidget(self.groupBox)
 
         self.retranslateUi(UpdateCheckoutForm)
-        self.but_pull.toggled[bool].connect(self.location.setEnabled)
-        self.but_pull.toggled[bool].connect(self.location_picker.setEnabled)
-        self.but_pull.toggled[bool].connect(self.but_pull_overwrite.setEnabled)
-        UpdateCheckoutForm.disableUi[bool].connect(self.groupBox.setDisabled)
+        self.but_pull.toggled['bool'].connect(self.location.setEnabled)
+        self.but_pull.toggled['bool'].connect(self.location_picker.setEnabled)
+        self.but_pull.toggled['bool'].connect(self.but_pull_overwrite.setEnabled)
+        UpdateCheckoutForm.disableUi['bool'].connect(self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(UpdateCheckoutForm)
 
     def retranslateUi(self, UpdateCheckoutForm):
-        UpdateCheckoutForm.setWindowTitle(_translate("UpdateCheckoutForm", "Update Checkout", None))
-        self.label.setText(_translate("UpdateCheckoutForm", "This directory is a checkout of: %s", None))
-        self.groupBox.setTitle(_translate("UpdateCheckoutForm", "Update source", None))
-        self.but_update.setText(_translate("UpdateCheckoutForm", "Update the working tree from the bound branch", None))
-        self.but_pull.setText(_translate("UpdateCheckoutForm", "Pull a different branch", None))
-        self.location_picker.setText(_translate("UpdateCheckoutForm", "Browse...", None))
-        self.but_pull_overwrite.setText(_translate("UpdateCheckoutForm", "Overwrite differences between branches", None))
-
+        _translate = QtCore.QCoreApplication.translate
+        UpdateCheckoutForm.setWindowTitle(_translate("UpdateCheckoutForm", "Update Checkout"))
+        self.label.setText(_translate("UpdateCheckoutForm", "This directory is a checkout of: %s"))
+        self.groupBox.setTitle(_translate("UpdateCheckoutForm", "Update source"))
+        self.but_update.setText(_translate("UpdateCheckoutForm", "Update the working tree from the bound branch"))
+        self.but_pull.setText(_translate("UpdateCheckoutForm", "Pull a different branch"))
+        self.location_picker.setText(_translate("UpdateCheckoutForm", "Browse..."))
+        self.but_pull_overwrite.setText(_translate("UpdateCheckoutForm", "Overwrite differences between branches"))

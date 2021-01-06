@@ -2,19 +2,15 @@
 
 # Form implementation generated from reading ui file 'ui/new_tree.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.3
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
+from breezy.plugins.qbrz.lib.i18n import gettext
+
+
 
 class Ui_NewWorkingTreeForm(object):
     def setupUi(self, NewWorkingTreeForm):
@@ -122,51 +118,51 @@ class Ui_NewWorkingTreeForm(object):
         self.retranslateUi(NewWorkingTreeForm)
         self.link_help.linkActivated['QString'].connect(NewWorkingTreeForm.linkActivated)
         self.link_help_revisions.linkActivated['QString'].connect(NewWorkingTreeForm.linkActivated)
-        self.but_checkout.toggled[bool].connect(self.but_lightweight.setEnabled)
-        self.but_branch.toggled[bool].connect(self.but_stacked.setEnabled)
-        self.but_rev_specific.toggled[bool].connect(self.revision.setEnabled)
-        NewWorkingTreeForm.disableUi[bool].connect(self.groupBox.setDisabled)
-        NewWorkingTreeForm.disableUi[bool].connect(self.groupBox_3.setDisabled)
-        NewWorkingTreeForm.disableUi[bool].connect(self.groupBox_2.setDisabled)
+        self.but_checkout.toggled['bool'].connect(self.but_lightweight.setEnabled)
+        self.but_branch.toggled['bool'].connect(self.but_stacked.setEnabled)
+        self.but_rev_specific.toggled['bool'].connect(self.revision.setEnabled)
+        NewWorkingTreeForm.disableUi['bool'].connect(self.groupBox.setDisabled)
+        NewWorkingTreeForm.disableUi['bool'].connect(self.groupBox_3.setDisabled)
+        NewWorkingTreeForm.disableUi['bool'].connect(self.groupBox_2.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(NewWorkingTreeForm)
 
     def retranslateUi(self, NewWorkingTreeForm):
-        NewWorkingTreeForm.setWindowTitle(_translate("NewWorkingTreeForm", "Create a new Bazaar Working Tree", None))
-        self.groupBox.setTitle(_translate("NewWorkingTreeForm", "Branch", None))
-        self.label_4.setText(_translate("NewWorkingTreeForm", "Branch source (enter a URL or select a local directory with an existing branch)", None))
-        self.from_picker.setText(_translate("NewWorkingTreeForm", "Browse...", None))
-        self.label.setText(_translate("NewWorkingTreeForm", "Local directory where the working tree will be created", None))
-        self.to_picker.setText(_translate("NewWorkingTreeForm", "Browse...", None))
-        self.groupBox_3.setTitle(_translate("NewWorkingTreeForm", "Working Tree Options", None))
-        self.but_checkout.setText(_translate("NewWorkingTreeForm", "Create a checkout", None))
+        _translate = QtCore.QCoreApplication.translate
+        NewWorkingTreeForm.setWindowTitle(_translate("NewWorkingTreeForm", "Create a new Bazaar Working Tree"))
+        self.groupBox.setTitle(_translate("NewWorkingTreeForm", "Branch"))
+        self.label_4.setText(_translate("NewWorkingTreeForm", "Branch source (enter a URL or select a local directory with an existing branch)"))
+        self.from_picker.setText(_translate("NewWorkingTreeForm", "Browse..."))
+        self.label.setText(_translate("NewWorkingTreeForm", "Local directory where the working tree will be created"))
+        self.to_picker.setText(_translate("NewWorkingTreeForm", "Browse..."))
+        self.groupBox_3.setTitle(_translate("NewWorkingTreeForm", "Working Tree Options"))
+        self.but_checkout.setText(_translate("NewWorkingTreeForm", "Create a checkout"))
         self.but_lightweight.setToolTip(_translate("NewWorkingTreeForm", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-style:italic;\">Lightweight checkouts </span>depend on access to the branch for every operation.</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Normal checkouts can perform common operations like diff and status without such access, and also support local commits.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None))
-        self.but_lightweight.setText(_translate("NewWorkingTreeForm", "Light-weight checkout", None))
-        self.but_branch.setText(_translate("NewWorkingTreeForm", "Make a local copy of the branch", None))
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>"))
+        self.but_lightweight.setText(_translate("NewWorkingTreeForm", "Light-weight checkout"))
+        self.but_branch.setText(_translate("NewWorkingTreeForm", "Make a local copy of the branch"))
         self.but_stacked.setToolTip(_translate("NewWorkingTreeForm", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">A <span style=\" font-style:italic;\">stacked branch</span> only stores information not in the source branch, and as such, depends on the availability of the source branch</p></body></html>", None))
-        self.but_stacked.setText(_translate("NewWorkingTreeForm", "Create a stacked branch referring to the source branch", None))
-        self.link_help.setToolTip(_translate("NewWorkingTreeForm", "Click a link for more information about checkouts and branches.", None))
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">A <span style=\" font-style:italic;\">stacked branch</span> only stores information not in the source branch, and as such, depends on the availability of the source branch</p></body></html>"))
+        self.but_stacked.setText(_translate("NewWorkingTreeForm", "Create a stacked branch referring to the source branch"))
+        self.link_help.setToolTip(_translate("NewWorkingTreeForm", "Click a link for more information about checkouts and branches."))
         self.link_help.setText(_translate("NewWorkingTreeForm", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;\">Tell me more about <a href=\"bzrtopic:checkouts\"><span style=\" text-decoration: underline; color:#0000ff;\">checkouts</span></a> and <a href=\"bzrtopic:branches\"><span style=\" text-decoration: underline; color:#0000ff;\">branches</span></a></p></body></html>", None))
-        self.groupBox_2.setTitle(_translate("NewWorkingTreeForm", "Revision", None))
-        self.but_rev_tip.setText(_translate("NewWorkingTreeForm", "Most recent (tip) revision", None))
-        self.but_rev_specific.setText(_translate("NewWorkingTreeForm", "Revision:", None))
-        self.but_show_log.setText(_translate("NewWorkingTreeForm", "Show Log...", None))
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;\">Tell me more about <a href=\"bzrtopic:checkouts\"><span style=\" text-decoration: underline; color:#0000ff;\">checkouts</span></a> and <a href=\"bzrtopic:branches\"><span style=\" text-decoration: underline; color:#0000ff;\">branches</span></a></p></body></html>"))
+        self.groupBox_2.setTitle(_translate("NewWorkingTreeForm", "Revision"))
+        self.but_rev_tip.setText(_translate("NewWorkingTreeForm", "Most recent (tip) revision"))
+        self.but_rev_specific.setText(_translate("NewWorkingTreeForm", "Revision:"))
+        self.but_show_log.setText(_translate("NewWorkingTreeForm", "Show Log..."))
         self.link_help_revisions.setText(_translate("NewWorkingTreeForm", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;\"><a href=\"bzrtopic:revisionspec\"><span style=\" text-decoration: underline; color:#0000ff;\">About revision identifiers</span></a></p></body></html>", None))
-
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;\"><a href=\"bzrtopic:revisionspec\"><span style=\" text-decoration: underline; color:#0000ff;\">About revision identifiers</span></a></p></body></html>"))

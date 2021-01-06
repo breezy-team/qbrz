@@ -2,19 +2,15 @@
 
 # Form implementation generated from reading ui file 'ui/bookmark.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.3
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
+from breezy.plugins.qbrz.lib.i18n import gettext
+
+
 
 class Ui_BookmarkDialog(object):
     def setupUi(self, BookmarkDialog):
@@ -52,6 +48,6 @@ class Ui_BookmarkDialog(object):
         QtCore.QMetaObject.connectSlotsByName(BookmarkDialog)
 
     def retranslateUi(self, BookmarkDialog):
-        self.label.setText(_translate("BookmarkDialog", "&Name:", None))
-        self.label_2.setText(_translate("BookmarkDialog", "&Location:", None))
-
+        _translate = QtCore.QCoreApplication.translate
+        self.label.setText(_translate("BookmarkDialog", "&Name:"))
+        self.label_2.setText(_translate("BookmarkDialog", "&Location:"))

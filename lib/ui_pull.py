@@ -2,19 +2,15 @@
 
 # Form implementation generated from reading ui file 'ui/pull.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.3
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
+from breezy.plugins.qbrz.lib.i18n import gettext
+
+
 
 class Ui_PullForm(object):
     def setupUi(self, PullForm):
@@ -58,15 +54,15 @@ class Ui_PullForm(object):
         self.label_3.setBuddy(self.revision)
 
         self.retranslateUi(PullForm)
-        PullForm.disableUi[bool].connect(self.groupBox.setDisabled)
+        PullForm.disableUi['bool'].connect(self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(PullForm)
 
     def retranslateUi(self, PullForm):
-        PullForm.setWindowTitle(_translate("PullForm", "Pull", None))
-        self.groupBox.setTitle(_translate("PullForm", "Options", None))
-        self.label_2.setText(_translate("PullForm", "&Location:", None))
-        self.location_picker.setText(_translate("PullForm", "Browse...", None))
-        self.label_3.setText(_translate("PullForm", "&Revision:", None))
-        self.remember.setText(_translate("PullForm", "Remember this location as a default", None))
-        self.overwrite.setText(_translate("PullForm", "Overwrite differences between branches", None))
-
+        _translate = QtCore.QCoreApplication.translate
+        PullForm.setWindowTitle(_translate("PullForm", "Pull"))
+        self.groupBox.setTitle(_translate("PullForm", "Options"))
+        self.label_2.setText(_translate("PullForm", "&Location:"))
+        self.location_picker.setText(_translate("PullForm", "Browse..."))
+        self.label_3.setText(_translate("PullForm", "&Revision:"))
+        self.remember.setText(_translate("PullForm", "Remember this location as a default"))
+        self.overwrite.setText(_translate("PullForm", "Overwrite differences between branches"))

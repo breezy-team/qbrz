@@ -30,7 +30,7 @@ from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
 import sys
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy import (
     builtins,
@@ -159,7 +159,7 @@ class QBzrCommand(Command):
         # This is because once the factory is installed, it is possible that
         # opening a branch, etc will go to the ui_factory to request a
         # password, and the app must exist before the dialog can be created.
-        self._application = QtGui.QApplication(sys.argv)
+        self._application = QtWidgets.QApplication(sys.argv)
         std_ui_factory = ui.ui_factory
         try:
             ui.ui_factory = QUIFactory()

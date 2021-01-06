@@ -2,19 +2,15 @@
 
 # Form implementation generated from reading ui file 'ui/tag.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.3
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
+from breezy.plugins.qbrz.lib.i18n import gettext
+
+
 
 class Ui_TagForm(object):
     def setupUi(self, TagForm):
@@ -86,8 +82,8 @@ class Ui_TagForm(object):
         self.label_revision.setBuddy(self.rev_edit)
 
         self.retranslateUi(TagForm)
-        TagForm.disableUi[bool].connect(self.tag_group.setDisabled)
-        TagForm.disableUi[bool].connect(self.branch_group.setDisabled)
+        TagForm.disableUi['bool'].connect(self.tag_group.setDisabled)
+        TagForm.disableUi['bool'].connect(self.branch_group.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(TagForm)
         TagForm.setTabOrder(self.branch_location, self.branch_browse)
         TagForm.setTabOrder(self.branch_browse, self.cb_action)
@@ -96,15 +92,15 @@ class Ui_TagForm(object):
         TagForm.setTabOrder(self.rev_edit, self.pick_rev)
 
     def retranslateUi(self, TagForm):
-        TagForm.setWindowTitle(_translate("TagForm", "Edit tag", None))
-        self.branch_group.setTitle(_translate("TagForm", "Branch", None))
-        self.branch_browse.setText(_translate("TagForm", "&Browse...", None))
-        self.tag_group.setTitle(_translate("TagForm", "Tag", None))
-        self.label_action.setText(_translate("TagForm", "&Action:", None))
-        self.cb_action.setItemText(0, _translate("TagForm", "Create new tag", None))
-        self.cb_action.setItemText(1, _translate("TagForm", "Replace existing tag", None))
-        self.cb_action.setItemText(2, _translate("TagForm", "Delete existing tag", None))
-        self.label_tag_name.setText(_translate("TagForm", "&Tag name:", None))
-        self.label_revision.setText(_translate("TagForm", "&Revision:", None))
-        self.pick_rev.setText(_translate("TagForm", "&Select...", None))
-
+        _translate = QtCore.QCoreApplication.translate
+        TagForm.setWindowTitle(_translate("TagForm", "Edit tag"))
+        self.branch_group.setTitle(_translate("TagForm", "Branch"))
+        self.branch_browse.setText(_translate("TagForm", "&Browse..."))
+        self.tag_group.setTitle(_translate("TagForm", "Tag"))
+        self.label_action.setText(_translate("TagForm", "&Action:"))
+        self.cb_action.setItemText(0, _translate("TagForm", "Create new tag"))
+        self.cb_action.setItemText(1, _translate("TagForm", "Replace existing tag"))
+        self.cb_action.setItemText(2, _translate("TagForm", "Delete existing tag"))
+        self.label_tag_name.setText(_translate("TagForm", "&Tag name:"))
+        self.label_revision.setText(_translate("TagForm", "&Revision:"))
+        self.pick_rev.setText(_translate("TagForm", "&Select..."))

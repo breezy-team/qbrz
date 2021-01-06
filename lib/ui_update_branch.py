@@ -2,19 +2,15 @@
 
 # Form implementation generated from reading ui file 'ui/update_branch.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.3
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtCore.QCoreApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
+from breezy.plugins.qbrz.lib.i18n import gettext
+
+
 
 class Ui_UpdateBranchForm(object):
     def setupUi(self, UpdateBranchForm):
@@ -81,22 +77,22 @@ class Ui_UpdateBranchForm(object):
         self.verticalLayout_3.addWidget(self.groupBox)
 
         self.retranslateUi(UpdateBranchForm)
-        self.but_pull.toggled[bool].connect(self.but_pull_remember.setEnabled)
-        self.but_pull.toggled[bool].connect(self.but_pull_overwrite.setEnabled)
-        self.but_pull.toggled[bool].connect(self.location.setEnabled)
-        self.but_pull.toggled[bool].connect(self.location_picker.setEnabled)
-        UpdateBranchForm.disableUi[bool].connect(self.label.setDisabled)
-        UpdateBranchForm.disableUi[bool].connect(self.groupBox.setDisabled)
+        self.but_pull.toggled['bool'].connect(self.but_pull_remember.setEnabled)
+        self.but_pull.toggled['bool'].connect(self.but_pull_overwrite.setEnabled)
+        self.but_pull.toggled['bool'].connect(self.location.setEnabled)
+        self.but_pull.toggled['bool'].connect(self.location_picker.setEnabled)
+        UpdateBranchForm.disableUi['bool'].connect(self.label.setDisabled)
+        UpdateBranchForm.disableUi['bool'].connect(self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(UpdateBranchForm)
 
     def retranslateUi(self, UpdateBranchForm):
-        UpdateBranchForm.setWindowTitle(_translate("UpdateBranchForm", "Update Branch", None))
-        self.label.setText(_translate("UpdateBranchForm", "This directory is a branch.  Please select what you would like to update", None))
-        self.groupBox.setTitle(_translate("UpdateBranchForm", "Update source", None))
-        self.location_picker.setText(_translate("UpdateBranchForm", "Browse...", None))
-        self.but_pull.setText(_translate("UpdateBranchForm", "Pull most recent changes from:", None))
-        self.but_pull_remember.setText(_translate("UpdateBranchForm", "Remember this as the new parent branch", None))
-        self.but_pull_overwrite.setText(_translate("UpdateBranchForm", "Overwrite differences between branches", None))
-        self.location.setItemText(0, _translate("UpdateBranchForm", "<Parent Branch shown here>", None))
-        self.but_update.setText(_translate("UpdateBranchForm", "Update working tree to the latest changes in the branch", None))
-
+        _translate = QtCore.QCoreApplication.translate
+        UpdateBranchForm.setWindowTitle(_translate("UpdateBranchForm", "Update Branch"))
+        self.label.setText(_translate("UpdateBranchForm", "This directory is a branch.  Please select what you would like to update"))
+        self.groupBox.setTitle(_translate("UpdateBranchForm", "Update source"))
+        self.location_picker.setText(_translate("UpdateBranchForm", "Browse..."))
+        self.but_pull.setText(_translate("UpdateBranchForm", "Pull most recent changes from:"))
+        self.but_pull_remember.setText(_translate("UpdateBranchForm", "Remember this as the new parent branch"))
+        self.but_pull_overwrite.setText(_translate("UpdateBranchForm", "Overwrite differences between branches"))
+        self.location.setItemText(0, _translate("UpdateBranchForm", "<Parent Branch shown here>"))
+        self.but_update.setText(_translate("UpdateBranchForm", "Update working tree to the latest changes in the branch"))

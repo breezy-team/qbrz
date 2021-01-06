@@ -28,7 +28,7 @@ import os
 import re
 
 
-_translate_re = re.compile(r'QtGui\.QCoreApplication.translate\(.*?, (.*?), None, QtGui\.QApplication\\)')
+_translate_re = re.compile(r'QtGui\.QCoreApplication.translate\(.*?, (.*?), None, QtGui\.QApplication\)')
 _import_re = re.compile(r'(from PyQt5 import QtCore, QtGui)')
 
 
@@ -63,8 +63,8 @@ class build_ui(Command):
                 tmp = StringIO()
                 uic.compileUi(uifile, tmp)
                 source = _translate_re.sub(r'gettext(\1)', tmp.getvalue())
-                source = source.replace("from PyQt5 import QtCore, QtGui",
-                    "from PyQt5 import QtCore, QtGui\n"
+                source = source.replace("from PyQt5 import QtCore, QtGui, QtWidgets",
+                    "from PyQt5 import QtCore, QtGui, QtWidgets\n"
                     "from breezy.plugins.%s.lib.i18n import gettext\n" % prj_name)
                 # f = open(pyfile, "wb")
                 f = open(pyfile, "w")
