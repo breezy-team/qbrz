@@ -10,11 +10,12 @@ all:
 	@echo   docs   - build htmls for texts in docs/ directory
 	@echo   epydoc - build API docs with epydoc
 	@echo   ui     - compile UI files
-	@echo   inno   - compile exe (pass RELEASE=X.Y.Z)
+	@echo   inno   - compile exe  - pass RELEASE=X.Y.Z
 	@echo
 	@echo To build release run:
 	@echo    make release
-	@echo (the version will be picked up from version.txt)
+	@echo the version will be picked up from version.txt
+	@echo MAKE SURE YOU COMMIT FIRST - brz export USES THE COMMITTED FILES
 
 # We'll read the RELEASE number from version.txt
 
@@ -49,7 +50,7 @@ inno: .check-env-vars
 release: tarball inno
 
 clean:
-	python3 setup.py clean -a
+	python3 ./setup.py clean -a
 
 tags:
 	ctags *.py lib/*.py lib/extra/*.py lib/tests/*.py
@@ -61,7 +62,7 @@ docs:
 	$(MAKE) -C docs
 
 ui:
-	python3 setup.py build_ui --force
+	python3 setup.py build_ui
 
 
 # === Tests beyond this point ===
@@ -72,13 +73,13 @@ check:
 # Stop on first error, ignore TestTreeFilterProxyModel for now
 
 checkone:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x  TestTreeFilterProxyModel
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x  TestTreeFilterProxyModel -x TestTreeWidget
 
 # Test specific item - e.g. for internationalisation, use:
 #
 #  BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestI18n
 checkspecific:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz -v TestTreeWidget
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz -v
 
 # Rather than running the test_ suite, this lets you run the actual plugin - note
 # that the tests can often pass but the code fails in actual use.
