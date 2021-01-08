@@ -742,8 +742,9 @@ class GraphTagsBugsItemDelegate(QtWidgets.QStyledItemDelegate):
             text_width = fm.width(option.text)
             text = option.text
             if text_width > text_rect.width():
-                text = self.elidedText(fm, text_rect.width(),
-                                       QtCore.Qt.ElideRight, text)
+                # RJLRJL obsolete, so changed to fm (fontMetrics) instead
+                # text = self.elidedText(fm, text_rect.width(), QtCore.Qt.ElideRight, text)
+                text = fm.elidedText(text, QtCore.Qt.ElideRight, text_rect.width())
 
             painter.drawText(text_rect, QtCore.Qt.AlignLeft, text)
 

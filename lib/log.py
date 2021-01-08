@@ -212,7 +212,7 @@ class LogWindow(QBzrWindow):
         # set focus on search edit widget
         self.log_list.setFocus()
 
-    @runs_in_loading_queue
+    # @runs_in_loading_queue
     @ui_current_widget
     @reports_exception()
     def load(self):
@@ -223,7 +223,7 @@ class LogWindow(QBzrWindow):
             # Set window title.
             lt = self._locations_for_title(self.locations)
             if lt:
-                self.set_title ((self.title, lt))
+                self.set_title((self.title, lt))
 
             branches, primary_bi, file_ids = self.get_branches_and_file_ids()
             if self.show_trees:
@@ -237,6 +237,8 @@ class LogWindow(QBzrWindow):
         finally:
             self.refresh_button.setDisabled(False)
             self.throbber.hide()
+            self.processEvents()
+
 
     def get_branches_and_file_ids(self):
         if self.branch:
@@ -404,6 +406,7 @@ class LogWindow(QBzrWindow):
 
     def show(self):
         # we show the bare form as soon as possible.
+        # super().show()
         QBzrWindow.show(self)
         # RJLRJL the docs for Qt5 state:
         #
@@ -416,6 +419,10 @@ class LogWindow(QBzrWindow):
         # Change to 1 and it now works correctly.
         # QtCore.QTimer.singleShot(0, self.load)
         QtCore.QTimer.singleShot(1, self.load)
+        # self.load()
+        # QtCore.QTimer.singleShot(1, self.load)
+        # self.load()
+        # self.load()
 
     def update_selection(self, selected, deselected):
         indexes = self.log_list.get_selection_indexes()
