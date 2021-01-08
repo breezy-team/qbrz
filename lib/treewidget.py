@@ -1431,7 +1431,7 @@ class TreeFilterProxyModel(QtCore.QSortFilterProxyModel):
 class TreeFilterMenu(QtWidgets.QMenu):
     triggered = QtCore.pyqtSignal(int, bool)
 
-    def __init__(self, parent=None):
+    def __init__ (self, parent=None):
         QtWidgets.QMenu.__init__(self, gettext("&Filter"), parent)
 
         filters = (gettext("Unchanged"),
@@ -1447,10 +1447,9 @@ class TreeFilterMenu(QtWidgets.QMenu):
             self.addAction(action)
             self.actions.append(action)
 
-        # self.triggered[QtWidgets.QAction].connect(self.triggered)
-        self.triggered.connect(self._triggered)
+        self.triggered[QAction].connect(self.triggered)
 
-    def _triggered(self, action):
+    def triggered(self, action):
         # filter = action.data().toInt()[0]
         filter = int(action.data())
         checked = action.isChecked()
@@ -1680,16 +1679,13 @@ class TreeWidget(RevisionTreeView):
             self.tree.unlock()
 
     def refresh(self):
-        # print('\n\tTREE_WIDGET::refresh called\n')
         self.tree.lock_read()
         try:
             state = self.get_state()
-            # print('\tstate is {0}\n'.format(state))
             self.tree_model.set_tree(self.tree, self.branch,
                                      self.changes_mode, self.want_unversioned,
                                      change_load_filter=self.change_load_filter,
                                      load_dirs=state[1])
-            # print('\n\ttree', self.tree, '\n\tbranch', self.branch, '\n\tchanges', self.changes_mode, self.want_unversioned, self.change_load_filter)
             self.restore_state(state)
             self.tree_filter_model.invalidateFilter()
             if str(QtCore.QT_VERSION_STR).startswith("4.4"):
@@ -1699,7 +1695,6 @@ class TreeWidget(RevisionTreeView):
                 # after every time we do a layout changed. The issue is similar to
                 # http://www.qtsoftware.com/developer/task-tracker/index_html?method=entry&id=236755
                 self.set_header_width_settings()
-            # print('\ttry OK!\n')
         finally:
             self.tree.unlock()
 
@@ -1832,14 +1827,6 @@ class TreeWidget(RevisionTreeView):
         on_disk = [item.change is None or item.change.is_on_disk() for item in items]
         selection_len = len(items)
 
-        # TODO: RJLRJL:
-        # brz: ERROR: TypeError: 'ChangeDesc' object does not support indexing
-        # Traceback (most recent call last):
-        #   File "/home/rjl/pythonstuff/fix-python-etc/lib/treewidget.py", line 1763, in contextMenuEvent
-        #     self.filter_context_menu()
-        #   File "/home/rjl/pythonstuff/fix-python-etc/lib/treewidget.py", line 1832, in filter_context_menu
-        #     single_item_in_tree = (selection_len == 1 and (items[0].change is None or items[0].change[6][1] is not None))
-        # TypeError: 'ChangeDesc' object does not support indexing
         single_item_in_tree = (selection_len == 1 and (items[0].change is None or items[0].change[6][1] is not None))
         single_file = (single_item_in_tree and items[0].item.kind == "file")
         single_versioned_file = (single_file and versioned[0])

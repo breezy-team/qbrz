@@ -390,12 +390,15 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
     takes_options = [
         'revision',
         Option('complete', help='Show complete files.'),
-        Option('encoding', type=check_encoding, help='Encoding of files content (default: utf-8).'),
+        Option('encoding', type=check_encoding,
+               help='Encoding of files content (default: utf-8).'),
         Option('added', short_name='A', help='Show diff for added files.'),
         Option('deleted', short_name='K', help='Show diff for deleted files.'),
-        Option('modified', short_name='M', help='Show diff for modified files.'),
+        Option('modified', short_name='M',
+               help='Show diff for modified files.'),
         Option('renamed', short_name='R', help='Show diff for renamed files.'),
-        Option('ignore-whitespace', short_name='w', help="Ignore whitespace when finding differences"),
+        Option('ignore-whitespace', short_name='w',
+               help="Ignore whitespace when finding differences"),
         brz_option('diff', 'old'),
         brz_option('diff', 'new'),
         ]
@@ -422,8 +425,9 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
         args = []
         if self.revision and len(self.revision) == 1:
             args.append("-r%s" % (self.revision[0].user_spec,))
-        elif self.revision and len(self.revision) == 2:
-            args.append("-r%s..%s" % (self.revision[0].user_spec, self.revision[1].user_spec))
+        elif self.revision and  len(self.revision) == 2:
+            args.append("-r%s..%s" % (self.revision[0].user_spec,
+                                       self.revision[1].user_spec))
 
         if self.new and not self.new == CUR_DIR:
             args.append("--new=%s" % self.new)

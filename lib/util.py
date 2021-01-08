@@ -482,7 +482,7 @@ class QBzrWindow(QtWidgets.QMainWindow, _QBzrWindowBase):
 
     def show(self):
         QtWidgets.QMainWindow.show(self)
-        self.raise_()  # Make sure it displays in the foreground
+        self.raise_()	# Make sure it displays in the foreground
 
 
 class QBzrDialog(QtWidgets.QDialog, _QBzrWindowBase):

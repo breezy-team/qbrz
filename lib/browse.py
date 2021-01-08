@@ -43,18 +43,10 @@ from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.treewidget import TreeWidget, TreeFilterMenu
 from breezy.plugins.qbrz.lib.diff import DiffButtons
 ''')
-
-# TODO: RJLRJL in pyQt4 this all works. In 5, one gets a blank screen, unless you
-# click the 'Refresh' button with 'wt:' (working tree) set. If this is done, the
-# working tree is displayed... but it will disappear again if any buttons are used.
-# Using 'show' with a revision number seems to display (there's a very quick 'blip'
-# but the end result is the same: blank output
-# My suspicion is something in treewidget that got hurt when I moved code from
-# Python2 to 3
-
 class BrowseWindow(QBzrWindow):
 
-    def __init__(self, branch=None, location=None, revision=None, revision_id=None, revision_spec=None, parent=None):
+    def __init__(self, branch=None, location=None, revision=None,
+                 revision_id=None, revision_spec=None, parent=None):
         if branch:
             self.branch = branch
             self.location = url_for_display(branch.base)
@@ -63,17 +55,18 @@ class BrowseWindow(QBzrWindow):
             if location is None:
                 location = osutils.getcwd()
             self.location = location
-
+        
         self.workingtree = None
         self.revision_id = revision_id
         self.revision_spec = revision_spec
         self.revision = revision
 
-        QBzrWindow.__init__(self, [gettext("Browse"), self.location], parent)
+        QBzrWindow.__init__(self,
+            [gettext("Browse"), self.location], parent)
         self.restoreSize("browse", (780, 580))
 
         vbox = QtWidgets.QVBoxLayout(self.centralwidget)
-
+        
         self.throbber = ThrobberWidget(self)
         vbox.addWidget(self.throbber)
 
@@ -90,43 +83,44 @@ class BrowseWindow(QBzrWindow):
         self.show_button = QtWidgets.QPushButton(gettext("Show"))
         self.show_button.clicked.connect(self.reload_tree)
         hbox.addWidget(self.show_button, 0)
-
+        
         self.filter_menu = TreeFilterMenu(self)
         self.filter_button = QtWidgets.QPushButton(gettext("&Filter"))
         self.filter_button.setMenu(self.filter_menu)
         hbox.addWidget(self.filter_button, 0)
         self.filter_menu.triggered[int, bool].connect(self.filter_triggered)
-
+        
         vbox.addLayout(hbox)
-
+        
         self.file_tree = TreeWidget(self)
         self.file_tree.throbber = self.throbber
         vbox.addWidget(self.file_tree)
-
+        
         self.filter_menu.set_filters(self.file_tree.tree_filter_model.filters)
-
+        
         buttonbox = self.create_button_box(BTN_CLOSE)
-
+        
         self.refresh_button = StandardButton(BTN_REFRESH)
         buttonbox.addButton(self.refresh_button, QtWidgets.QDialogButtonBox.ActionRole)
         self.refresh_button.clicked.connect(self.file_tree.refresh)
 
         self.diffbuttons = DiffButtons(self.centralwidget)
-        self.diffbuttons._triggered['QString'].connect(self.file_tree.show_differences)
-
+        self.diffbuttons.triggered['QString'].connect(self.file_tree.show_differences)
+        
         hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.diffbuttons)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
 
         self.windows = []
+
         self.file_tree.setFocus()   # set focus so keyboard navigation will work from the beginning
 
     def show(self):
         # we show the bare form as soon as possible.
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.load)
-
+   
     @runs_in_loading_queue
     @ui_current_widget
     @reports_exception()
@@ -136,8 +130,10 @@ class BrowseWindow(QBzrWindow):
         try:
             self.revno_map = None
             if not self.branch:
-                (self.workingtree, self.branch, repo, path) = ControlDir.open_containing_tree_branch_or_repository(self.location)
-
+                (self.workingtree,
+                 self.branch,
+                 repo, path) = ControlDir.open_containing_tree_branch_or_repository(self.location)
+            
             if self.revision is None:
                 if self.revision_id is None:
                     if self.workingtree is not None:
@@ -176,13 +172,13 @@ class BrowseWindow(QBzrWindow):
                 branch = self.branch
                 branch.lock_read()
                 self.processEvents()
-
+                
                 for button in buttons:
                     button.setEnabled(False)
                 fmodel = self.file_tree.tree_filter_model
                 fmodel.setFilter(fmodel.UNCHANGED, True)
-                self.filter_menu.set_filters(fmodel.filters)
-
+                self.filter_menu.set_filters(fmodel.filters)            
+                
                 try:
                     if revision_id is None:
                         text = revspec.spec or ''
@@ -190,9 +186,9 @@ class BrowseWindow(QBzrWindow):
                             args = [branch]
                         else:
                             args = [branch, False]
-
+                        
                         revision_id = revspec.in_branch(*args).rev_id
-
+                    
                     self.revision_id = revision_id
                     self.tree = branch.repository.revision_tree(revision_id)
                     self.processEvents()
@@ -209,13 +205,7 @@ class BrowseWindow(QBzrWindow):
         finally:
             self.throbber.hide()
 
-    # RJLRJL in PyQt5, this gets a
-    # Traceback (most recent call last):
-    #   File "/home/rjl/pythonstuff/fix-python-etc/lib/uifactory.py", line 32, in decorate
-    #     r = f(*args, **kargs)
-    # TypeError: reload_tree() takes 1 positional argument but 2 were given
-    # which seems to be because of the ui_current_widget decorator
-    # @ui_current_widget
+    @ui_current_widget
     def reload_tree(self):
         revstr = str(self.revision_edit.text())
         if not revstr:
@@ -229,13 +219,15 @@ class BrowseWindow(QBzrWindow):
         else:
             if revstr == "wt:":
                 self.revision_spec = "wt:"
-                revision_id = None
+                revision_id = None                
                 self.set_revision(revision_id=revision_id, text=self.revision_spec)
             else:
                 try:
                     revspec = RevisionSpec.from_string(revstr)
                 except errors.NoSuchRevisionSpec as e:
-                    QtWidgets.QMessageBox.warning(self, gettext("Browse"), str(e), QtWidgets.QMessageBox.Ok)
+                    QtWidgets.QMessageBox.warning(self,
+                        gettext("Browse"), str(e),
+                        QtWidgets.QMessageBox.Ok)
                     return
                 self.set_revision(revspec)
 
