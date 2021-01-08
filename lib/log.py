@@ -212,6 +212,8 @@ class LogWindow(QBzrWindow):
         # set focus on search edit widget
         self.log_list.setFocus()
 
+    # RJLRJL removed the loading queue decorator... now it runs like the clappers
+    # ...and actually works.
     # @runs_in_loading_queue
     @ui_current_widget
     @reports_exception()
@@ -406,23 +408,9 @@ class LogWindow(QBzrWindow):
 
     def show(self):
         # we show the bare form as soon as possible.
-        # super().show()
-        QBzrWindow.show(self)
-        # RJLRJL the docs for Qt5 state:
-        #
-        # As a special case, a QTimer with a timeout of 0 will time out as soon as possible,
-        # though the ordering between zero timers and other sources of events is unspecified.
-        # Zero timers can be used to do some work while still providing a snappy user interface:
-        #
-        # ...except in Qt5 the output is blank until you do something (click on a different
-        # window / the same window, doesn't matter).
-        # Change to 1 and it now works correctly.
-        # QtCore.QTimer.singleShot(0, self.load)
-        QtCore.QTimer.singleShot(1, self.load)
-        # self.load()
-        # QtCore.QTimer.singleShot(1, self.load)
-        # self.load()
-        # self.load()
+        super().show()
+        # QBzrWindow.show(self)
+        QtCore.QTimer.singleShot(0, self.load)
 
     def update_selection(self, selected, deselected):
         indexes = self.log_list.get_selection_indexes()
