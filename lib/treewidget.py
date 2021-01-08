@@ -499,13 +499,13 @@ class TreeModel(QtCore.QAbstractItemModel):
                         # iter_changes now seems to appear to return a TreeChange type See Jelmer's 7390.
                         # Handily, it has an as_tuple() function, so we'll cheat for now
                         change = ChangeDesc(the_change)
-                        # print('\n\nthe_change', change.dump())
+                        # print('\n\n\tthe_change', change.dump())
                         path = change.old_or_new_path()
                         fileid = change.fileid()
                         # RJLRJL
-                        # print('*** WARNING OLD_OR_NEW_PATH ***', path)
+                        # print('\t\t*** WARNING OLD_OR_NEW_PATH ***', path)
 
-                        # print('::::change was', change, 'with path and file id of', path, fileid)
+                        # print('\t\t::::change was', change, 'with path and file id of', path, fileid)
                         # if change.old_or_new_path() == 'wibble.txt':
                         #     print("*** found wibble.txt ***")
                         # RJLRJL Removed
@@ -518,7 +518,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                         is_ignored = self.tree.is_ignored(path)
                         # change = ChangeDesc(change + (is_ignored,))
                         change._is_ignored = is_ignored
-                        # print('Change: is_ignored is ', is_ignored, 'filter:', self.change_load_filter, self.tree)
+                        # print('\t\tChange: is_ignored is ', is_ignored, 'filter:', self.change_load_filter, self.tree)
+                        # print('\t---> load_filter gives', self.change_load_filter(change))
 
                         if (self.change_load_filter is not None and not self.change_load_filter(change)):
                             # print('^^^^ Continuing! ^^^^')
@@ -592,6 +593,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                             old_names.reverse()
                             old_path = "/".join(old_names)
                             name = "%s => %s" % (old_path, name)
+                        # print('\n\tget_name is returning ', name)
                         return name
 
                     if changes_mode:
@@ -618,6 +620,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                             for path in decendents:
                                 item_data = self.inventory_data_by_path[path]
                                 item_data.item.name = get_name(dir_fileid, dir_path, path, item_data.change)
+                                # print('\titem_data', item_data, 'name', item_data.item.name)
                     else:
                         # record the unversioned items
                         # print('NOT in changes_mode')
@@ -1591,10 +1594,8 @@ class TreeWidget(RevisionTreeView):
 
         # print('Treewidget calling its model set_tree with', self.tree, self.branch,
         #                          changes_mode, want_unversioned, change_load_filter, initial_checked_paths)
-        self.tree_model.set_tree(self.tree, self.branch,
-                                 changes_mode, want_unversioned,
-                                 change_load_filter=self.change_load_filter,
-                                 initial_checked_paths=initial_checked_paths)
+        self.tree_model.set_tree(self.tree, self.branch, changes_mode, want_unversioned=want_unversioned,
+                                 change_load_filter=self.change_load_filter, initial_checked_paths=initial_checked_paths)
 
         if self.tree_model.checkable:
             refs = self.tree_model.iter_checked()

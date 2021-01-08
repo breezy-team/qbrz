@@ -296,10 +296,7 @@ class cmd_qadd(QBzrCommand):
     takes_options = [ui_mode_option]
 
     def _qbrz_run(self, selected_list=None, ui_mode=False):
-        # print('\n:: cmd_add was passed ', selected_list)
         tree, selected_list = WorkingTree.open_containing_paths(selected_list)
-        # print('\n::: cmd_add started', tree, selected_list)
-
         if selected_list == ['']:
             selected_list = None
         self.main_window = AddWindow(tree, selected_list, dialog=False, ui_mode=ui_mode)
