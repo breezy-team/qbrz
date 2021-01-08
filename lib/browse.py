@@ -55,18 +55,17 @@ class BrowseWindow(QBzrWindow):
             if location is None:
                 location = osutils.getcwd()
             self.location = location
-        
+
         self.workingtree = None
         self.revision_id = revision_id
         self.revision_spec = revision_spec
         self.revision = revision
 
-        QBzrWindow.__init__(self,
-            [gettext("Browse"), self.location], parent)
+        QBzrWindow.__init__(self, [gettext("Browse"), self.location], parent)
         self.restoreSize("browse", (780, 580))
 
         vbox = QtWidgets.QVBoxLayout(self.centralwidget)
-        
+
         self.throbber = ThrobberWidget(self)
         vbox.addWidget(self.throbber)
 
@@ -83,30 +82,30 @@ class BrowseWindow(QBzrWindow):
         self.show_button = QtWidgets.QPushButton(gettext("Show"))
         self.show_button.clicked.connect(self.reload_tree)
         hbox.addWidget(self.show_button, 0)
-        
+
         self.filter_menu = TreeFilterMenu(self)
         self.filter_button = QtWidgets.QPushButton(gettext("&Filter"))
         self.filter_button.setMenu(self.filter_menu)
         hbox.addWidget(self.filter_button, 0)
         self.filter_menu.triggered[int, bool].connect(self.filter_triggered)
-        
+
         vbox.addLayout(hbox)
-        
+
         self.file_tree = TreeWidget(self)
         self.file_tree.throbber = self.throbber
         vbox.addWidget(self.file_tree)
-        
+
         self.filter_menu.set_filters(self.file_tree.tree_filter_model.filters)
-        
+
         buttonbox = self.create_button_box(BTN_CLOSE)
-        
+
         self.refresh_button = StandardButton(BTN_REFRESH)
         buttonbox.addButton(self.refresh_button, QtWidgets.QDialogButtonBox.ActionRole)
         self.refresh_button.clicked.connect(self.file_tree.refresh)
 
         self.diffbuttons = DiffButtons(self.centralwidget)
-        self.diffbuttons.triggered['QString'].connect(self.file_tree.show_differences)
-        
+        self.diffbuttons._triggered['QString'].connect(self.file_tree.show_differences)
+
         hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.diffbuttons)
         hbox.addWidget(buttonbox)
@@ -118,10 +117,13 @@ class BrowseWindow(QBzrWindow):
 
     def show(self):
         # we show the bare form as soon as possible.
-        QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(1, self.load)
-   
-    @runs_in_loading_queue
+        # QBzrWindow.show(self)
+        super().show()
+        # QtCore.QTimer.singleShot(1, self.load)
+        self.load()
+        self.file_tree.refresh()
+
+    # @runs_in_loading_queue
     @ui_current_widget
     @reports_exception()
     def load(self):
@@ -130,10 +132,8 @@ class BrowseWindow(QBzrWindow):
         try:
             self.revno_map = None
             if not self.branch:
-                (self.workingtree,
-                 self.branch,
-                 repo, path) = ControlDir.open_containing_tree_branch_or_repository(self.location)
-            
+                (self.workingtree, self.branch, repo, path) = ControlDir.open_containing_tree_branch_or_repository(self.location)
+
             if self.revision is None:
                 if self.revision_id is None:
                     if self.workingtree is not None:
@@ -144,12 +144,12 @@ class BrowseWindow(QBzrWindow):
                 self.set_revision(revision_id=self.revision_id, text=self.revision_spec)
             else:
                 self.set_revision(self.revision)
-
             self.processEvents()
         finally:
             self.throbber.hide()
+            self.processEvents()
 
-    @runs_in_loading_queue
+    # @runs_in_loading_queue
     @ui_current_widget
     def set_revision(self, revspec=None, revision_id=None, text=None):
         self.throbber.show()
@@ -172,13 +172,13 @@ class BrowseWindow(QBzrWindow):
                 branch = self.branch
                 branch.lock_read()
                 self.processEvents()
-                
+
                 for button in buttons:
                     button.setEnabled(False)
                 fmodel = self.file_tree.tree_filter_model
                 fmodel.setFilter(fmodel.UNCHANGED, True)
-                self.filter_menu.set_filters(fmodel.filters)            
-                
+                self.filter_menu.set_filters(fmodel.filters)
+
                 try:
                     if revision_id is None:
                         text = revspec.spec or ''
@@ -186,9 +186,9 @@ class BrowseWindow(QBzrWindow):
                             args = [branch]
                         else:
                             args = [branch, False]
-                        
+
                         revision_id = revspec.in_branch(*args).rev_id
-                    
+
                     self.revision_id = revision_id
                     self.tree = branch.repository.revision_tree(revision_id)
                     self.processEvents()
@@ -205,7 +205,7 @@ class BrowseWindow(QBzrWindow):
         finally:
             self.throbber.hide()
 
-    @ui_current_widget
+    # @ui_current_widget
     def reload_tree(self):
         revstr = str(self.revision_edit.text())
         if not revstr:
@@ -219,15 +219,13 @@ class BrowseWindow(QBzrWindow):
         else:
             if revstr == "wt:":
                 self.revision_spec = "wt:"
-                revision_id = None                
+                revision_id = None
                 self.set_revision(revision_id=revision_id, text=self.revision_spec)
             else:
                 try:
                     revspec = RevisionSpec.from_string(revstr)
                 except errors.NoSuchRevisionSpec as e:
-                    QtWidgets.QMessageBox.warning(self,
-                        gettext("Browse"), str(e),
-                        QtWidgets.QMessageBox.Ok)
+                    QtWidgets.QMessageBox.warning(self, gettext("Browse"), str(e), QtWidgets.QMessageBox.Ok)
                     return
                 self.set_revision(revspec)
 

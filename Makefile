@@ -93,7 +93,7 @@ qtest:
 # to ``cd`` to it (note the semi-colon) THEN execute the plugin code we want:
 #
 	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
-	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qbrowse
+	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qlog
 	# BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qlog
 
 # cd ~/.local/share/nemo/actions; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit

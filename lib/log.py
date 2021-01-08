@@ -241,7 +241,6 @@ class LogWindow(QBzrWindow):
             self.throbber.hide()
             self.processEvents()
 
-
     def get_branches_and_file_ids(self):
         if self.branch:
             if self.tree is None:

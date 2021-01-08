@@ -1447,9 +1447,10 @@ class TreeFilterMenu(QtWidgets.QMenu):
             self.addAction(action)
             self.actions.append(action)
 
-        self.triggered[QAction].connect(self.triggered)
+        # self.triggered[QtWidgets.QAction].connect(self._triggered)
+        self.triggered.connect(self._triggered)
 
-    def triggered(self, action):
+    def _triggered(self, action):
         # filter = action.data().toInt()[0]
         filter = int(action.data())
         checked = action.isChecked()
@@ -1670,6 +1671,7 @@ class TreeWidget(RevisionTreeView):
             for index in self.tree_model.refs2indexes(selected, ignore_no_file_error=True):
                 # XXX This does not work for sub items. I can't figure out why.
                 # GaryvdM - 14/07/2009
+                # RJLRJL that would be nice (2021)
                 self.selectionModel().select(
                     self.tree_filter_model.mapFromSource(index),
                     QtCore.QItemSelectionModel.SelectCurrent |

@@ -162,7 +162,7 @@ class DiffButtons(QtWidgets.QWidget):
                 self.menu_button.style().pixelMetric(
                     QtWidgets.QStyle.PM_ButtonMargin)
                 )
-            self.menu.triggered['QString'].connect(self.triggered)
+            self.menu.triggered['QString'].connect(self._triggered)
 
     def triggered(self, ext_diff=None):
         if ext_diff is None:
