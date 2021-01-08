@@ -342,10 +342,8 @@ class LogWindow(QBzrWindow):
                     pass
             if indexes_availble:
                 self.searchType.insertItem(0,
-                        gettext("Messages and File text (indexed)"),
-                        self.FilterSearchRole)
+                        gettext("Messages and File text (indexed)"), self.FilterSearchRole)
                 self.searchType.setCurrentIndex(0)
-
                 self.completer = Compleater(self)
                 self.completer_model = QStringListModel(self)
                 self.completer.setModel(self.completer_model)
@@ -356,16 +354,17 @@ class LogWindow(QBzrWindow):
                 self.completer.activated['QString'].connect(self.set_search_timer)
 
     no_usefull_info_in_location_re = re.compile(r'^[.:/\\]*$')
+
     def branch_label(self, location, branch, shared_repo_location=None, shared_repo=None):
         # We should rather use QFontMetrics.elidedText. How do we decide on the
         # width.
         def elided_text(text, length=20):
-            if len(text)>length+3:
+            if len(text)>length + 3:
                 return text[:length]+'...'
             return text
 
         def elided_path(path):
-            if len(path)>23:
+            if len(path) > 23:
                 dir, name = split(path)
                 dir = elided_text(dir, 10)
                 name = elided_text(name)
@@ -374,22 +373,15 @@ class LogWindow(QBzrWindow):
 
         if shared_repo_location and shared_repo and not location:
             # Once we depend on breezy 2.2, this can become .user_url
-            branch_rel = determine_relative_path(
-                shared_repo.controldir.root_transport.base,
-                branch.controldir.root_transport.base)
+            branch_rel = determine_relative_path(shared_repo.controldir.root_transport.base, branch.controldir.root_transport.base)
             if shared_repo_location == 'colo:':
                 location = shared_repo_location + branch_rel
             else:
                 location = join(shared_repo_location, branch_rel)
         if location is None:
             return elided_text(branch.nick)
-
         has_explicit_nickname = getattr(branch.get_config(), 'has_explicit_nickname', lambda: False)()
-        append_nick = (
-            location.startswith(':') or
-            bool(self.no_usefull_info_in_location_re.match(location)) or
-            has_explicit_nickname
-            )
+        append_nick = (location.startswith(':') or bool(self.no_usefull_info_in_location_re.match(location)) or has_explicit_nickname)
         if append_nick:
             return '%s (%s)' % (elided_path(location), branch.nick)
 
@@ -413,7 +405,17 @@ class LogWindow(QBzrWindow):
     def show(self):
         # we show the bare form as soon as possible.
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(0, self.load)
+        # RJLRJL the docs for Qt5 state:
+        #
+        # As a special case, a QTimer with a timeout of 0 will time out as soon as possible,
+        # though the ordering between zero timers and other sources of events is unspecified.
+        # Zero timers can be used to do some work while still providing a snappy user interface:
+        #
+        # ...except in Qt5 the output is blank until you do something (click on a different
+        # window / the same window, doesn't matter).
+        # Change to 1 and it now works correctly.
+        # QtCore.QTimer.singleShot(0, self.load)
+        QtCore.QTimer.singleShot(1, self.load)
 
     def update_selection(self, selected, deselected):
         indexes = self.log_list.get_selection_indexes()
@@ -763,9 +765,7 @@ class FileListContainer(QtWidgets.QWidget):
         # It would be nice if there were more than one branch, that we
         # show a menu so the user can chose which branch actions should take
         # place in.
-        menu_enabled = (len(gv.branches) == 1 and
-                        gv.branches[0].tree is not None and
-                        not wt_selected)
+        menu_enabled = (len(gv.branches) == 1 and gv.branches[0].tree is not None and not wt_selected)
 
         self.file_list_context_menu_revert_file.setEnabled(menu_enabled)
         self.file_list_context_menu_revert_file.setVisible(menu_enabled)

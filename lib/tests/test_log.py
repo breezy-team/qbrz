@@ -42,9 +42,7 @@ class TestLogSmokeTests(qtests.QTestCase):
         wt.commit('empty commit')
         self.build_tree(['hello'])
         wt.add('hello')
-        wt.commit('add one file',
-                  committer='\u013d\xf3r\xe9m \xcdp\u0161\xfam '
-                            '<test@example.com>')
+        wt.commit('add one file', committer='\u013d\xf3r\xe9m \xcdp\u0161\xfam <test@example.com>')
 
         win = LogWindow(['.'], None)
         self.addCleanup(win.close)
@@ -57,10 +55,8 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
 
     def test_with_branch(self):
         tree = self.make_branch_and_tree("branch")
-
         win = LogWindow(branch=tree.branch, tree=tree)
         branches, primary_bi, file_ids = win.get_branches_and_file_ids()
-
         self.assertLength(1, branches)
         bi = branches[0]
 
@@ -74,18 +70,14 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
 
     def test_open_branch_without_passing_tree(self):
         tree = self.make_branch_and_tree("branch")
-
         win = LogWindow(branch=tree.branch)
         branches, primary_bi, file_ids = win.get_branches_and_file_ids()
-
         self.assertEqual(tree.basedir, branches[0].tree.basedir)
 
     def test_open_branch_without_tree(self):
         branch = self.make_branch("branch")
-
         win = LogWindow(branch=branch)
         branches, primary_bi, file_ids = win.get_branches_and_file_ids()
-
         bi = branches[0]
         self.assertEqual(None, bi.tree)
         self.assertEqual(branch, bi.branch)
@@ -129,13 +121,9 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
     def test_open_locations_standalone_branches(self):
         branch1 = self.make_branch("branch1")
         tree2 = self.make_branch_and_tree("branch2")
-
         win = LogWindow(locations=["branch1", "branch2"])
         branches, primary_bi, file_ids = win.get_branches_and_file_ids()
-
-        self.assertEqual(set(((None, branch1.base, None),
-                              (tree2.basedir, tree2.branch.base, None) )),
-                         set(self.branches_to_base(branches)))
+        self.assertEqual(set(((None, branch1.base, None), (tree2.basedir, tree2.branch.base, None) )), set(self.branches_to_base(branches)))
 
     def make_branch_in_shared_repo(self, relpath, format=None):
         """Create a branch on the transport at relpath."""
@@ -149,8 +137,7 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
         tree2 = self.make_branch_and_tree("repo/branch2")
         win = LogWindow(locations=["repo"])
         branches, primary_bi, file_ids = win.get_branches_and_file_ids()
-        self.assertEqual(set(((None, branch1.base, None), (tree2.basedir, tree2.branch.base, None))),
-                        set(self.branches_to_base(branches)))
+        self.assertEqual(set(((None, branch1.base, None), (tree2.basedir, tree2.branch.base, None))), set(self.branches_to_base(branches)))
 
     def test_open_locations_in_shared_reporaise_not_a_branch(self):
         repo = self.make_repository("repo", shared=True)
@@ -160,13 +147,11 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
     def test_open_locations_raise_not_a_branch(self):
         self.vfs_transport_factory = memory.MemoryServer
         win = LogWindow(locations=[self.get_url("non_existant_branch")])
-        self.assertRaises(errors.NotBranchError,
-                          win.get_branches_and_file_ids)
+        self.assertRaises(errors.NotBranchError, win.get_branches_and_file_ids)
 
     def check_open_location_files(self):
         win = LogWindow(locations=["branch/file1", 'branch/dir'])
         branches, primary_bi, file_ids = win.get_branches_and_file_ids()
-
         self.assertEqual([b'file1-id', b'dir-id'], file_ids)
 
     def test_open_locations_files(self):
@@ -187,35 +172,30 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
     def test_branch_label_location(self):
         branch = self.make_branch("branch")
         win = LogWindow()
-
         self.assertEqual('path', win.branch_label('path', branch))
 
     def test_branch_label_no_location(self):
         branch = self.make_branch("branch")
         win = LogWindow()
-
         # No location, use nick
         self.assertEqual('branch', win.branch_label(None, branch))
 
     def test_branch_label_path_location(self):
         branch = self.make_branch("branch")
         win = LogWindow()
-
         # Location seems like a path - use it
         self.assertEqual('path-to-branch', win.branch_label('path-to-branch', branch))
 
     def test_branch_label_alias_directory(self):
         branch = self.make_branch("branch")
         win = LogWindow()
-
         # show shortcut, and nick
         self.assertEqual(':parent (branch)', win.branch_label(':parent', branch))
 
     def test_branch_label_no_info_locations(self):
         branch = self.make_branch("branch")
         win = LogWindow()
-
-        # locations that don't have alot of info in them should show the nick
+        # locations that don't have a lot of info in them should show the nick
         self.assertEqual('. (branch)', win.branch_label('.', branch))
         self.assertEqual('../ (branch)', win.branch_label('../', branch))
 
@@ -223,13 +203,10 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
         branch = self.make_branch("branch")
         branch.nick = "nick"
         win = LogWindow()
-
         self.assertEqual('path (nick)', win.branch_label('path', branch))
 
     def test_branch_label_repository(self):
         repo = self.make_repository("repo", shared=True)
         branch = self.make_branch("repo/branch")
-
         win = LogWindow()
-
         self.assertEqual('./branch', win.branch_label(None, branch, '.', repo))
