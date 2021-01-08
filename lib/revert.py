@@ -127,7 +127,7 @@ class RevertWindow(SubProcessDialog):
         self.diffbuttons = DiffButtons(self)
         self.diffbuttons.setToolTip(
             gettext("View changes in files selected to revert"))
-        self.diffbuttons.triggered['QString'].connect(self.show_diff_for_checked)
+        self.diffbuttons._triggered['QString'].connect(self.show_diff_for_checked)
         hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.diffbuttons)
         hbox.addWidget(self.buttonbox)

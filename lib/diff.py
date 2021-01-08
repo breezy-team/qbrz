@@ -98,8 +98,7 @@ def show_diff(arg_provider, ext_diff=None, parent_window=None, context=None):
     else:
         args=["diff", "--using", ext_diff]  # NEVER USE --using=xxx, ALWAYS --using xxx
         # This should be move to after the window has been shown.
-        dir, extra_args = arg_provider.get_ext_diff_args(
-                                        QtCore.QCoreApplication.processEvents)
+        dir, extra_args = arg_provider.get_ext_diff_args(QtCore.QCoreApplication.processEvents)
         args.extend(extra_args)
 
         window = SimpleSubProcessDialog("External Diff",
@@ -167,6 +166,7 @@ class DiffButtons(QtWidgets.QWidget):
     def triggered(self, ext_diff=None):
         if ext_diff is None:
             ext_diff = default_diff
+        # TODO: RJLRJL sometimes we get a bool here, instead of a string...
         self._triggered.emit(ext_diff)
 
 
@@ -217,8 +217,7 @@ class DiffItem(object):
                 cleanup.pop()()
 
     @classmethod
-    def create(cls, trees, file_id, paths, changed_content, versioned,
-            parent, name, kind, executable, filter = None):
+    def create(cls, trees, file_id, paths, changed_content, versioned, parent, name, kind, executable, filter = None):
 
         if parent == (None, None): # filter out TREE_ROOT (?)
             return None
@@ -252,8 +251,7 @@ class DiffItem(object):
         properties_changed = []
         if bool(executable[0]) != bool(executable[1]):
             descr = {True: "+x", False: "-x", None: None}
-            properties_changed.append((descr[executable[0]],
-                                       descr[executable[1]]))
+            properties_changed.append((descr[executable[0]], descr[executable[1]]))
 
         if versioned == (True, False):
             status = N_('removed')
@@ -269,11 +267,9 @@ class DiffItem(object):
         if filter and not filter(status):
             return None
 
-        return cls(trees, file_id, paths, changed_content, versioned, kind,
-                        properties_changed, dates, status)
+        return cls(trees, file_id, paths, changed_content, versioned, kind, properties_changed, dates, status)
 
-    def __init__(self, trees, file_id, paths, changed_content, versioned, kind,
-                        properties_changed, dates, status):
+    def __init__(self, trees, file_id, paths, changed_content, versioned, kind, properties_changed, dates, status):
         self.trees = trees
         self.file_id = file_id
         self.paths = paths
@@ -382,8 +378,7 @@ class DiffItem(object):
                                    "could not be properly decoded "
                                    "using '%s' encoding "
                                    "and therefore they replaced with special character.",
-                                   filename,
-                                   e.encoding)
+                                   filename, e.encoding)
                         ulines[i] = [l.decode(encodings[i], 'replace') for l in lines[i]]
         return ulines
 
@@ -521,10 +516,8 @@ class ExtDiffContext(QtCore.QObject):
     """
     def __init__(self, parent, to_file=None, path_encoding='utf-8'):
         """
-        :parent:  parent widget. If specified, cache is deleted automatically
-                  when parent is closed.
-        :to_file: stream to write output messages. If not specified,
-                  stdout is used.
+        :parent:  parent widget. If specified, cache is deleted automatically when parent is closed.
+        :to_file: stream to write output messages. If not specified, stdout is used.
         :path_encoding: encoding of path
         """
         QtCore.QObject.__init__(self, parent)
@@ -636,11 +629,7 @@ class ExtDiffContext(QtCore.QObject):
         Show diffs between two trees. (trees must be set by setup method)
         NOTE: Directory path can be specified to specific_files.
         """
-        for di in DiffItem.iter_items(self._differ.trees,
-                                      specific_files=specific_files,
-                                      lock_trees=lock_trees):
+        for di in DiffItem.iter_items(self._differ.trees, specific_files=specific_files, lock_trees=lock_trees):
             if di.changed_content:
                 self._differ.diff(di.file_id)
                 time.sleep(interval * 0.001)
-
-

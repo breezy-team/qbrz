@@ -43,11 +43,14 @@ from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
 
 
 def hexdump(data):
+    # RJLRJL: we might get bytes, so deal with them accordingly
+    if isinstance(data, bytes):
+        data = str(data)
     content = []
     for i in range(0, len(data), 16):
         hexdata = []
         chardata = []
-        for c in data[i:i+16]:
+        for c in data[i:i + 16]:
             j = ord(c)
             hexdata.append('%02x' % j)
             if j >= 32 and j < 128:

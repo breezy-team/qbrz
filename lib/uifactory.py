@@ -30,6 +30,10 @@ def ui_current_widget(f):
             ui.ui_factory.current_widget_stack.append(args[0])
             try:
                 r = f(*args, **kargs)
+            except TypeError:
+                # RJLRJL this stops an error in browse::reload_tree
+                print('\n\tRETRY\n')
+                r = f(args[0])
             finally:
                 del ui.ui_factory.current_widget_stack[-1]
             return r
@@ -53,30 +57,30 @@ class QUIFactory(ui.UIFactory):
     def __init__(self):
         super(QUIFactory, self).__init__()
         self.current_widget_stack = []
-        
+
         self._transport_update_time = 0
         self._total_byte_count = 0
         self._bytes_since_update = 0
         self._transport_rate = None
-    
+
     def current_widget(self):
         if self.current_widget_stack:
             return self.current_widget_stack[-1]
         return None
-    
+
     def throbber(self):
         current_widget = self.current_widget()
         if current_widget and getattr(current_widget, 'throbber', None) is not None:
             return current_widget.throbber
         return None
-    
+
     def report_transport_activity(self, transport, byte_count, direction):
         """Called by transports as they do IO.
-        
+
         This may update a progress bar, spinner, or similar display.
         By default it does nothing.
         """
-        
+
         self._total_byte_count += byte_count
         self._bytes_since_update += byte_count
 
@@ -91,24 +95,21 @@ class QUIFactory(ui.UIFactory):
                 self._transport_rate  = self._bytes_since_update / (now - self._transport_update_time)
                 self._transport_update_time = now
                 self._bytes_since_update = 0
-            
+
             if self._transport_rate:
                 msg = ("%6dkB @ %4dkB/s" %
                     (self._total_byte_count>>10, int(self._transport_rate)>>10,))
             else:
                 msg = ("%6dkB @         " %
                     (self._total_byte_count>>10,))
-            
+
             throbber.transport.setText(msg)
-        
+
         QtCore.QCoreApplication.processEvents()
 
     def get_password(self, prompt='', **kwargs):
-        password, ok = QtWidgets.QInputDialog.getText(self.current_widget(),
-                                                  gettext("Enter Password"),
-                                                  (prompt % kwargs),
-                                                  QtWidgets.QLineEdit.Password)
-        
+        password, ok = QtWidgets.QInputDialog.getText(self.current_widget(), gettext("Enter Password"),
+                                                  (prompt % kwargs), QtWidgets.QLineEdit.Password)
         if ok:
             return str(password)
         else:
@@ -116,19 +117,17 @@ class QUIFactory(ui.UIFactory):
 
     def get_username(self, prompt='', **kwargs):
         username, ok = QtWidgets.QInputDialog.getText(self.current_widget(),
-                                                  gettext("Enter Username"),
-                                                  (prompt % kwargs))
-        
+                                                  gettext("Enter Username"), (prompt % kwargs))
         if ok:
             return str(username)
         else:
             raise KeyboardInterrupt()
-    
+
     def get_boolean(self, prompt):
         button = QtWidgets.QMessageBox.question(
             self.current_widget(), "Bazaar", prompt,
             QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-        
+
         return button == QtWidgets.QMessageBox.Yes
 
     def clear_term(self):
@@ -137,7 +136,7 @@ class QUIFactory(ui.UIFactory):
         This will, for example, clear text progress bars, and leave the
         cursor at the leftmost position."""
         pass
-    
+
 
 # You can run this file to test the ui factory. This is not in the test suit
 # because it actualy open the ui, and so user interaction is required to run
