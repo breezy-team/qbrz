@@ -20,6 +20,10 @@
 import os, sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from breezy import errors
+from breezy.lazy_import import lazy_import
+from breezy.osutils import file_kind, minimum_path_selection
+
 from breezy.plugins.qbrz.lib.i18n import gettext
 
 from breezy.plugins.qbrz.lib.revtreeview import (
@@ -27,7 +31,6 @@ from breezy.plugins.qbrz.lib.revtreeview import (
     RevNoItemDelegate,
     )
 from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
-from breezy.lazy_import import lazy_import
 from breezy.plugins.qbrz.lib.lazycachedrevloader import cached_revisions
 from breezy.plugins.qbrz.lib.trace import report_exception, SUB_LOAD_METHOD
 
@@ -35,10 +38,8 @@ lazy_import(globals(), '''
 import posixpath  # to use '/' path sep in path.join().
 from time import (strftime, localtime)
 
-from breezy import errors
 from breezy.workingtree import WorkingTree
 from breezy.revisiontree import RevisionTree
-from breezy.osutils import file_kind, minimum_path_selection
 from breezy.conflicts import TextConflict, resolve
 from breezy.tree import TreeChange
 
@@ -674,7 +675,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 (kind, executable, stat_value) = self.tree._comparison_data(None, path)
                 child = InternalItem(name, kind, None)
                 is_ignored = self.tree.is_ignored(path)
-                t = TreeChange(None,(None, path), False, (False, False), (None, None), (None, name), (None, kind), (None, executable))
+                t = TreeChange((None, path), False, (False, False), (None, None), (None, name), (None, kind), (None, executable))
                 change = ChangeDesc(t, is_ignored)
 
                 # change = ChangeDesc((None,(None, path), False, (False, False), (None, None), (None, name), (None, kind),

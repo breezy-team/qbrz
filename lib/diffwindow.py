@@ -32,7 +32,6 @@ from breezy.mutabletree import MutableTree
 # from patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from breezy.revisiontree import RevisionTree
-from breezy.transform import _PreviewTree
 from breezy.workingtree import WorkingTree
 from breezy.bzr.workingtree_4 import DirStateRevisionTree
 from breezy import trace
@@ -110,9 +109,6 @@ def get_title_for_tree(tree, branch, other_branch):
                 return gettext("Revid: %(revid)s for %(branch)s") %  {"revid": revid, "branch": branch_title}
             else:
                 return gettext("Revid: %s") % revid
-
-    elif isinstance(tree, _PreviewTree):
-        return gettext('Merge Preview')
 
     # XXX I don't know what other cases we need to handle
     return 'Unknown tree'

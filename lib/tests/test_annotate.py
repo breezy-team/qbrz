@@ -25,7 +25,7 @@
 
 from breezy.tests import TestCase, TestCaseWithTransport
 from PyQt5 import QtCore
-from breezy import conflicts
+from breezy.conflicts import ConflictList
 from breezy.plugins.qbrz.lib import tests as qtests
 from breezy.plugins.qbrz.lib.annotate import AnnotateWindow
 
@@ -58,11 +58,14 @@ class TestAnnotate(qtests.QTestCase):
         self.build_tree_contents([('tree2/a', b'first\nthird\n')])
         tree2.commit('c', rev_id=b'rev-1_1_1', committer="barry@foo5.com", timestamp=1166046002.00, timezone=0)
 
-        num_conflicts = tree1.merge_from_branch(tree2.branch)
-        self.assertEqual(1, num_conflicts)
+        conflicts = tree1.merge_from_branch(tree2.branch)
+        if isinstance(conflicts, int):  # brz < 3.2
+            self.assertEqual(1, conflicts)
+        else:
+            self.assertEqual(1, len(conflicts))
 
         self.build_tree_contents([('tree1/a', b'first\nsecond\nthird\n')])
-        tree1.set_conflicts(conflicts.ConflictList())
+        tree1.set_conflicts(ConflictList())
         tree1.commit('merge 2', rev_id=b'rev-3', committer='sal@foo5.com', timestamp=1166046003.00, timezone=0)
         return tree1, tree2
 
