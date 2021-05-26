@@ -23,7 +23,6 @@ from breezy import tests
 from breezy.workingtree import WorkingTree
 from breezy.branch import Branch
 from breezy.controldir import ControlDir
-from breezy.conflicts import TextConflict, ConflictList
 from breezy import ignores
 
 from PyQt5 import QtCore
