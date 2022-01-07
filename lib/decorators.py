@@ -59,7 +59,7 @@ class LazyCall(object):
         elapsed = (time.time() - self._last_scheduled_at) * 1000
         if elapsed < self.millisec:
             # Retry
-            QtCore.QTimer.singleShot(self.millisec - elapsed, self._exec)
+            QtCore.QTimer.singleShot(int(self.millisec - elapsed), self._exec)
             return
 
         last_executed_at = self._last_scheduled_at
@@ -72,7 +72,7 @@ class LazyCall(object):
             # One more call if there was another request when executing proc
             QtCore.QTimer.singleShot(self.millisec, self._exec)
             return
-        
+
         self._last_scheduled_at = 0
 
 def lazy_call(millisec, per_instance=False):

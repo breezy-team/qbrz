@@ -123,7 +123,7 @@ class DiffSourceView(QtWidgets.QTextBrowser):
         pen.setWidth(2)
         painter.setPen(pen)
         for block_y in self.infoBlocks:
-            block_y = block_y - y
+            block_y = int(block_y - y)
             if block_y < top:
                 continue
             if block_y > bot:
@@ -132,8 +132,8 @@ class DiffSourceView(QtWidgets.QTextBrowser):
 
         pen.setWidth(1)
         for y_top, y_bot, kind in self.changes:
-            y_top -= y
-            y_bot -= y
+            y_top = int(y_top - y)
+            y_bot = int(y_bot - y)
             if y_top < top and y_bot < top:
                 continue
             if y_top > bot and y_bot > bot:
@@ -405,12 +405,12 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
         self.complete = False
 
         titleFont = QtGui.QFont(self.font())
-        titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
+        titleFont.setPointSizeF(titleFont.pointSizeF() * 140 / 100)
         titleFont.setBold(True)
 
         self.monospacedFont = get_monospace_font()
         metadataFont = QtGui.QFont(self.font())
-        metadataFont.setPointSize(titleFont.pointSize() * 70 / 100)
+        metadataFont.setPointSizeF(titleFont.pointSizeF() * 70 / 100)
         metadataLabelFont = QtGui.QFont(metadataFont)
         metadataLabelFont.setBold(True)
 

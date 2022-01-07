@@ -706,7 +706,7 @@ class GraphTagsBugsItemDelegate(QtWidgets.QStyledItemDelegate):
 
             finally:
                 painter.restore()
-                rect.adjust( (graphCols + 1.5) * boxsize, 0, 0, 0)
+                rect.adjust( int((graphCols + 1.5) * boxsize), 0, 0, 0)
 
             painter.save()
             x = 0
