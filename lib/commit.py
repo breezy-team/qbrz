@@ -700,7 +700,7 @@ class CommitWindow(SubProcessDialog):
 
     def _save_or_wipe_commit_data(self):
         if not self.process_widget.is_running():
-            if self.process_widget.finished:
+            if self.process_widget.is_finished:
                 self.wipe_commit_data()
             else:
                 self.save_commit_data()
