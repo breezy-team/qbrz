@@ -262,7 +262,7 @@ class cmd_qannotate(QBzrCommand):
             file_id = tree.path2id(relpath)
             if file_id is None:
                 raise errors.NotVersionedError(filename)
-            [(path, entry)] = list(tree.iter_entries_by_dir(specific_files=[filename]))
+            [(path, entry)] = list(tree.iter_entries_by_dir(specific_files=[relpath]))
             if entry.kind != 'file':
                 raise errors.BzrCommandError('brz qannotate only works for files (got %r)' % entry.kind)
             #repo = branch.repository
