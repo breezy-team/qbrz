@@ -786,7 +786,7 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
         if m:
             value = slider2.minimum() + slider2.maximum() * (value - slider1.minimum()) / m
             self.ignoreUpdate = True
-            slider2.setValue(value)
+            slider2.setValue(int(value))
             self.ignoreUpdate = False
 
     def syncHorizontalSlider1(self, value):
