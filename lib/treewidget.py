@@ -1804,7 +1804,7 @@ class TreeWidget(RevisionTreeView):
         if has_ext_diff():
             diff_menu = ExtDiffMenu(self)
             self.action_show_diff = self.context_menu.addMenu(diff_menu)
-            diff_menu.triggered['QString'].connect(self.show_differences)
+            diff_menu._triggered.connect(self.show_differences)
         else:
             self.action_show_diff = self.context_menu.addAction(gettext("Show &differences"), self.show_differences)
 
