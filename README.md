@@ -1,6 +1,5 @@
-======================================
- QBzr - Qt-based front end for Bazaar
-======================================
+QBzr - Qt-based front end for Bazaar
+####################################
 
 QBzr is a cross platform, Qt-based front-end for Bazaar, providing GUI
 applications for many core bzr commands. In addition, it provides several
@@ -11,7 +10,7 @@ Requirements
 ============
 
  * Python 2.4-2.7
-              
+
  * Bazaar VCS itself (see below version compatibility information)
 
  * PyQt 4.4 with Qt 4.4 or later
@@ -116,48 +115,51 @@ Miscellaneous:
 Interface localization
 ======================
 
-QBzr uses gettext library for i18n support. 
+QBzr uses gettext library for i18n support.
 Available translations resides in po/ subdirectory of the tree.
 QBzr expects to load binary mo-files from locale/ subdirectory
 of the tree.
 
 To generate translation POT-template file you need to run command:
-	python setup.py build_pot
+
+    python setup.py build_pot
 
 All existing PO-files will be updated as well.
 
 To compile translations to binary mo-files you need to run command:
-	python setup.py build_mo
+
+    python setup.py build_mo
 
 NOTE: windows installer ships with latest compiled translation inside.
 
 Help translate
-~~~~~~~~~~~~~~
+--------------
 
 You can help to translate QBzr interface to other languages.
 
-You can use either Launchpad trnaslations interface (it's preferable way) 
+You can use either Launchpad trnaslations interface (it's preferable way)
 see https://translations.launchpad.net/qbzr,
 or you can translate it offline, see instructions below.
 
-First at all you need to download from 
+First at all you need to download from
 http://bazaar.launchpad.net/~qbzr-dev/qbzr/trunk/files
-either `po/qbzr-XX.po` (where XX is your language and country code) 
+either `po/qbzr-XX.po` (where XX is your language and country code)
 or `po/qbzr.pot` if there is no po-file for your language yet.
 
-Then you need to translate it either using any suitable text editor 
-with UTF-8 support or with tools like Poedit (http://www.poedit.net/)  
+Then you need to translate it either using any suitable text editor
+with UTF-8 support or with tools like Poedit (http://www.poedit.net/)
 or KBabel (http://kbabel.kde.org/).
 
 When you're finish please file a bug report at
 https://launchpad.net/qbzr/+filebug and attach the translated file.
 
 To learn more about gettext and po-files see:
-	http://www.gnu.org/software/gettext/
+
+    http://www.gnu.org/software/gettext/
 
 Language and country codes listed in gettext manual:
-	http://www.gnu.org/software/gettext/manual/gettext.html#Language-Codes
-        http://www.gnu.org/software/gettext/manual/gettext.html#Country-Codes
+
+    http://www.gnu.org/software/gettext/manual/gettext.html#Language-Codes
 
 
 Configuration
@@ -166,7 +168,7 @@ Configuration
 The configuration is in .bazaar/qbzr.conf.
 
 qlog_replace
-~~~~~~~~~~~~
+-----------
 
 Multiline value containing regular expressions to replace text in commit
 messages (useful to make clickable links to bug reports, ...). Can be used
@@ -179,7 +181,8 @@ to project/.bzr/branch/branch.conf.
 
 
 diff_show_intergroup_colors
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
+
 Boolean value to allow painting interline changes in different colors
 depend on the kind of change. Use values 'True' or '1' to enable option.
 
