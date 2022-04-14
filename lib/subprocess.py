@@ -262,7 +262,7 @@ class SubProcessWindowBase(object):
         return True
 
     def do_accept(self):
-        if self.process_widget.finished:
+        if self.process_widget.is_finished:
             self.close()
         else:
             try:
@@ -519,8 +519,7 @@ class SubProcessWidget(QtWidgets.QWidget):
 
         self.defaultWorkingDir = self.process.workingDirectory()
 
-        # RJLRJL commented out
-        # self.finished = False
+        self.is_finished = False
         self.aborting = False
 
         self.messageFormat = QtGui.QTextCharFormat()
@@ -536,8 +535,7 @@ class SubProcessWidget(QtWidgets.QWidget):
         self._args_file = None  # temp file to pass arguments to qsubprocess
         self.error_class = ''
         self.error_data = {}
-        # RJLRJL Commented out
-        # self.conflicted = False
+        self.is_conflicted = False
 
     def hide_progress(self):
         self.progressMessage.setHidden(True)
@@ -649,7 +647,8 @@ class SubProcessWidget(QtWidgets.QWidget):
             # make absolute, because we may be running in a different
             # dir.
             script = os.path.abspath(script)
-            if os.path.basename(script) != "brz":
+            # allow for bzr or brz with optional extension (such as bzr.py)
+            if os.path.splitext(os.path.basename(script))[0] not in ("brz", "bzr"):
                 import breezy
                 # are we running directly from a bzr directory?
                 script = os.path.join(breezy.__path__[0], "..", "brz")
@@ -757,7 +756,7 @@ class SubProcessWidget(QtWidgets.QWidget):
             elif line.startswith(SUB_NOTIFY):
                 msg = line[len(SUB_NOTIFY):]
                 if msg.startswith(NOTIFY_CONFLICT):
-                    self.conflicted = True
+                    self.is_conflicted = True
                     self.conflict_tree_path = bittorrent_b_decode_prompt(msg[len(NOTIFY_CONFLICT):].encode(self.encoding))
             else:
                 self.logMessageEx(line, 'plain', self.stdout)
@@ -765,7 +764,7 @@ class SubProcessWidget(QtWidgets.QWidget):
     def readStderr(self):
         data = bytes(self.process.readAllStandardError()).decode(self.encoding, 'replace')
         if data:
-            self.error.emit()
+            self.error.emit(True)
 
         for line in data.splitlines():
             # RJLRJL this should be brz, I think
@@ -825,12 +824,12 @@ class SubProcessWidget(QtWidgets.QWidget):
             if self.commands and not self.aborting:
                 self._start_next()
             else:
-                self.finished = True
+                self.is_finished = True
                 self.setProgress(1000000, [gettext("Finished!")])
-                if self.conflicted:
+                if self.is_conflicted:
                     self.conflicted.emit(self.conflict_tree_path)
                 time.sleep(2)
-                self.finished.emit()
+                self.finished.emit(True)
         else:
             self.setProgress(1000000, [gettext("Failed!")])
             self.failed.emit(self.error_class)
