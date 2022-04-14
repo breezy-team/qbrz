@@ -52,6 +52,8 @@ except NameError:
     # Python 3
     QString = str
 
+import fastbencode as bencode
+
 lazy_import(globals(), '''
 import codecs
 import re
@@ -61,7 +63,6 @@ import tempfile
 import thread
 
 from breezy import (
-    bencode,
     commands,
     errors,
     osutils,
