@@ -127,7 +127,7 @@ class RevisionTreeView(QtWidgets.QTreeView):
                 #    self.throbber.show()
                 #    self.load_revisions_throbber_shown = True
                 # Allow for more scrolling to happen.
-                self.delay(0.5)
+                self.delay(500)
 
             return False
 

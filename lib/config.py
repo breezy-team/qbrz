@@ -176,7 +176,7 @@ class QBzrConfigWindow(QBzrDialog):
                                           gettext("Command")])
         self.extDiffList.setItemDelegateForColumn(0,
             QRadioCheckItemDelegate(self.extDiffList))
-        self.extDiffList.itemChanged [QTreeWidgetItem, int].connect(self.extDiffListItemChanged)
+        self.extDiffList.itemChanged [QtWidgets.QTreeWidgetItem, int].connect(self.extDiffListItemChanged)
 
         addExtDiffButton = QtWidgets.QPushButton(gettext("Add"), diffWidget)
         addExtDiffButton.clicked.connect(self.addExtDiff)
@@ -205,9 +205,9 @@ class QBzrConfigWindow(QBzrDialog):
             self.merge_tools_model = MergeToolsTableModel()
             self.merge_ui.tools.setModel(self.merge_tools_model)
 
-            self.merge_tools_model.dataChanged[QModelIndex, QModelIndex].connect(self.merge_tools_data_changed)
+            self.merge_tools_model.dataChanged[QtCore.QModelIndex, QtCore.QModelIndex].connect(self.merge_tools_data_changed)
 
-            self.merge_ui.tools.selectionModel().selectionChanged[QItemSelection, QItemSelection].connect(self.merge_tools_selectionChanged)
+            self.merge_ui.tools.selectionModel().selectionChanged[QtCore.QItemSelection, QtCore.QItemSelection].connect(self.merge_tools_selectionChanged)
 
             self.merge_ui.add.clicked.connect(self.merge_tools_add_clicked)
             self.merge_ui.remove.clicked.connect(self.merge_tools_remove_clicked)

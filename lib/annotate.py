@@ -153,11 +153,11 @@ class AnnotateBar(AnnotateBarBase):
         text_margin = self.style().pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin, None, self) + 1
 
         if 0: rect = QtCore.QRect
-        line_number_rect = QtCore.QRect(
+        line_number_rect = QtCore.QRect(*map(int, [
             rect.left() + text_margin,
             rect.top(),
             self.line_number_width - (2 * text_margin),
-            rect.height())
+            rect.height()]))
 
         painter.drawText(line_number_rect, QtCore.Qt.AlignRight, str(line_number))
 
@@ -169,21 +169,21 @@ class AnnotateBar(AnnotateBarBase):
                     font.setBold(True)
                     painter.setFont(font)
 
-                revno_rect = QtCore.QRect(
+                revno_rect = QtCore.QRect(*map(int, [
                     rect.left() + self.line_number_width + text_margin,
                     rect.top(),
                     self.revno_width - (2 * text_margin),
-                    rect.height())
+                    rect.height()]))
                 paint_revno(painter, revno_rect, str(self.get_revno(revid)), self.max_mainline_digits)
 
                 if revid in cached_revisions:
                     rev = cached_revisions[revid]
-                    author_rect = QtCore.QRect(
+                    author_rect = QtCore.QRect(*map(int, [
                         rect.left() + self.line_number_width
                                     + self.revno_width + text_margin,
                         rect.top(),
                         rect.right() - revno_rect.right() - (2 * text_margin),
-                        rect.height())
+                        rect.height()]))
                     author = get_apparent_author_name(rev)
                     if fm.width(author) > author_rect.width():
                         author= fm.elidedText(author, QtCore.Qt.ElideRight, author_rect.width())
