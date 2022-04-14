@@ -140,7 +140,7 @@ class LogList(RevisionTreeView):
                 if diff.has_ext_diff():
                     diff_menu = diff.ExtDiffMenu(self, set_default=diff_is_default_action)
                     self.context_menu.addMenu(diff_menu)
-                    diff_menu.triggered['QString'].connect(self.show_diff_ext)
+                    diff_menu._triggered.connect(self.show_diff_ext)
                 else:
                     show_diff_action = self.context_menu.addAction(gettext("Show &differences..."), self.show_diff)
                     if diff_is_default_action:

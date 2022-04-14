@@ -244,7 +244,7 @@ class DiffWindow(QBzrWindow):
         action.setToolTip(gettext("Launch an external diff application"))
         ext_diff_menu = ExtDiffMenu(parent=self, include_builtin = False)
         action.setMenu(ext_diff_menu)
-        ext_diff_menu.triggered['QString'].connect(self.ext_diff_triggered)
+        ext_diff_menu._triggered.connect(self.ext_diff_triggered)
         return action
 
     def create_view_menu(self):

@@ -131,11 +131,11 @@ class ExtDiffMenu(QtWidgets.QMenu):
                     self.setDefaultAction(action)
                 self.addAction(action)
 
-        self.triggered[QAction].connect(self.triggered)
+        self.triggered[QtWidgets.QAction].connect(self.do_trigger)
 
-    def triggered(self, action):
+    def do_trigger(self, action):
         ext_diff = str(action.data())
-        self.triggered.emit(ext_diff)
+        self._triggered.emit(ext_diff)
 
 
 class DiffButtons(QtWidgets.QWidget):
@@ -148,7 +148,7 @@ class DiffButtons(QtWidgets.QWidget):
         self.default_button = QtWidgets.QPushButton(gettext('Diff'), self)
         layout.addWidget(self.default_button)
         layout.setSpacing(0)
-        self.default_button.clicked.connect(self.triggered)
+        self.default_button.clicked.connect(self.do_trigger)
 
         if has_ext_diff():
             self.menu = ExtDiffMenu(self)
@@ -162,10 +162,13 @@ class DiffButtons(QtWidgets.QWidget):
                 self.menu_button.style().pixelMetric(
                     QtWidgets.QStyle.PM_ButtonMargin)
                 )
-            self.menu.triggered['QString'].connect(self._triggered)
+            self.menu._triggered.connect(self.do_trigger)
 
-    def triggered(self, ext_diff=None):
-        if ext_diff is None:
+    def do_trigger(self, ext_diff=None):
+        # Note: this is connected to default_button.clicked
+        # as well as the menu events.  The button passes it's
+        # checked state (always False here) in arguments.
+        if not ext_diff:
             ext_diff = default_diff
         self._triggered.emit(ext_diff)
 
@@ -438,8 +441,8 @@ class _ExtDiffer(DiffFromTool):
 
     def set_command_string(self, command_string):
         command_template = cmdline.split(command_string)
-        if '@' not in command_string:
-            command_template.extend(['@old_path', '@new_path'])
+        if "{old_path}" not in command_string:
+            command_template.extend(["{old_path}", "{new_path}"])
         self.command_template = command_template
 
     def finish(self):
