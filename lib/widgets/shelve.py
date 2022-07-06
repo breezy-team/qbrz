@@ -17,6 +17,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+from contextlib import ExitStack
+import os
 import sys, time
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -56,8 +58,6 @@ from breezy.plugins.qbrz.lib.autocomplete import get_wordlist_builder
 from breezy.shelf import ShelfCreator
 from breezy.shelf_ui import Shelver
 from breezy.osutils import split_lines
-from cStringIO import StringIO
-import os
 ''')
 
 
@@ -453,15 +453,14 @@ class ShelveWidget(ToolbarPanel):
         self.hunk_view.set_tab_width(pixels)
 
     def refresh(self):
-        cleanup = []
-        try:
+        with ExitStack() as es:
             old_rev = self.revision
             old_changes = self._get_change_dictionary()
             self.clear(clear_message = False)
 
             shelver, creator = self._create_shelver_and_creator()
-            cleanup.append(shelver.finalize)
-            cleanup.append(creator.finalize)
+            es.callback(shelver.finalize)
+            es.callback(creator.finalize)
 
             file_list = shelver.file_list
             if file_list:
@@ -488,10 +487,6 @@ class ShelveWidget(ToolbarPanel):
             for change in creator.iter_shelvable():
                 item = self._create_item(change, shelver, self.trees, old_changes)
                 self.file_view.addTopLevelItem(item)
-
-        finally:
-            for func in cleanup:
-                func()
 
         if self.select_all:
             self.check_all(True)
@@ -625,16 +620,15 @@ class ShelveWidget(ToolbarPanel):
         self.loaded = False
 
     def use_editor(self):
-        cleanup = []
         items = self.file_view.selectedItems()
         if len(items) != 1 or items[0].change.status != 'modify text':
             return
         else:
             change = items[0].change
-        try:
+        with ExitStack() as es:
             target_tree, work_tree = self.trees
-            cleanup.append(work_tree.lock_read().unlock)
-            cleanup.append(target_tree.lock_read().unlock)
+            es.enter_context(work_tree.lock_read())
+            es.enter_context(target_tree.lock_read())
             config = work_tree.branch.get_config()
             change_editor = config.get_change_editor(target_tree, work_tree)
             if change_editor is None:
@@ -643,16 +637,13 @@ class ShelveWidget(ToolbarPanel):
                 self.editor_button.setEnabled(False)
                 return
 
-            cleanup.append(change_editor.finish)
+            es.callback(change_editor.finish)
             lines = split_lines(change_editor.edit_file(change.file_id))
             change_count = Shelver._count_changed_regions(change.work_lines, lines)
             if change_count > 0:
                 change.edited_lines = lines
                 self.update_item(items[0])
                 self.selected_file_changed()
-        finally:
-            while cleanup:
-                cleanup.pop()()
 
     def _get_change_dictionary(self):
         change_dict = {}
@@ -683,59 +674,56 @@ class ShelveWidget(ToolbarPanel):
             QtWidgets.QMessageBox.information(self, gettext('Shelve'), gettext('No changes selected.'), gettext('&OK'))
             return
 
-        cleanup = []
-        try:
-            shelver, creator = self._create_shelver_and_creator(destroy=destroy)
-            cleanup.append(shelver.finalize)
-            cleanup.append(creator.finalize)
-            trees = (shelver.target_tree, shelver.work_tree)
-            if len(trees[1].get_parent_ids()) > 1:
-                raise WorkingTreeHasPendingMarge
-            if self.revision != trees[0].get_revision_id():
-                raise WorkingTreeHasChanged
-
-            changes = []
-            for ch in creator.iter_shelvable():
-                change = Change(ch, shelver, trees)
-                key = (change.file_id, change.status)
-                org_change = change_dict.get(key)
-                if org_change is None:
-                    continue
-                if not change.is_same_change(org_change):
+        with ExitStack() as es:
+            try:
+                shelver, creator = self._create_shelver_and_creator(destroy=destroy)
+                es.callback(shelver.finalize)
+                es.callback(creator.finalize)
+                trees = (shelver.target_tree, shelver.work_tree)
+                if len(trees[1].get_parent_ids()) > 1:
+                    raise WorkingTreeHasPendingMarge
+                if self.revision != trees[0].get_revision_id():
                     raise WorkingTreeHasChanged
-                del(change_dict[key])
-                changes.append(org_change)
 
-            if change_dict:
-                raise WorkingTreeHasChanged
+                changes = []
+                for ch in creator.iter_shelvable():
+                    change = Change(ch, shelver, trees)
+                    key = (change.file_id, change.status)
+                    org_change = change_dict.get(key)
+                    if org_change is None:
+                        continue
+                    if not change.is_same_change(org_change):
+                        raise WorkingTreeHasChanged
+                    del(change_dict[key])
+                    changes.append(org_change)
 
-            for change in changes:
-                if change.status == 'modify text':
-                    self.handle_modify_text(creator, change)
-                elif change.status == 'modify binary':
-                    creator.shelve_content_change(change.data[1])
+                if change_dict:
+                    raise WorkingTreeHasChanged
+
+                for change in changes:
+                    if change.status == 'modify text':
+                        self.handle_modify_text(creator, change)
+                    elif change.status == 'modify binary':
+                        creator.shelve_content_change(change.data[1])
+                    else:
+                        creator.shelve_change(change.data)
+                manager = shelver.work_tree.get_shelf_manager()
+                message = str(self.message.toPlainText()).strip() or gettext('<no message>')
+                if destroy:
+                    creator.transform()
+                    shelf_id = -1
                 else:
-                    creator.shelve_change(change.data)
-            manager = shelver.work_tree.get_shelf_manager()
-            message = str(self.message.toPlainText()).strip() or gettext('<no message>')
-            if destroy:
-                creator.transform()
-                shelf_id = -1
-            else:
-                shelf_id = manager.shelve_changes(creator, message)
+                    shelf_id = manager.shelve_changes(creator, message)
 
-        except WorkingTreeHasPendingMarge:
-            QtWidgets.QMessageBox.warning(self, gettext('Shelve'),
-                    gettext('Operation aborted because working tree has pending merges.'), gettext('&OK'))
-            return
-        except WorkingTreeHasChanged:
-            QtWidgets.QMessageBox.warning(self, gettext('Shelve'),
-                    gettext('Operation aborted because target files has been changed.'), gettext('&OK'))
-            return
+            except WorkingTreeHasPendingMarge:
+                QtWidgets.QMessageBox.warning(self, gettext('Shelve'),
+                        gettext('Operation aborted because working tree has pending merges.'), gettext('&OK'))
+                return
+            except WorkingTreeHasChanged:
+                QtWidgets.QMessageBox.warning(self, gettext('Shelve'),
+                        gettext('Operation aborted because target files has been changed.'), gettext('&OK'))
+                return
 
-        finally:
-            while cleanup:
-                cleanup.pop()()
         self.shelfCreated.emit(shelf_id)
         self.clear()
 

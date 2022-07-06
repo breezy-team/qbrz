@@ -30,7 +30,7 @@ class DiffArgProvider (object):
     """Contract class to pass arguments to either builtin diff window, or
     external diffs"""
 
-    def get_diff_window_args(self, processEvents, add_cleanup):
+    def get_diff_window_args(self, processEvents, es):
         """Returns the arguments for the builtin diff window.
 
         :return: {"old_tree": old_tree,
@@ -52,7 +52,7 @@ class DiffArgProvider (object):
 
 class InternalDiffArgProvider(DiffArgProvider):
     """Use for passing arguments from internal source."""
-    
+
     def __init__(self,
                  old_revid, new_revid,
                  old_branch, new_branch,
@@ -67,7 +67,7 @@ class InternalDiffArgProvider(DiffArgProvider):
 
         self.old_tree = old_tree
         self.new_tree = new_tree
-    
+
     def need_to_load_paths(self):
         return self.specific_file_ids is not None \
            and self.specific_files is None
@@ -90,7 +90,7 @@ class InternalDiffArgProvider(DiffArgProvider):
             finally:
                 self.new_tree.unlock()
 
-    def get_diff_window_args(self, processEvents, add_cleanup):
+    def get_diff_window_args(self, processEvents, es):
         self.load_old_tree()
         processEvents()
         self.load_new_tree_and_paths()
@@ -107,11 +107,11 @@ class InternalDiffArgProvider(DiffArgProvider):
             if revid.startswith(CURRENT_REVISION):
                 return ''
             return 'revid:%s' % revid
-        
+
         return "-r%s..%s" % (
             get_revspec_part(self.old_revid),
             get_revspec_part(self.new_revid))
-    
+
     def get_ext_diff_args(self, processEvents):
         from breezy import urlutils
         from breezy import errors
@@ -177,7 +177,7 @@ class InternalWTDiffArgProvider(InternalDiffArgProvider):
         else:
             InternalDiffArgProvider.load_old_tree(self)
 
-    def get_diff_window_args(self, processEvents, add_cleanup):
+    def get_diff_window_args(self, processEvents, es):
         self.load_old_tree()
         processEvents()
 

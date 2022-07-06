@@ -403,18 +403,11 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
         takes_options.append('change')
     aliases = ['qdi']
 
-    def get_diff_window_args(self, processEvents, add_cleanup):
-        # RJL if you get a ``AttributeError: 'function' object has no attribute 'enter_context'``
-        # error, or something similar, use something like:
-        #
-        #  exit_stack = contextlib.ExitStack()
-        #
-        # and pass that as add_cleanup
-        #
+    def get_diff_window_args(self, processEvents, es):
         args = {}
         (args["old_tree"], args["new_tree"],
             args["old_branch"], args["new_branch"],
-            args["specific_files"], _) = get_trees_and_branches_to_diff_locked(self.file_list, self.revision, self.old, self.new, add_cleanup)
+            args["specific_files"], _) = get_trees_and_branches_to_diff_locked(self.file_list, self.revision, self.old, self.new, es)
         args["ignore_whitespace"] = self.ignore_whitespace
         return args
 
@@ -716,7 +709,7 @@ class cmd_merge(breezy.builtins.cmd_merge, DiffArgProvider):
             del kw['encoding']
         return breezy.builtins.cmd_merge.run(self, *args, **kw)
 
-    def get_diff_window_args(self, processEvents, add_cleanup):
+    def get_diff_window_args(self, processEvents, es):
         tree_merger = self.merger.make_merger()
         self.tt = tree_merger.make_preview_transform()
         result_tree = self.tt.get_preview_tree()

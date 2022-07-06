@@ -24,7 +24,7 @@ class WtDiffArgProvider(object):
     def __init__(self, tree):
         self.tree = tree
 
-    def get_diff_window_args(self, processEvents, add_cleanup):
+    def get_diff_window_args(self, processEvents, es):
         # This will be used by DiffWindow::_initial_load
         return dict(
             old_tree=self.tree.basis_tree(),
