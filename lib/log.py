@@ -612,9 +612,8 @@ class FileListContainer(QtWidgets.QWidget):
                     for repo, repo_revids in repos_revids:
                         repo_revids = [revid for revid in repo_revids if revid not in self.tree_cache]
                         if repo_revids:
-                            repo.lock_read()
-                            self.processEvents()
-                            try:
+                            with repo.lock_read():
+                                self.processEvents()
                                 for revid in repo_revids:
                                     if (revid.startswith(CURRENT_REVISION) and gv_is_wtgv):
                                         tree = gv.working_trees[revid]
@@ -622,8 +621,6 @@ class FileListContainer(QtWidgets.QWidget):
                                         tree = repo.revision_tree(revid)
                                     self.tree_cache[revid] = tree
                                 self.processEvents()
-                            finally:
-                                repo.unlock()
                         self.processEvents()
 
                     delta = self.tree_cache[revids[0]].changes_from(self.tree_cache[revids[1]])
@@ -830,13 +827,10 @@ class FileListContainer(QtWidgets.QWidget):
         tree = branch.repository.revision_tree(top_revid)
         file_id = file_ids[0]
         path = paths[0]
-        tree.lock_read()
-        try:
+        with tree.lock_read():
             kind = tree.kind(path)
             if kind == 'file':
                 file_content_bytes = tree.get_file_text(path)
-        finally:
-            tree.unlock()
         if kind != 'file':
             QtWidgets.QMessageBox.information(self, gettext("Not a file"),
                 gettext("Operation is supported for a single file only,\n"
@@ -844,11 +838,8 @@ class FileListContainer(QtWidgets.QWidget):
             return
         filename = QtWidgets.QFileDialog.getSaveFileName(self, gettext("Save file in this revision as..."))[0]
         if filename:
-            f = open(str(filename), 'wb')
-            try:
+            with open(str(filename), 'wb') as f:
                 f.write(file_content_bytes)
-            finally:
-                f.close()
 
     @ui_current_widget
     def revert_file(self):

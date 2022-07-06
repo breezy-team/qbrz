@@ -37,13 +37,13 @@ def load_revisions(revids, repo,
                    before_batch_load = None,
                    revisions_loaded = None,
                    pass_prev_loaded_rev = False):
-    
+
     start_time = time.process_time()
     showed_throbber = False
     revids = [revid for revid in revids if not revid == "root:"]
     return_revisions = {}
     throbber = current_throbber()
-    
+
     try:
         for revid in [revid for revid in revids
                       if revid in cached_revisions]:
@@ -51,7 +51,7 @@ def load_revisions(revids, repo,
         if pass_prev_loaded_rev:
             if revisions_loaded is not None:
                 revisions_loaded(return_revisions, False)
-        
+
         revs_loaded = {}
         revids = [revid for revid in revids if revid not in cached_revisions]
         if revids:
@@ -59,24 +59,23 @@ def load_revisions(revids, repo,
                 repo_revids=((repo, revids),)
             else:
                 repo_revids = repo(revids)
-            
+
             for repo, revids in repo_revids:
                 repo_is_local = isinstance(repo.controldir.transport, LocalTransport)
                 if repo_is_local:
                     batch_size = local_batch_size
                 else:
                     batch_size = remote_batch_size
-                
+
                 if revids:
-                    repo.lock_read()
-                    try:
+                    with repo.lock_read():
                         if not repo_is_local:
                             update_ui()
-                        
+
                         for offset in range(0, len(revids), batch_size):
-                            
+
                             running_time = time.process_time() - start_time
-                            
+
                             if time_before_first_ui_update < running_time:
                                 if revisions_loaded is not None:
                                     revisions_loaded(revs_loaded, False)
@@ -86,28 +85,26 @@ def load_revisions(revids, repo,
                                         throbber.show()
                                         showed_throbber = True
                                 update_ui()
-                            
+
                             batch_revids = revids[offset:offset+batch_size]
-                            
+
                             if before_batch_load is not None:
                                 stop = before_batch_load(repo, batch_revids)
                                 if stop:
                                     break
-                            
+
                             for rev in repo.get_revisions(batch_revids):
                                 cached_revisions[rev.revision_id] = rev
                                 return_revisions[rev.revision_id] = rev
                                 revs_loaded[rev.revision_id] = rev
                                 rev.repository = repo
-                    finally:
-                        repo.unlock()
-            
+
             if revisions_loaded is not None:
                 revisions_loaded(revs_loaded, True)
     finally:
         if showed_throbber:
             throbber.hide()
-    
+
     return return_revisions
 
 def update_ui():

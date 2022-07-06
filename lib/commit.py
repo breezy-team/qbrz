@@ -465,8 +465,7 @@ class CommitWindow(SubProcessDialog):
             self.throbber.show()
         self.refresh_button.setDisabled(True)
         try:
-            self.tree.lock_read()
-            try:
+            with self.tree.lock_read():
                 if self.pending_merges_list:
                     self.pending_merges_list.load_tree(self.tree)
                     # Force the loading of the revisions, before we start
@@ -504,8 +503,6 @@ class CommitWindow(SubProcessDialog):
                 self.is_loading = False
                 self.processEvents()
                 self.update_compleater_words()
-            finally:
-                self.tree.unlock()
         finally:
             self.throbber.hide()
             self.refresh_button.setDisabled(False)

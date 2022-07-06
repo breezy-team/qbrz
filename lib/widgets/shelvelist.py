@@ -275,8 +275,7 @@ class ShelveListWidget(ToolbarPanel):
         self.loaded = False
         self.clear()
         tree = WorkingTree.open_containing(self.directory)[0]
-        tree.lock_read()
-        try:
+        with tree.lock_read():
             manager = tree.get_shelf_manager()
             shelves = manager.active_shelves()
             for shelf_id in reversed(shelves):
@@ -299,8 +298,6 @@ class ShelveListWidget(ToolbarPanel):
             self.tabwidth_selector.setTabWidth(tabwidth)
             self._on_tabwidth_changed(tabwidth)
 
-        finally:
-            tree.unlock()
         self.update()
         self.loaded = True
 

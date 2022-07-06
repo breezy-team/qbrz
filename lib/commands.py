@@ -367,11 +367,8 @@ class cmd_qcommit(QBzrCommand):
         if message is not None and file:
             raise errors.BzrCommandError("please specify either --message or --file")
         if file:
-            f = open(file)
-            try:
+            with open(file) as f:
                 message = f.read().decode(file_encoding or osutils.get_user_encoding())
-            finally:
-                f.close()
         tree, selected_list = WorkingTree.open_containing_paths(selected_list)
         if selected_list == ['']:
             selected_list = None

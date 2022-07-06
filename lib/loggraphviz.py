@@ -219,7 +219,6 @@ class GraphVizLoader(object):
         finally:
             self.unlock_branches()
 
-
     def load_current_dir_repo(self):
         # There are no local repositories. Try open the repository
         # of the current directory, and try load revisions data from
@@ -1050,13 +1049,10 @@ class GraphVizLoader(object):
         return_revisions = {}
         for repo, revids in self.get_repo_revids(revids):
             if revids:
-                repo.lock_read()
-                try:
+                with repo.lock_read():
                     self.update_ui()
                     for rev in repo.get_revisions(revids):
                         return_revisions[rev.revision_id] = rev
-                finally:
-                    repo.unlock()
         return return_revisions
 
 
@@ -1443,8 +1439,7 @@ class FileIdFilter (object):
                 if tree is None:
                     tree = bi.branch.basis_tree()
 
-                tree.lock_read()
-                try:
+                with tree.lock_read():
                     for file_id in self.file_ids:
                         if tree.kind(tree.id2path(file_id)) in ('directory',
                                                   'tree-reference'):
@@ -1452,8 +1447,6 @@ class FileIdFilter (object):
                             break
                     if self.has_dir:
                         break
-                finally:
-                    tree.unlock()
 
             if revids is None:
                 revids = [rev.revid for rev in self.graph_viz.revisions]
@@ -1485,8 +1478,7 @@ class FileIdFilter (object):
             self.filter_changed_callback(changed_revs, False)
             self.graph_viz.update_ui()
 
-        repo.lock_read()
-        try:
+        with repo.lock_read():
             if not self.uses_inventory():
                 text_keys = [(file_id, revid)
                                 for revid in revids
@@ -1508,8 +1500,6 @@ class FileIdFilter (object):
                     self.graph_viz.update_ui()
 
                 check_text_keys(text_keys)
-        finally:
-            repo.unlock()
 
     def load_filter_file_id_chunk_finished(self):
         self.filter_changed_callback([], True)
@@ -1555,8 +1545,7 @@ class WorkingTreeHasChangeFilter(object):
 
         :return: True if a change is found. False otherwise
         """
-        tree.lock_read()
-        try:
+        with tree.lock_read():
             # Copied from mutabletree, cause we need file_ids too.
             # Check pending merges
             if len(tree.get_parent_ids()) > 1:
@@ -1579,8 +1568,6 @@ class WorkingTreeHasChangeFilter(object):
             except StopIteration:
                 # No changes
                 return False
-        finally:
-            tree.unlock()
 
     def get_revision_visible(self, rev):
         if rev.revid.startswith(CURRENT_REVISION):

@@ -485,12 +485,10 @@ class TreeModel(QtCore.QAbstractItemModel):
 
         if isinstance(self.tree, WorkingTree):
             # print(':::-> tree.lock_read (try) about to execute')
-            tree.lock_read()
-            try:
+            with tree.lock_read():
                 root_id = self.tree.path2id('')
                 basis_tree = self.tree.basis_tree()
-                basis_tree.lock_read()
-                try:
+                with basis_tree.lock_read():
                     # print(':::->>second try block')
                     for the_change in self.tree.iter_changes(basis_tree, want_unversioned=want_unversioned):
                         # iter_changes now seems to appear to return a TreeChange type See Jelmer's 7390.
@@ -637,12 +635,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                             dir_fileid = self.tree.path2id(dir_path)
                             # print('\tname setting gave ', item_data, item_data.path, dir_path, name, dir_fileid)
                             item_data.item.name = get_name(dir_fileid, dir_path, item_data.path, item_data.change)
-                finally:
-                    basis_tree.unlock()
                 # print('\n\t\t FIRST process_tree...', initial_checked_paths, load_dirs)
                 self.process_tree(self.working_tree_get_children, initial_checked_paths, load_dirs)
-            finally:
-                tree.unlock()
         else:
             # print('\n\t\t SECOND process_tree...', initial_checked_paths, load_dirs)
             self.process_tree(self.revision_tree_get_children, initial_checked_paths, load_dirs)
@@ -1575,11 +1569,8 @@ class TreeWidget(RevisionTreeView):
         self.change_load_filter = change_load_filter
 
         if branch:
-            branch.lock_read()
-            try:
+            with branch.lock_read():
                 last_revno = branch.last_revision_info()[0]
-            finally:
-                branch.unlock()
             self.revno_item_delegate.set_max_revno(last_revno)
         # update width uncoditionally because we may change the revno column
         self.set_header_width_settings()
@@ -1652,8 +1643,7 @@ class TreeWidget(RevisionTreeView):
 
     def restore_state(self, state):
         (checked, expanded, selected, v_scroll) = state
-        self.tree.lock_read()
-        try:
+        with self.tree.lock_read():
             if self.tree_model.checkable and checked is not None:
                 for (ref, state) in checked:
                     if not state == QtCore.Qt.PartiallyChecked:
@@ -1675,12 +1665,9 @@ class TreeWidget(RevisionTreeView):
                     QtCore.QItemSelectionModel.SelectCurrent |
                     QtCore.QItemSelectionModel.Rows)
             self.verticalScrollBar().setValue(v_scroll)
-        finally:
-            self.tree.unlock()
 
     def refresh(self):
-        self.tree.lock_read()
-        try:
+        with self.tree.lock_read():
             state = self.get_state()
             self.tree_model.set_tree(self.tree, self.branch,
                                      self.changes_mode, self.want_unversioned,
@@ -1695,8 +1682,6 @@ class TreeWidget(RevisionTreeView):
                 # after every time we do a layout changed. The issue is similar to
                 # http://www.qtsoftware.com/developer/task-tracker/index_html?method=entry&id=236755
                 self.set_header_width_settings()
-        finally:
-            self.tree.unlock()
 
     def mousePressEvent(self, event):
         index = self.indexAt(event.pos())
@@ -1913,11 +1898,8 @@ class TreeWidget(RevisionTreeView):
         item = items[0]
 
         if isinstance(self.tree, WorkingTree):
-            self.tree.lock_read()
-            try:
+            with self.tree.lock_read():
                 abspath = self.tree.abspath(item.path)
-            finally:
-                self.tree.unlock()
             url = QtCore.QUrl.fromLocalFile(abspath)
             QtGui.QDesktopServices.openUrl(url)
         else:
@@ -2016,11 +1998,8 @@ class TreeWidget(RevisionTreeView):
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
         if res == QtWidgets.QMessageBox.Yes:
             try:
-                self.tree.lock_write()
-                try:
+                with self.tree.lock_write():
                     self.tree.revert(paths, self.tree.basis_tree())
-                finally:
-                    self.tree.unlock()
             except Exception:
                 report_exception(type=SUB_LOAD_METHOD, window=self.window())
             # XXX - it would be good it we could just refresh the selected items
