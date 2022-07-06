@@ -488,7 +488,7 @@ class CommitWindow(SubProcessDialog):
                         # if there are any paths from the command line that
                         # are not versioned, we want_unversioned.
                         for path in self.initial_selected_list:
-                            if not self.tree.path2id(path):
+                            if not self.tree.is_versioned(path):
                                 want_unversioned = True
                                 break
 

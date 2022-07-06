@@ -487,10 +487,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             # print(':::-> tree.lock_read (try) about to execute')
             tree.lock_read()
             try:
-                # RJL Breezy release notes state that:
-                #
-                #  The ``Tree.get_root_id`` method has been removed. Use``Tree.path2id('')`` instead. (Jelmer Vernooĳ)
-                #
                 root_id = self.tree.path2id('')
                 basis_tree = self.tree.basis_tree()
                 basis_tree.lock_read()
