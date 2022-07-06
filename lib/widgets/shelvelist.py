@@ -55,7 +55,6 @@ from breezy.plugins.qbrz.lib.decorators import lazy_call
 from breezy.plugins.qbrz.lib.widgets.texteditaccessory import setup_guidebar_for_find
 from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
-from breezy import transform
 from breezy.workingtree import WorkingTree
 from breezy.plugins.qbrz.lib.encoding_selector import EncodingMenuSelector
 from breezy.plugins.qbrz.lib.diff import DiffItem
@@ -322,7 +321,7 @@ class ShelveListWidget(ToolbarPanel):
                 base_tree = self.tree.revision_tree(revid)
             except NoSuchRevisionInTree:
                 base_tree = self.tree.branch.repository.revision_tree(revid)
-            preview = transform.TransformPreview(base_tree)
+            preview = base_tree.preview_transform()
             cleanup.append(preview.finalize)
             preview.deserialize(records)
 

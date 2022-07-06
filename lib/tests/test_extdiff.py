@@ -25,11 +25,11 @@ class TestCommandString(QTestCase):
 
     def test_no_arguments(self):
         self.differ.set_command_string("test")
-        self.assertEqual(self.differ.command_template, ["test", "@old_path", "@new_path"])
+        self.assertEqual(self.differ.command_template, ["test", "{old_path}", "{new_path}"])
 
     def test_has_arguments(self):
-        self.differ.set_command_string("test --old @old_path --new @new_path")
-        self.assertEqual(self.differ.command_template, ["test", "--old", "@old_path", "--new", "@new_path"])
+        self.differ.set_command_string("test --old {old_path} --new {new_path}")
+        self.assertEqual(self.differ.command_template, ["test", "--old", "{old_path}", "--new", "{new_path}"])
 
 class TestPrefix(QTestCase):
     def setUp(self):
@@ -221,7 +221,7 @@ class TestWorkingTreeDiff(TestExtDiffBase):
     def assertPopen(self, paths, old_contents):
         for args, path, old_content in zip(self.popen_mock.args, paths, old_contents):
             # tool, old_path, new_path = args[0][0]
-            tool, _, _, old_path, new_path = args[0][0]
+            tool, old_path, new_path = args[0][0]
             self.assertEqual(tool, "diff.exe")
             self.assertFileContent(old_path, old_content)
             self.assertEqual(new_path, self.tree.abspath(path))

@@ -888,12 +888,12 @@ class HunkSelector(QtWidgets.QFrame):
                 continue
             if bottom < y1:
                 break
-            painter.fillRect(6, y1, 13, 13, QtCore.Qt.white)
+            painter.fillRect(6, int(y1), 13, 13, QtCore.Qt.white)
 
-            painter.drawRect(6, y1, 13, 13)
+            painter.drawRect(6, int(y1), 13, 13)
             if hunk.selected:
-                painter.drawLine(9, y1 + 7, 12, y1 + 10)
-                painter.drawLine(16, y1 + 3, 12, y1 + 10)
+                painter.drawLine(9, int(y1) + 7, 12, int(y1) + 10)
+                painter.drawLine(16, int(y1) + 3, 12, int(y1) + 10)
 
         del painter
 
@@ -942,7 +942,7 @@ class HunkTextBrowser(QtWidgets.QTextBrowser):
         self.monospacedInactiveFormat.setForeground(QtGui.QColor(128, 128, 128))
 
         titleFont = QtGui.QFont(monospacedFont)
-        titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
+        titleFont.setPointSize(titleFont.pointSize() * 140 // 100)
         titleFont.setBold(True)
         titleFont.setItalic(True)
 
@@ -1062,17 +1062,17 @@ class HunkTextBrowser(QtWidgets.QTextBrowser):
                 continue
             if not self.complete:
                 # Fill header rect.
-                painter.fillRect(left, y1, width, 20, self.header_color)
+                painter.fillRect(left, int(y1), width, 20, self.header_color)
             # Overlay focus rect.
             if i == self._focused_index:
                 if self.hasFocus():
                     color = self.focus_color
                 else:
                     color = self.focus_color_inactive
-                painter.fillRect(left, y1, width, y2 - y1, color)
+                painter.fillRect(left, int(y1), width, int(y2 - y1), color)
             # Draw border.
-            painter.drawLine(left, y1, right, y1)
-            painter.drawLine(left, y2, right, y2)
+            painter.drawLine(left, int(y1), right, int(y1))
+            painter.drawLine(left, int(y2), right, int(y2))
 
     def move_next(self):
         index = int(self._focused_index + 1)
@@ -1127,8 +1127,8 @@ class HunkTextBrowser(QtWidgets.QTextBrowser):
             MARGIN = 24
             height = self.viewport().height()
             cur_pos = sbar.value()
-            max_pos = self.hunk_list[index][1] - MARGIN
-            min_pos = self.hunk_list[index][2] - height + MARGIN
+            max_pos = int(self.hunk_list[index][1] - MARGIN)
+            min_pos = int(self.hunk_list[index][2] - height + MARGIN)
             if max_pos <= min_pos or max_pos < cur_pos:
                 sbar.setValue(max_pos)
             elif cur_pos < min_pos:

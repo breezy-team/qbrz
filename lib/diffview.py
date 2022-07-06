@@ -295,7 +295,7 @@ class SidebySideDiffViewScrollBar(QtWidgets.QScrollBar):
     def adjust_range(self):
         page_step = self.browsers[0].verticalScrollBar().pageStep()
         self.setPageStep(page_step)
-        self.setRange(0, self.total_length - page_step + 4)
+        self.setRange(0, int(self.total_length - page_step + 4))
         self.setVisible(self.total_length > page_step)
 
     def get_position_info(self, target):
