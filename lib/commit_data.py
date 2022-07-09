@@ -164,14 +164,11 @@ class CommitData(object):
     def save(self):
         """Save data to the branch/tree."""
         br = self._get_branch()
-        br.lock_write()
-        try:
+        with br.lock_write():
             # XXX save should wipe if self._data is empty
             self._set_new_commit_data(self._filtered_data())
             # clear old data
             self._wipe_old_data()
-        finally:
-            br.unlock()
 
     def _wipe_old_data(self):
         """Wipe saved data in old format."""
@@ -180,13 +177,10 @@ class CommitData(object):
     def wipe(self):
         """Delete saved data from branch/tree config."""
         br = self._get_branch()
-        br.lock_write()
-        try:
+        with br.lock_write():
             self._set_new_commit_data({})
             # clear old data
             self._wipe_old_data()
-        finally:
-            br.unlock()
 
     def _get_branch(self):
         """Return branch object if either branch or tree was specified on init.

@@ -158,49 +158,45 @@ class BrowseWindow(QBzrWindow):
                        self.diffbuttons,
                        self.refresh_button)
             state = self.file_tree.get_state()
-            if text=="wt:":
+            if text == "wt:":
                 self.tree = self.workingtree
-                self.tree.lock_read()
+                with self.tree.lock_read():
                 try:
                     self.file_tree.set_tree(self.workingtree, self.branch)
                     self.file_tree.restore_state(state)
-                finally:
-                    self.tree.unlock()
                 for button in buttons:
                     button.setEnabled(True)
             else:
                 branch = self.branch
-                branch.lock_read()
-                self.processEvents()
-
-                for button in buttons:
-                    button.setEnabled(False)
-                fmodel = self.file_tree.tree_filter_model
-                fmodel.setFilter(fmodel.UNCHANGED, True)
-                self.filter_menu.set_filters(fmodel.filters)
-
-                try:
-                    if revision_id is None:
-                        text = revspec.spec or ''
-                        if revspec.in_branch == revspec.in_history:
-                            args = [branch]
-                        else:
-                            args = [branch, False]
-
-                        revision_id = revspec.in_branch(*args).rev_id
-
-                    self.revision_id = revision_id
-                    self.tree = branch.repository.revision_tree(revision_id)
+                with branch.lock_read():
                     self.processEvents()
-                    self.file_tree.set_tree(self.tree, self.branch)
-                    self.file_tree.restore_state(state)
-                    if self.revno_map is None:
+
+                    for button in buttons:
+                        button.setEnabled(False)
+                    fmodel = self.file_tree.tree_filter_model
+                    fmodel.setFilter(fmodel.UNCHANGED, True)
+                    self.filter_menu.set_filters(fmodel.filters)
+
+                    try:
+                        if revision_id is None:
+                            text = revspec.spec or ''
+                            if revspec.in_branch == revspec.in_history:
+                                args = [branch]
+                            else:
+                                args = [branch, False]
+
+                            revision_id = revspec.in_branch(*args).rev_id
+
+                        self.revision_id = revision_id
+                        self.tree = branch.repository.revision_tree(revision_id)
                         self.processEvents()
-                        # XXX make this operation lazy? how?
-                        self.revno_map = self.branch.get_revision_id_to_revno_map()
-                    self.file_tree.tree_model.set_revno_map(self.revno_map)
-                finally:
-                    branch.unlock()
+                        self.file_tree.set_tree(self.tree, self.branch)
+                        self.file_tree.restore_state(state)
+                        if self.revno_map is None:
+                            self.processEvents()
+                            # XXX make this operation lazy? how?
+                            self.revno_map = self.branch.get_revision_id_to_revno_map()
+                        self.file_tree.tree_model.set_revno_map(self.revno_map)
             self.revision_edit.setText(text)
         finally:
             self.throbber.hide()

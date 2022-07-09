@@ -30,7 +30,7 @@ class camel_case_tokenize(tokenize):
         text = self._text[offset:]
         if not text:
             raise StopIteration()
-        match = re.match('(\w+?)[A-Z]', text)
+        match = re.match(br'(\w+?)[A-Z]', text)
         if match is None:
             word = text
         else:
@@ -60,7 +60,7 @@ class EnchantSpellChecker(object):
         self.checker.set_text(text)
         for err in self.checker:
             yield err.wordpos, len(err.word)
-    
+
     def suggest(self, text):
         return self.dict.suggest(text)
 

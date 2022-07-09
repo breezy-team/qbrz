@@ -63,18 +63,12 @@ class build_pot(Command):
             raise DistutilsOptionError("You can't use options --lang=XXX and --no-lang in the same time.")
 
     def _force_LF(self, src, dst=None):
-        f = open(src, 'rU')
-        try:
+        with open(src, 'rU') as f:
             content = f.read()
-        finally:
-            f.close()
         if dst is None:
             dst = src
-        f = open(dst, 'wb')
-        try:
+        with open(dst, 'wb') as f:
             f.write(content)
-        finally:
-            f.close()
 
     def run(self):
         """Run xgettext for project sources"""

@@ -80,11 +80,8 @@ class import_po(Command):
         for n, fn in entries:
             log.info('  %s -> %s' % (n, fn))
             ft = t.extractfile(n)
-            fd = open(fn, 'wb')
-            try:
+            with open(fn, 'wb') as fd:
                 fd.write(ft.read())
-            finally:
-                fd.close()
         if pot_file:
             if find_executable('msginit') is None:
                 log.warn("GNU gettext msginit utility not found!")

@@ -17,6 +17,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+from contextlib import ExitStack
+
 import sys, time
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QKeySequence
@@ -55,7 +57,6 @@ from breezy.plugins.qbrz.lib.decorators import lazy_call
 from breezy.plugins.qbrz.lib.widgets.texteditaccessory import setup_guidebar_for_find
 from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
-from breezy import transform
 from breezy.workingtree import WorkingTree
 from breezy.plugins.qbrz.lib.encoding_selector import EncodingMenuSelector
 from breezy.plugins.qbrz.lib.diff import DiffItem
@@ -274,8 +275,7 @@ class ShelveListWidget(ToolbarPanel):
         self.loaded = False
         self.clear()
         tree = WorkingTree.open_containing(self.directory)[0]
-        tree.lock_read()
-        try:
+        with tree.lock_read():
             manager = tree.get_shelf_manager()
             shelves = manager.active_shelves()
             for shelf_id in reversed(shelves):
@@ -298,8 +298,6 @@ class ShelveListWidget(ToolbarPanel):
             self.tabwidth_selector.setTabWidth(tabwidth)
             self._on_tabwidth_changed(tabwidth)
 
-        finally:
-            tree.unlock()
         self.update()
         self.loaded = True
 
@@ -312,18 +310,17 @@ class ShelveListWidget(ToolbarPanel):
         self.manager = None
 
     def show_changes(self, shelf_id):
-        cleanup = []
         shelf_file = self.manager.read_shelf(shelf_id)
-        cleanup.append(shelf_file.close)
-        try:
+        with ExitStack() as es:
+            es.callback(shelf_file.close)
             records = Unshelver.iter_records(shelf_file)
             revid = Unshelver.parse_metadata(records)[b'revision_id']
             try:
                 base_tree = self.tree.revision_tree(revid)
             except NoSuchRevisionInTree:
                 base_tree = self.tree.branch.repository.revision_tree(revid)
-            preview = transform.TransformPreview(base_tree)
-            cleanup.append(preview.finalize)
+            preview = base_tree.preview_transform()
+            es.callback(preview.finalize)
             preview.deserialize(records)
 
             tabwidth = get_tab_width_pixels(self.tree.branch)
@@ -331,10 +328,6 @@ class ShelveListWidget(ToolbarPanel):
             self.diffviews[1].setTabStopWidth(tabwidth)
 
             self.load_diff(preview.get_preview_tree(), base_tree)
-
-        finally:
-            for func in cleanup:
-                func()
 
     def load_diff(self, tree, base_tree):
         self.file_view.clear()

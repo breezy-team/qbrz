@@ -20,6 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+from contextlib import ExitStack
 import errno
 import re
 import time
@@ -35,8 +36,6 @@ from breezy.revisiontree import RevisionTree
 from breezy.workingtree import WorkingTree
 from breezy.bzr.workingtree_4 import DirStateRevisionTree
 from breezy import trace
-# from breezy import cleanup
-from breezy.plugins.qbrz.lib import cleanup
 
 from breezy.plugins.qbrz.lib.diffview import (
     SidebySideDiffView,
@@ -345,16 +344,13 @@ class DiffWindow(QBzrWindow):
         throbber window, then loads the branches etc if they weren't specified
         in our constructor.
         """
-        op = cleanup.OperationWithCleanups(self._initial_load)
-        self.throbber.show()
-        op.add_cleanup(self.throbber.hide)
-        op.run()
+        with ExitStack() as es:
+            es.callback(self.throbber.hide)
+            self.throbber.show()
+            self._initial_load(es)
 
-    def _initial_load(self, op):
-        # RJL Breezy expects a context handler of some type
-        exit_stack = contextlib.ExitStack()
-        args = self.arg_provider.get_diff_window_args(self.processEvents, exit_stack)
-        # args = self.arg_provider.get_diff_window_args(self.processEvents, op.add_cleanup)
+    def _initial_load(self, es):
+        args = self.arg_provider.get_diff_window_args(self.processEvents, es)
 
         self.trees = (args["old_tree"], args["new_tree"])
         self.branches = (args.get("old_branch", None), args.get("new_branch",None))

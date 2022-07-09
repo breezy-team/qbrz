@@ -17,7 +17,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+from contextlib import ExitStack
+import errno
+import re
+import time
+import sys
+import os
+import glob
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
+from breezy import trace, osutils, cmdline
 
 from breezy.errors import NoSuchId, ExecutableMissing
 from breezy.tree import FileTimestampUnavailable
@@ -30,22 +40,9 @@ from breezy.plugins.qbrz.lib.util import (
     )
 
 from breezy.lazy_import import lazy_import
-try:
-    QString = unicode
-except NameError:
-    # Python 3
-    QString = str
-
 lazy_import(globals(), '''
-import errno
-import re
-import time
-import sys
-import os
-import glob
 from patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from breezy.plugins.qbrz.lib.i18n import gettext, ngettext, N_
-from breezy import trace, osutils, cmdline
 from breezy.workingtree import WorkingTree
 from breezy.trace import mutter
 ''')
@@ -78,10 +75,9 @@ def show_diff(arg_provider, ext_diff=None, parent_window=None, context=None):
             parent_window.windows.append(window)
     elif context:
         ext_diff = str(ext_diff) # convert QString to str
-        cleanup = []
-        try:
+        with ExitStack() as es:
             args = arg_provider.get_diff_window_args(
-                QtWidgets.QApplication.processEvents, cleanup.append
+                QtWidgets.QApplication.processEvents, es
             )
             old_tree = args["old_tree"]
             new_tree = args["new_tree"]
@@ -91,9 +87,6 @@ def show_diff(arg_provider, ext_diff=None, parent_window=None, context=None):
                 context.diff_paths(specific_files)
             else:
                 context.diff_tree()
-        finally:
-            while cleanup:
-                cleanup.pop()()
 
     else:
         args=["diff", "--using", ext_diff]  # NEVER USE --using=xxx, ALWAYS --using xxx
@@ -188,11 +181,10 @@ class DiffItem(object):
         """
         RJLRJL: updated to call .iter_changes directly
         """
-        try:
-            cleanup = []
+        with ExitStack() as es:
             if lock_trees:
                 for t in trees:
-                    cleanup.append(t.lock_read().unlock)
+                    es.enter_context(t.lock_read())
 
             # changes = trees[1].iter_changes(trees[0], specific_files=specific_files, require_versioned=True)
 
@@ -215,9 +207,6 @@ class DiffItem(object):
                 if not di:
                     continue
                 yield di
-        finally:
-            while cleanup:
-                cleanup.pop()()
 
     @classmethod
     def create(cls, trees, file_id, paths, changed_content, versioned,
@@ -588,17 +577,13 @@ class ExtDiffContext(QtCore.QObject):
         NOTE: Directories cannot be specified.
               Use diff_tree or diff_paths instead when specifing directory.
         """
-        cleanup = []
-        try:
+        with ExitStack() as es:
             if lock_trees:
-                cleanup.append(self._differ.new_tree.lock_read().unlock)
-                cleanup.append(self._differ.old_tree.lock_read().unlock)
+                es.enter_context(self._differ.new_tree.lock_read())
+                es.enter_context(self._differ.old_tree.lock_read())
             for file_id in file_ids:
                 self._differ.diff(file_id)
                 time.sleep(interval * 0.001)
-        finally:
-            while cleanup:
-                cleanup.pop()()
 
     def diff_paths(self, paths, interval=50, lock_trees=True):
         """
@@ -610,12 +595,11 @@ class ExtDiffContext(QtCore.QObject):
         valid_paths = []
         ids = []
         dir_included = False
-        cleanup = []
-        try:
+        with ExitStack() as es:
             # Sometimes, we must lock tree before calling tree.kind()
             if lock_trees:
-                cleanup.append(new_tree.lock_read().unlock)
-                cleanup.append(old_tree.lock_read().unlock)
+                es.enter_context(new_tree.lock_read())
+                es.enter_context(old_tree.lock_read())
             for p in paths:
                 id = new_tree.path2id(p)
                 if id:
@@ -630,9 +614,6 @@ class ExtDiffContext(QtCore.QObject):
                 self.diff_tree(valid_paths, interval, False)
             else:
                 self.diff_ids(ids, interval, False)
-        finally:
-            while cleanup:
-                cleanup.pop()()
 
     def diff_tree(self, specific_files=None, interval=50, lock_trees=True):
         """

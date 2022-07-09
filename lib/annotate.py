@@ -410,12 +410,9 @@ class AnnotateWindow(QBzrWindow):
                 QtCore.QCoreApplication.processEvents()
             self.encoding = get_set_encoding(self.encoding, self.branch)
             self.encoding_selector.encoding = self.encoding
-            self.branch.lock_read()
-            try:
+            with self.branch.lock_read():
                 self.set_annotate_title()
                 self.annotate(self.annotate_tree, self.fileId, self.path)
-            finally:
-                self.branch.unlock()
         finally:
             self.throbber.hide()
         QtCore.QTimer.singleShot(1, self._activate_line)
@@ -634,8 +631,7 @@ class AnnotateWindow(QBzrWindow):
     def set_annotate_revision(self):
         self.throbber.show()
         try:
-            self.branch.lock_read()
-            try:
+            with self.branch.lock_read():
                 revid = self.log_list.currentIndex().data(logmodel.RevIdRole)
                 if revid.startswith(CURRENT_REVISION):
                     rev = cached_revisions[revid]
@@ -646,8 +642,6 @@ class AnnotateWindow(QBzrWindow):
                 self.set_annotate_title()
                 self.processEvents()
                 self.annotate(self.annotate_tree, self.fileId, self.path)
-            finally:
-                self.branch.unlock()
         finally:
             self.throbber.hide()
 
@@ -657,11 +651,8 @@ class AnnotateWindow(QBzrWindow):
         get_set_encoding(encoding, self.branch)
         self.throbber.show()
         try:
-            self.branch.lock_read()
-            try:
+            with self.branch.lock_read():
                 self.annotate(self.annotate_tree, self.fileId, self.path)
-            finally:
-                self.branch.unlock()
         finally:
             self.throbber.hide()
 

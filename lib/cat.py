@@ -142,8 +142,7 @@ class QBzrCatWindow(QBzrWindow):
                     "%r is not present in revision %s" % (
                         self.filename, self.tree.get_revision_id()))
 
-            self.tree.lock_read()
-            try:
+            with self.tree.lock_read():
                 kind = self.tree.kind(self.filename)
                 if kind == 'file':
                     text = self.tree.get_file_text(self.filename)
@@ -151,8 +150,6 @@ class QBzrCatWindow(QBzrWindow):
                     text = self.tree.get_symlink_target(self.filename)
                 else:
                     text = ''
-            finally:
-                self.tree.unlock()
             self.processEvents()
 
             self.text = text
@@ -304,11 +301,8 @@ class QBzrViewWindow(QBzrCatWindow):
         kind = osutils.file_kind(self.filename)
         text = ''
         if kind == 'file':
-            f = open(self.filename, 'rb')
-            try:
+            with open(self.filename, 'rb') as f:
                 text = f.read()
-            finally:
-                f.close()
         elif kind == 'symlink':
             text = os.readlink(self.filename)
         self.text = text
@@ -337,13 +331,8 @@ def cat_to_native_app(tree, relpath):
         os.makedirs(qdir)
     basename = os.path.basename(relpath)
     fname = os.path.join(qdir, basename)
-    f = open(fname, 'wb')
-    tree.lock_read()
-    try:
+    with open(fname, 'wb') as f, tree.lock_read():
         f.write(tree.get_file_text(relpath))
-    finally:
-        tree.unlock()
-        f.close()
     # open it
     url = QtCore.QUrl.fromLocalFile(fname)
     result = QtGui.QDesktopServices.openUrl(url)

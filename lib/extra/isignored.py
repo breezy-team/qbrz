@@ -33,7 +33,7 @@ class cmd_is_ignored(commands.Command):
 
     def run(self, filename):
         tree, relpath = workingtree.WorkingTree.open_containing(filename)
-        if tree.is_ignored(relpath) and not tree.path2id(relpath):
+        if tree.is_ignored(relpath) and not tree.is_versioned(relpath):
             if not trace.is_quiet():
                 print('ignored', file=self.outf)
             return 1

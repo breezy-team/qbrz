@@ -465,8 +465,7 @@ class CommitWindow(SubProcessDialog):
             self.throbber.show()
         self.refresh_button.setDisabled(True)
         try:
-            self.tree.lock_read()
-            try:
+            with self.tree.lock_read():
                 if self.pending_merges_list:
                     self.pending_merges_list.load_tree(self.tree)
                     # Force the loading of the revisions, before we start
@@ -488,7 +487,7 @@ class CommitWindow(SubProcessDialog):
                         # if there are any paths from the command line that
                         # are not versioned, we want_unversioned.
                         for path in self.initial_selected_list:
-                            if not self.tree.path2id(path):
+                            if not self.tree.is_versioned(path):
                                 want_unversioned = True
                                 break
 
@@ -504,8 +503,6 @@ class CommitWindow(SubProcessDialog):
                 self.is_loading = False
                 self.processEvents()
                 self.update_compleater_words()
-            finally:
-                self.tree.unlock()
         finally:
             self.throbber.hide()
             self.refresh_button.setDisabled(False)

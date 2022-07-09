@@ -33,7 +33,7 @@ class cmd_is_versioned(commands.Command):
 
     def run(self, filename):
         tree, relpath = workingtree.WorkingTree.open_containing(filename)
-        if tree.path2id(relpath):
+        if tree.is_versioned(relpath):
             if not trace.is_quiet():
                 print('versioned', file=self.outf)
             return 1

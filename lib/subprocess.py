@@ -847,12 +847,9 @@ class SubProcessWidget(QtWidgets.QWidget):
         if not os.path.isdir(qdir):
             os.makedirs(qdir)
         fd, fname = tempfile.mkstemp(dir=qdir)
-        f = os.fdopen(fd, "wb")
-        try:
+        with os.fdopen(fd, "wb") as f:
             # f.write(text.decode('utf8'))
             f.write(text)
-        finally:
-            f.close()   # it closes fd as well
         self._args_file = fname
         return fname
 
@@ -1074,11 +1071,8 @@ def run_subprocess_command(cmd, bencoded=False):
     if s_cmd[0][0] == '@':
         fname = s_cmd[1:]
         # Changed this: it's written in 'b' so must be read that way too
-        f = open(fname, 'rb')
-        try:
+        with open(fname, 'rb') as f:
             s_cmd = f.read()
-        finally:
-            f.close()
         # We stored a bencoded string like b'l6:ignore18:qbrz-setup-iss.loge', so...:
         s_cmd = bencode.bdecode(s_cmd)
         # ...and again, sometimes we get a list like [b'ignore', b'qbrz-setup-iss.log'], so...
