@@ -71,7 +71,7 @@ class TestTreeWidget(qtests.QTestCase):
         # tree = WorkingTree()
         tree = self.make_branch_and_tree('trunk')
         self.build_tree_contents([('trunk/textconflict', b'base'),])
-        tree.add(['textconflict'], [b'textconflict-id'])
+        tree.add(['textconflict'], ids=[b'textconflict-id'])
         tree.commit('a', rev_id=b'rev-a', committer="joe@foo5.com", timestamp=1166046000.00, timezone=0)
 
         branch_tree = tree.controldir.sprout('branch').open_workingtree()
@@ -91,15 +91,15 @@ class TestTreeWidget(qtests.QTestCase):
                                   ('trunk/modified', b'old'),
                                   ('trunk/textconflict', b'this'),
                                   ])
-        tree.add(['dir'], [b'dir-id'])
-        tree.add(['dir/dirchild'], [b'dirchild-id'])
-        tree.add(['unmodified'], [b'unmodified-id'])
-        tree.add(['renamed'], [b'renamed-id'])
-        tree.add(['moved'], [b'moved-id'])
-        tree.add(['movedandrenamed'], [b'movedandrenamed-id'])
-        tree.add(['removed'], [b'removed-id'])
-        tree.add(['missing'], [b'missing-id'])
-        tree.add(['modified'], [b'modified-id'])
+        tree.add(['dir'], ids=[b'dir-id'])
+        tree.add(['dir/dirchild'], ids=[b'dirchild-id'])
+        tree.add(['unmodified'], ids=[b'unmodified-id'])
+        tree.add(['renamed'], ids=[b'renamed-id'])
+        tree.add(['moved'], ids=[b'moved-id'])
+        tree.add(['movedandrenamed'], ids=[b'movedandrenamed-id'])
+        tree.add(['removed'], ids=[b'removed-id'])
+        tree.add(['missing'], ids=[b'missing-id'])
+        tree.add(['modified'], ids=[b'modified-id'])
         tree.commit('c', rev_id=b'rev-c', committer="joe@foo5.com", timestamp=1166046000.00, timezone=0)
 
         return tree, tree.branch
@@ -115,8 +115,8 @@ class TestTreeWidget(qtests.QTestCase):
                                   ('trunk/modified', b'new'),
                                   ('trunk/unversioned', b''),
                                   ])
-        tree.add(['added'], [b'added-id'])
-        tree.add(['addedmissing'], [b'addedmissing-id'])
+        tree.add(['added'], ids=[b'added-id'])
+        tree.add(['addedmissing'], ids=[b'addedmissing-id'])
 
         # RJLRJL These are the problem omes
         # def rename_one(self, from_rel, to_rel, after=False):
@@ -180,9 +180,9 @@ class TestTreeWidget(qtests.QTestCase):
         self.build_tree_contents([('tree/a', b''),
                                   ('tree/b/c', b''),
                                   ])
-        tree.add(['a'], [b'a-id'])
-        tree.add(['b'], [b'b-id'])
-        tree.add(['b/c'], [b'c-id'])
+        tree.add(['a'], ids=[b'a-id'])
+        tree.add(['b'], ids=[b'b-id'])
+        tree.add(['b/c'], ids=[b'c-id'])
         tree.commit('a', rev_id=b'rev-1', committer="joe@foo5.com", timestamp=1166046000.00, timezone=0)
         revtree = tree.branch.repository.revision_tree(b'rev-1')
         return revtree, tree.branch
@@ -277,9 +277,9 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
                                   ('tree/unversioned', b''),
                                   ('tree/ignored', b''),
                                   ])
-        tree.add(['dir-with-unversioned'], [b'dir-with-unversioned-id'])
-        tree.add(['unchanged'], [b'unchanged-id'])
-        tree.add(['changed'], [b'changed-id'])
+        tree.add(['dir-with-unversioned'], ids=[b'dir-with-unversioned-id'])
+        tree.add(['unchanged'], ids=[b'unchanged-id'])
+        tree.add(['changed'], ids=[b'changed-id'])
         ignores.tree_ignores_add_patterns(tree, ['ignored-dir-with-child', 'ignored'])
 
         tree.commit('a', rev_id=b'rev-a', committer="joe@foo5.com", timestamp=1166046000.00, timezone=0)
@@ -370,9 +370,9 @@ class TestTreeWidgetSelectAll(qtests.QTestCase):
                                   ('tree/unversioned', b''),
                                   ('tree/ignored', b''),
                                   ])
-        tree.add(['dir-with-unversioned'], [b'dir-with-unversioned-id'])
-        tree.add(['unchanged'], [b'unchanged-id'])
-        tree.add(['changed'], [b'changed-id'])
+        tree.add(['dir-with-unversioned'], ids=[b'dir-with-unversioned-id'])
+        tree.add(['unchanged'], ids=[b'unchanged-id'])
+        tree.add(['changed'], ids=[b'changed-id'])
         ignores.tree_ignores_add_patterns(tree, ['ignored-dir-with-child', 'ignored'])
 
         tree.commit('a', rev_id=b'rev-a', committer="joe@foo5.com", timestamp=1166046000.00, timezone=0)
