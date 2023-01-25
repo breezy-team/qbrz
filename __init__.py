@@ -81,11 +81,17 @@ if sys.version_info < (3,4,0):
     sys.stderr.write("You need python 3.4.0 or later to run this script\n")
     exit(1)
 
-# TODO: this might not be necessary now
-# RJL to speed development, retain Qt4 for now: use ``sip.setapi`` to request
-# version 1 behaviour for ``QVariant`` (otherwise it's not available for python3)
-import sip
-sip.setapi('QVariant', 2)
+# New location for sip
+# https://www.riverbankcomputing.com/static/Docs/PyQt5/incompatibilities.html#pyqt-v5-11
+# from PyQt5 import sip
+# sip.setapi('QVariant', 2)
+
+# Note:
+# https://doc.bccnsoft.com/docs/PyQt5/pyqt_qvariant.html#ref-qvariant
+# In PyQt5 the implementation of QVariant is different to those of PyQt4. By default the behaviour is the same
+# as PyQt4’s v2 API. However it is possible to temporarily suppress the automatic conversion of a C++ QVariant
+# to a Python object and to return a wrapped Python QVariant instead - behaviour similar to PyQt4’s v1 API - by
+# calling the sip.enableautoconversion() function.
 
 # Get the version number from version.txt
 # We have to find it relative to ourselves...
@@ -99,14 +105,13 @@ with open(version_file_path, 'r') as f:
 version_info = (int(v_version), int(v_major), int(v_minor),'dev',0)
 __version__ = '.'.join(map(str, version_info))
 
-
 import breezy
 
 from breezy.commands import plugin_cmds
 
 # merge --qpreview disabled for 0.14 because it makes qbrz incompatible with bzr-pipeline plugin
 # see bug https://bugs.launchpad.net/bugs/395817
-#register_lazy_command('breezy.plugins.qbrz.lib.commands', 'cmd_merge', [], decorate=True)  # provides merge --qpreview
+# register_lazy_command('breezy.plugins.qbrz.lib.commands', 'cmd_merge', [], decorate=True)  # provides merge --qpreview
 
 lazy_commands = (
     # module, command, [aliases]

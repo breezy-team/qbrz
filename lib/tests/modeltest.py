@@ -22,7 +22,7 @@
 #############################################################################
 
 
-import sip
+from PyQt5 import sip
 
 from PyQt5 import QtCore
 
@@ -501,5 +501,3 @@ class ModelTest(QtCore.QObject):
                 # Make sure that after testing the children that the index doesn't change
                 newIdx = self.model.index(r,c,parent)
                 assert(index == newIdx)
-
-

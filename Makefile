@@ -66,43 +66,41 @@ ui:
 
 
 # === Tests beyond this point ===
+# When you run ``brz selftest``, Breezy will scan all its plugins to see if they contain a function named test_suite().
+# For each plugin that does, it calls the function and adds any resulting tests to the master test suite.
+# To run just the tests for plugin xxx, the command is: ``brz selftest -s bp.xxx`` so we use bp.qbrz in our case.
 
 check:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s bp.qbrz -x TestTreeFilterProxyModel
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --starting-with=bp.qbrz --exclude=TestTreeFilterProxyModel --exclude=TestTreeWidget
 
 # Stop on first error, ignore TestTreeFilterProxyModel for now
 
 checkone:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x  TestTreeFilterProxyModel -x TestTreeWidget
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one --starting-with=bp.qbrz --exclude=TestTreeFilterProxyModel --exclude=TestTreeWidget
 
 # Test specific item - e.g. for internationalisation, use:
 #
 #  BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestI18n
 checkspecific:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz -v
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz -v test_util
 
 # Rather than running the test_ suite, this lets you run the actual plugin - note
 # that the tests can often pass but the code fails in actual use.
 qtest:
-# You can test on qbrz itself like this (qlog in this example):
+# You can test on qbrz itself like this (qlog in the below example):
 #
-# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qplugins
+# BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
 #
-# If you have a test directory you wish to use, you can cd to it, run the code, cd back from it.
-# In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` - we have
-# to ``cd`` to it (note the semi-colon) THEN execute the plugin code we want:
+# If you have a test directory you wish to use, you can pass it to the relevant command.
+# In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` and we
+# are developing in ~/pythonstuff/qbrz - thus we call brz with qadd and the sopsteward directory
+# Note we have to use ${HOME} for BZR_PLUGINS_AT...
 #
-	# cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
-	cd ~/pythonstuff/bzr_test_dir/sopsteward; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qadd
-	# BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qlog
-
-# cd ~/.local/share/nemo/actions; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
-
-# cd ~/pythonstuff/brz; BRZ_PLUGINS_AT=qbrz@/home/rjl/pythonstuff/fix-python-etc brz qcommit
+	BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qlog ~/pythonstuff/bzr_test_dir/sopsteward/
+	BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qplugins
 
 test:
 	brz selftest -s bp.qbrz
-
 
 # Fully working: (note, qcheckout-ala-explorer is qgetn).
 # qlog
@@ -275,4 +273,3 @@ literate_index:
 .PHONY: literate_clean
 literate_clean:
 	rm -rf docs/literate/
-

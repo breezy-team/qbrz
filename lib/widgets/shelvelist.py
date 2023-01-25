@@ -63,7 +63,7 @@ from breezy.plugins.qbrz.lib.diff import DiffItem
 from breezy.shelf import Unshelver
 from breezy.shelf_ui import Unshelver as Unshelver_ui
 from breezy.plugins.qbrz.lib.subprocess import SimpleSubProcessDialog
-import sip
+from PyQt5 import sip
 ''')
 
 
@@ -536,5 +536,3 @@ class ShelveListWidget(ToolbarPanel):
 
     def hideEvent(self, event):
         self.save_settings()
-
-

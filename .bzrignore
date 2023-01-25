@@ -12,3 +12,5 @@ qbrz-setup-iss.log
 *.exe.asc
 ./dist
 ./qbrz.egg-info
+env
+.idea

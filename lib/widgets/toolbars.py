@@ -24,7 +24,7 @@ from breezy.plugins.qbrz.lib.util import (
 from PyQt5 import QtCore, QtGui, QtWidgets
 from breezy.plugins.qbrz.lib.i18n import gettext, N_
 from breezy.plugins.qbrz.lib.decorators import lazy_call
-import sip
+from PyQt5 import sip
 
 # def create_toolbar_button(text, parent=None, icon_name=None, icon_size=22,
 #                 enabled=True, checkable=False, checked=False, shortcut=None, onclick=None):
@@ -314,4 +314,3 @@ class LayoutSelector(QtWidgets.QMenu):
             group.addAction(btn)
             self.addAction(btn)
             self.buttons.append(btn)
-
