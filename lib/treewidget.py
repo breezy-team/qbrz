@@ -34,6 +34,8 @@ from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
 from breezy.plugins.qbrz.lib.lazycachedrevloader import cached_revisions
 from breezy.plugins.qbrz.lib.trace import report_exception, SUB_LOAD_METHOD
 
+from breezy.bzr.conflicts import TextConflict
+
 lazy_import(globals(), '''
 import posixpath  # to use '/' path sep in path.join().
 from time import (strftime, localtime)
@@ -621,7 +623,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                         # print('NOT in changes_mode')
                         for item_data in self.inventory_data_by_path.values():
                             # print('\titem_data', item_data, '\tchange', item_data.change, '\tis_versioned', item_data.change.is_versioned())
-                            if (item_data.change and not item_data.change.is_versioned() or not item_data.change):
+                            if item_data.change and not item_data.change.is_versioned() or not item_data.change:
                                 parent_path, name = os.path.split(item_data.path)
                                 # print('\t\tadding ', parent_path, item_data.path, ' to unver_by_partent but name is ={0}='.format(name))
                                 dict_set_add(self.unver_by_parent, parent_path, item_data.path)
@@ -633,7 +635,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                             # print('\titem_data', item_data, '\tchange', item_data.change, '\tis_versioned', item_data.change.is_versioned())
                             dir_path, name = os.path.split(item_data.path)
                             dir_fileid = self.tree.path2id(dir_path)
-                            # print('\tname setting gave ', item_data, item_data.path, dir_path, name, dir_fileid)
+                            # print(f'\t{item_data=},\t{item_data.path=},\t{dir_path=},\t{name=},\t{dir_fileid=}')
                             item_data.item.name = get_name(dir_fileid, dir_path, item_data.path, item_data.change)
                 # print('\n\t\t FIRST process_tree...', initial_checked_paths, load_dirs)
                 self.process_tree(self.working_tree_get_children, initial_checked_paths, load_dirs)
@@ -672,13 +674,13 @@ class TreeModel(QtCore.QAbstractItemModel):
                 #                      (None, executable),
                 #                      is_ignored))
 
-                if (self.change_load_filter is not None and not self.change_load_filter(change)):
+                if self.change_load_filter is not None and not self.change_load_filter(change):
                     continue
 
                 yield ModelItemData(path, item=child, change=change)
 
         # print('\n\t!!type(item)', type(item), '[instance?]',isinstance(item, InternalItem), 'kind', item.kind, 'changes_mode', self.changes_mode)
-        if (not isinstance(item, InternalItem) and item.kind == 'directory' and not self.changes_mode):
+        if not isinstance(item, InternalItem) and item.kind == 'directory' and not self.changes_mode:
             # Because we create copies, we have to get the real item.
             item = self._get_entry(self.tree, item.file_id)
             path = self.tree.id2path(item.file_id)
@@ -702,6 +704,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     _many_loaddirs_started = False
     _many_loaddirs_should_start = False
+
     def start_maybe_many_loaddirs(self):
         self._many_loaddirs_should_start = True
 
@@ -757,11 +760,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         # RJLRJL BUGBUG it looks like requesting specific_files must NOT pass any
         # actual paths (e.g. dir/movedandrenamed should be stripped to movedandrenamed)
         # print('\n^^^ _get_entry', tree, file_id, type(file_id))
-        # print('\n\tid2path of ={0}='.format(file_id), 'gives: --> ', self.tree.id2path(file_id))
-        # for _, entry in tree.iter_entries_by_dir(recurse_nested=True):
-        #     print('\n\t -> ', _, 'entry:', entry)
-
-        for _, entry in tree.iter_entries_by_dir(specific_files=[self.tree.id2path(file_id),], recurse_nested=True):
+        # the_path = self.tree.id2path(file_id)
+        # print(f'\n\t{file_id=}\t\t{the_path=}')
+        # for _, entry in tree.iter_entries_by_dir(specific_files=[the_path,], recurse_nested=True):
+        #     print(f'\n\t -> {_=}, {entry=}')
+        the_path = self.tree.id2path(file_id)
+        for _, entry in tree.iter_entries_by_dir(specific_files=[the_path,], recurse_nested=True):
             return entry
         raise errors.NoSuchId(tree, file_id)
 

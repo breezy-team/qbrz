@@ -82,7 +82,7 @@ checkone:
 #
 #  BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestI18n
 checkspecific:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one --strict --starting-with=bp.qbrz test_bug_526011
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v  --one --strict --starting-with=bp.qbrz test_show_widget
 
 
 # Rather than running the test_ suite, this lets you run the actual plugin - note
