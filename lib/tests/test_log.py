@@ -85,7 +85,8 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
     def make_branch_and_tree_with_files_and_dir(self):
         tree = self.make_branch_and_tree("branch")
         self.build_tree(['branch/file1', 'branch/dir/', 'branch/file3'])
-        tree.add('file1', b'file1-id')
+        # tree.add('file1', b'file1-id')
+        tree.add('file1', ids=b'file1-id')
         tree.add('dir', ids=b'dir-id')
         tree.add('file3', ids=b'file3-id')
         tree.commit(message='add files')

@@ -389,7 +389,9 @@ class AnnotateWindow(QBzrWindow):
 
     def show(self):
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(0, self.initial_load)
+        # RJL 2023 - the singleShot causes problems, so just run the load
+        # QtCore.QTimer.singleShot(0, self.initial_load)
+        self.initial_load()
 
     @runs_in_loading_queue
     @ui_current_widget

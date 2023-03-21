@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
+import tempfile
 from contextlib import ExitStack
 import errno
 import re
@@ -389,10 +389,12 @@ class _ExtDiffer(DiffFromTool):
     def __init__(self, command_string, old_tree, new_tree, to_file=None, path_encoding='utf-8'):
         DiffPath.__init__(self, old_tree, new_tree, to_file or sys.stdout, path_encoding)
         self.set_command_string(command_string)
-        parent = osutils.joinpath([osutils.tempfile.gettempdir(), 'qbrz'])
+        # parent = osutils.joinpath([osutils.tempfile.gettempdir(), 'qbrz'])
+        parent = osutils.joinpath([tempfile.gettempdir(), 'qbrz'])
         if not os.path.isdir(parent):
             os.mkdir(parent)
-        self._root = osutils.mkdtemp(prefix='qbrz/brz-diff-')
+        # self._root = osutils.mkdtemp(prefix='qbrz/brz-diff-')
+        self._root = tempfile.mkdtemp(prefix='qbrz/brz-diff-')
         self.prefixes = {}
         self._set_prefix()
 
@@ -626,5 +628,3 @@ class ExtDiffContext(QtCore.QObject):
             if di.changed_content:
                 self._differ.diff(di.file_id)
                 time.sleep(interval * 0.001)
-
-

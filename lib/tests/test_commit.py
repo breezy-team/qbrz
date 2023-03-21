@@ -21,8 +21,6 @@ from PyQt5 import QtCore
 from breezy.plugins.qbrz.lib import tests as qtests
 from breezy.plugins.qbrz.lib.commit import CommitWindow
 
-from time import sleep
-
 
 class TestCommit(qtests.QTestCase):
 
@@ -35,6 +33,3 @@ class TestCommit(qtests.QTestCase):
         self.addCleanup(win.close)
         win.show()
         QtCore.QCoreApplication.processEvents()
-        # sleep(3)
-        QtCore.QCoreApplication.processEvents()
-        # sleep(4)

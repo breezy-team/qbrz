@@ -1,4 +1,4 @@
-if __name__=='__main__':
+if __name__ == '__main__':
     import breezy
     breezy.initialize()
     import breezy.plugin
@@ -277,4 +277,3 @@ class TestWorkingTreeDiff(TestExtDiffBase):
 if __name__=='__main__':
     import unittest
     unittest.main()
-

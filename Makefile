@@ -82,7 +82,8 @@ checkone:
 #
 #  BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestI18n
 checkspecific:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz -v test_util
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one --strict --starting-with=bp.qbrz test_bug_526011
+
 
 # Rather than running the test_ suite, this lets you run the actual plugin - note
 # that the tests can often pass but the code fails in actual use.
@@ -96,8 +97,8 @@ qtest:
 # are developing in ~/pythonstuff/qbrz - thus we call brz with qadd and the sopsteward directory
 # Note we have to use ${HOME} for BZR_PLUGINS_AT...
 #
-	BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qlog ~/pythonstuff/bzr_test_dir/sopsteward/
-	BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qplugins
+	BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qadd ~/pythonstuff/bzr_test_dir/sopsteward/
+	#BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qplugins
 
 test:
 	brz selftest -s bp.qbrz

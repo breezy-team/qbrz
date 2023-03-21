@@ -23,9 +23,6 @@ from PyQt5 import QtCore
 from breezy.plugins.qbrz.lib import tests as qtests
 from breezy.plugins.qbrz.lib.cat import QBzrCatWindow
 
-from time import sleep
-
-
 class TestCat(qtests.QTestCase):
 
     def test_show_cat_change_encoding(self):
@@ -36,6 +33,7 @@ class TestCat(qtests.QTestCase):
         win = QBzrCatWindow('a', tree=tree, encoding='utf-8')
         self.addCleanup(win.close)
         win.show()
+
         QtCore.QCoreApplication.processEvents()
 
         # Change the encoding.

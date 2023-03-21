@@ -110,8 +110,12 @@ class QBzrCatWindow(QBzrWindow):
 
     def show(self):
         # we show the bare form as soon as possible.
+        # RJL, 2023 - this used to call QtCore.QTimer.singleShot(0, self.load)
+        # however, that failed to call self.load() rapidly enough
+        # (probably things run a lot faster in 2023 than 2007!), so
+        # just call it directly
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(0, self.load)
+        self.load()
 
     @runs_in_loading_queue
     @ui_current_widget
@@ -141,7 +145,6 @@ class QBzrCatWindow(QBzrWindow):
                 raise errors.BzrCommandError(
                     "%r is not present in revision %s" % (
                         self.filename, self.tree.get_revision_id()))
-
             with self.tree.lock_read():
                 kind = self.tree.kind(self.filename)
                 if kind == 'file':
@@ -326,7 +329,8 @@ def cat_to_native_app(tree, relpath):
     import os
     import tempfile
     # RJLRJL Check this QBzr reference
-    qdir = os.path.join(tempfile.gettempdir(), 'QBzr', 'qcat')
+    # qdir = os.path.join(tempfile.gettempdir(), 'QBzr', 'qcat')
+    qdir = os.path.join(tempfile.gettempdir(), 'qbrz', 'qcat')
     if not os.path.isdir(qdir):
         os.makedirs(qdir)
     basename = os.path.basename(relpath)
