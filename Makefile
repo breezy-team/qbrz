@@ -97,7 +97,7 @@ qtest:
 # are developing in ~/pythonstuff/qbrz - thus we call brz with qadd and the sopsteward directory
 # Note we have to use ${HOME} for BZR_PLUGINS_AT...
 #
-	BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qadd ~/pythonstuff/bzr_test_dir/sopsteward/
+	BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qannotate ~/pythonstuff/qbrz/lib/tests/test_treewidget.py
 	#BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qplugins
 
 test:

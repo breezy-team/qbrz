@@ -118,6 +118,7 @@ class TestTreeWidget(qtests.QTestCase):
         tree.add(['added'], ids=[b'added-id'])
         tree.add(['addedmissing'], ids=[b'addedmissing-id'])
 
+        # BUGBUG: rename_one doesn't seem to behave
         tree.rename_one('renamed', 'renamed1')
         tree.move(('moved',), 'dir')
         tree.rename_one('movedandrenamed', 'movedandrenamed1')
@@ -191,13 +192,17 @@ class TestTreeWidget(qtests.QTestCase):
         QTest.qWaitForWindowExposed(widget)
         QtCore.QCoreApplication.processEvents()
 
-        # RJL 2023: self.modify_tree fails
+        # RJL 2023: self.modify_tree (which is actually
+        # TestTreeWidget.modify_working_tree - see tree_scenarios) fails
+        # or at least the refresh() afterwards does
+        # Suspicion is that remame_one might be faulty
+        # BUGBUG: patched out - rename seems to fail
         self.modify_tree(self, self.tree)
         QTest.qWaitForWindowExposed(widget)
         # widget.refresh()
         # QTest.qWaitForWindowExposed(widget)
-        # self.run_model_tests()
-        #
+        self.run_model_tests()
+
         widget.update()
         QTest.qWaitForWindowExposed(widget)
         QtCore.QCoreApplication.processEvents()
