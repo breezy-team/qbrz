@@ -46,6 +46,9 @@ Contributors:
  * Toshio Kuratomi <toshio at tiki-lounge dot com>
  * Vincent Ladeuil <v dot ladeuil+lp at free dot fr>
 
+ Python 3 (flaky) conversion:
+ * Robert Ladyman <rjl at ladyman dot scot>
+
 
 The idea of an UI for Bazaar commands comes from bzr-gtk plugin by
 Jelmer Vernooĳ <jelmer at jelmer dot uk>.

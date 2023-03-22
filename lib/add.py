@@ -122,8 +122,8 @@ class AddWindow(SubProcessDialog):
     def show(self):
         # SubProcessDialog.show(self)
         super().show()
-        QtCore.QTimer.singleShot(1, self.initial_load)
-        # self.initial_load()
+        # QtCore.QTimer.singleShot(1, self.initial_load)
+        self.initial_load()
 
     # @runs_in_loading_queue
     @ui_current_widget
@@ -133,8 +133,9 @@ class AddWindow(SubProcessDialog):
         fmodel = self.filelist_widget.tree_filter_model
         fmodel.setFilter(fmodel.CHANGED, False)
         fmodel.setFilter(fmodel.UNCHANGED, False)
-        self.filelist_widget.set_tree(self.tree, changes_mode = True, want_unversioned=True,
-            initial_checked_paths=self.initial_selected_list, change_load_filter=lambda c:not c.is_versioned())
+        self.filelist_widget.set_tree(self.tree, changes_mode=True, want_unversioned=True,
+            initial_checked_paths=self.initial_selected_list,
+            change_load_filter=lambda c:not c.is_versioned())
         self.throbber.hide()
 
     def _get_files_to_add(self):
