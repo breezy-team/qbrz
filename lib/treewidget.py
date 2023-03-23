@@ -389,7 +389,7 @@ class ChangeDesc:
         # sometimes 9, Breezy gives us 10, and we don't know what the last one is
         # Also, 'ignored' is called 'copied'
         desc = self.change._as_tuple()
-        print(f'status() {desc=} {len(desc)=}')
+        # print(f'status() {desc=} {len(desc)=}')
         if len(desc) == 8:
             (file_id,
             (path_in_source, path_in_target),
