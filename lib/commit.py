@@ -497,7 +497,7 @@ class CommitWindow(SubProcessDialog):
                         changes_mode=True,
                         want_unversioned=want_unversioned,
                         initial_checked_paths=self.initial_selected_list,
-                        change_load_filter=lambda c:not c.is_ignored())
+                        change_load_filter=lambda c:not c.ignored_pattern())
                 else:
                     self.filelist_widget.refresh()
                 self.is_loading = False
@@ -684,7 +684,7 @@ class CommitWindow(SubProcessDialog):
             state = self.filelist_widget.get_state()
             self.filelist_widget.set_tree(
                 self.tree, changes_mode=True, want_unversioned=True,
-                change_load_filter=lambda c:not c.is_ignored())
+                change_load_filter=lambda c:not c.ignored_pattern())
             self.filelist_widget.restore_state(state)
 
         if state:

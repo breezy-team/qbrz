@@ -63,9 +63,9 @@ class AddWindow(SubProcessDialog):
 
         self.filelist_widget.tree_model.is_item_in_select_all = lambda item: (
             # Is in select all. - Not versioned, and not Ignored
-            item.change is not None and item.change.is_ignored() is None and not item.change.is_versioned(),
+            item.change is not None and item.change.ignored_pattern() is None and not item.change.is_versioned(),
             # look at children. - Not ignored
-            item.change is not None and item.change.is_ignored() is None or item.change is None
+            item.change is not None and item.change.ignored_pattern() is None or item.change is None
             )
 
         def filter_context_menu():

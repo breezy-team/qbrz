@@ -76,7 +76,7 @@ check:
 # Stop on first error, ignore TestTreeFilterProxyModel for now
 
 checkone:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one --starting-with=bp.qbrz --exclude=TestTreeFilterProxyModel --exclude=TestTreeWidget
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one --starting-with=bp.qbrz --exclude=TestTreeFilterProxyModel
 
 # Test specific item - e.g. for internationalisation, use:
 #
@@ -97,7 +97,8 @@ qtest:
 # are developing in ~/pythonstuff/qbrz - thus we call brz with qadd and the sopsteward directory
 # Note we have to use ${HOME} for BZR_PLUGINS_AT...
 #
-	BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qdiff 
+	BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qdiff
+	#BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qannotate ~/pythonstuff/qbrz/lib/treewidget.py
 	#BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qplugins
 
 test:

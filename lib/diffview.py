@@ -54,13 +54,13 @@ colors = {
     'blank': [QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)],
     'dummy': [QtGui.QColor(0, 0, 0, 0), QtGui.QColor(0, 0, 0, 0)],
 }
-#The background color of the replacement text in a replacement group.
+# The background color of the replacement text in a replacement group.
 interline_changes_background = QtGui.QColor(180, 210, 250)
 
-#load user-defined color mapping from configuration file.
+# load user-defined color mapping from configuration file.
 
-#For each kind, there can be two entries in the configuration file,
-#under the [QDIFF COLORS] section:
+# For each kind, there can be two entries in the configuration file,
+# under the [QDIFF COLORS] section:
 #  kind_bound -- the color of the boundary of the rectangle this kind refers to.
 #  kind_fill  -- the color of the filling of that same rectangle.
 
@@ -70,21 +70,20 @@ for key in colors.keys():
     for comp in [0,1]:
         color = None
         try:
-            color = config.get_color(key + '_' + component_dict[comp],
-                                        'QDIFF COLORS')
+            color = config.get_color(key + '_' + component_dict[comp], 'QDIFF COLORS')
         except ValueError as msg:
-            #error handling.
+            # error handling.
             mutter(str(msg))
-        if None != color:
+        if color is not None:
             colors[key][comp] = color
 
 
-#Get a user-defined replacement text background
+# Get a user-defined replacement text background
 try:
-    new_interline_bg  = config.get_color('interline_changes_background',
+    new_interline_bg = config.get_color('interline_changes_background',
                                          'QDIFF COLORS')
-    if None != new_interline_bg:
-      interline_changes_background = new_interline_bg
+    if new_interline_bg is not None:
+        interline_changes_background = new_interline_bg
 except ValueError as msg:
     mutter(str(msg))
 
@@ -103,6 +102,8 @@ class DiffSourceView(QtWidgets.QTextBrowser):
         self.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
         self.clear()
         self.scrollbar = None
+        self.changes = []
+        self.infoBlocks = []
 
     def clear(self):
         self.changes = []
@@ -158,12 +159,15 @@ class DiffSourceView(QtWidgets.QTextBrowser):
         else:
             QtWidgets.QTextBrowser.wheelEvent(self, event)
 
+
 class DiffViewHandle(QtWidgets.QSplitterHandle):
 
     def __init__(self, parent=None):
         QtWidgets.QSplitterHandle.__init__(self, QtCore.Qt.Horizontal, parent)
         self.scrollbar = None
         self.view = parent
+        self.changes = []
+        self.infoBlocks = []
         self.clear()
 
     def clear(self):
@@ -180,7 +184,7 @@ class DiffViewHandle(QtWidgets.QSplitterHandle):
         h = self.height()
         painter.setRenderHints(QtGui.QPainter.Antialiasing, True)
 
-        C = 16 # Curve factor.
+        curve_factor = 16
 
         def create_line(ly, ry, right_to_left=False):
             """
@@ -189,10 +193,10 @@ class DiffViewHandle(QtWidgets.QSplitterHandle):
             line = QtGui.QPainterPath()
             if not right_to_left:
                 line.moveTo(0, ly)
-                line.cubicTo(C, ly, w - C, ry, w, ry)
+                line.cubicTo(curve_factor, ly, w - curve_factor, ry, w, ry)
             else:
                 line.moveTo(w, ry)
-                line.cubicTo(w - C, ry, C, ly, 0, ly)
+                line.cubicTo(w - curve_factor, ry, curve_factor, ly, 0, ly)
             return line
 
         pen = QtGui.QPen(QtCore.Qt.black)
@@ -238,10 +242,19 @@ class DiffViewHandle(QtWidgets.QSplitterHandle):
         del painter
 
     def wheelEvent(self, event):
-        if event.orientation() == QtCore.Qt.Vertical:
+        # RJL orientation is now obsolete
+        # if event.orientation() == QtCore.Qt.Vertical:
+        # angleDelta().y() provides the angle through which the common
+        # vertical mouse wheel was rotated since the previous event.
+        # angleDelta().x() provides the angle through which the horizontal
+        # mouse wheel was rotated, if the mouse has a horizontal wheel;
+        # otherwise it stays at zero.
+        # We'll be vertical if y_delta is non-zero x_delta is zero...
+        if event.angleDelta().y() and not event.angleDelta().x():
             self.view.scrollbar.wheelEvent(event)
         else:
             QtWidgets.QSplitterHandle.wheelEvent(self, event)
+
 
 class SidebySideDiffView(QtWidgets.QFrame):
     def __init__(self, parent=None):
@@ -260,6 +273,7 @@ class SidebySideDiffView(QtWidgets.QFrame):
 
 
 SYNC_POSITION = 0.4
+
 
 class SidebySideDiffViewScrollBar(QtWidgets.QScrollBar):
     def __init__(self, handle, browsers):
@@ -331,12 +345,12 @@ class SidebySideDiffViewScrollBar(QtWidgets.QScrollBar):
                 offset = value - prev[1]
                 return 'after', len(self.changes) - 1, offset
 
-    def scroll_to(self, target, position):
+    def scroll_to(self, target: int, position):
         """
         Scroll to specified position.
         target: 0 is self, 1 is left browser, 2 is right browser
         """
-        basis_y = self.height() * SYNC_POSITION
+        basis_y: float = self.height() * SYNC_POSITION
         if target == 0:
             scbar, changes = self, self.changes
         else:
@@ -347,14 +361,16 @@ class SidebySideDiffViewScrollBar(QtWidgets.QScrollBar):
         elif position[0] == 'in':
             change_idx, ratio = position[1:]
             start, end = changes[change_idx][:2]
-            scbar.setValue(start + float(end - start) * ratio - basis_y)
+            # scbar.setValue(start + float(end - start) * ratio - basis_y)
+            scbar.setValue(int(start + float(end - start) * ratio - basis_y))
         else:
             change_idx, offset = position[1:]
             if change_idx < 0:
                 start = 0
             else:
                 start = changes[change_idx][1]
-            scbar.setValue(start + offset - basis_y)
+            # scbar.setValue(start + offset - basis_y)
+            scbar.setValue(int(start + offset - basis_y))
 
     def scrolled(self, target):
         if self.syncing:
@@ -384,17 +400,15 @@ class SidebySideDiffViewScrollBar(QtWidgets.QScrollBar):
             self.total_length = scbar.maximum() + scbar.pageStep()
         else:
             l = cursors[0].block().layout()
-            self.total_length = l.position().y() + l.boundingRect().height() \
-                                 + self.gap_with_left
-
+            self.total_length = l.position().y() + l.boundingRect().height() + self.gap_with_left
         self.adjust_range()
-
 
 
 def setup_guidebar_entries(gb):
     gb.add_entry('title', QtGui.QColor(80, 80, 80), -1)
     for tag in ('delete', 'insert', 'replace'):
         gb.add_entry(tag, colors[tag][0], 0)
+
 
 class _SidebySideDiffView(QtWidgets.QSplitter):
     """Widget to show differences in side-by-side format."""
@@ -416,8 +430,7 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
 
         self.monospacedFormat = QtGui.QTextCharFormat()
         self.monospacedFormat.setFont(self.monospacedFont)
-        self.ttype_formater = CachedTTypeFormater(
-                                QtGui.QTextCharFormat(self.monospacedFormat))
+        self.ttype_formater = CachedTTypeFormater(QtGui.QTextCharFormat(self.monospacedFormat))
         self.background = self.monospacedFormat.background()
 
         self.titleFormat = QtGui.QTextCharFormat()
@@ -453,9 +466,9 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
             self.addWidget(panel)
             self.setCollapsible(i, False)
 
-            format = QtGui.QTextCharFormat()
-            format.setAnchorNames(["top"])
-            cursor.insertText("", format)
+            char_format = QtGui.QTextCharFormat()
+            char_format.setAnchorNames(["top"])
+            cursor.insertText("", char_format)
 
         self.scrollbar = SidebySideDiffViewScrollBar(self.handle(1), self.browsers)
 
@@ -482,8 +495,8 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
 
     def reset_guidebar_data(self):
         self.guidebar_data = [
-            dict(title=[], delete=[], insert=[], replace=[]), # for left view
-            dict(title=[], delete=[], insert=[], replace=[]), # for right view
+            dict(title=[], delete=[], insert=[], replace=[]),  # for left view
+            dict(title=[], delete=[], insert=[], replace=[]),  # for right view
         ]
 
     def clear(self):
@@ -568,9 +581,7 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
                         return tokens
 
                     display_lines = [getTokens(p, d, path)
-                                     for p, d, path in zip(present,
-                                                           data,
-                                                           paths)]
+                                     for p, d, path in zip(present, data, paths)]
                 except ClassNotFound:
                     use_pygments = False
                     display_lines = lines
@@ -581,9 +592,9 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
             def insertLine(cursor, line):
                 if use_pygments:
                     for ttype, value in line:
-                        format = self.ttype_formater.format(ttype)
-                        modifyFormatForTag(format, "equal")
-                        cursor.insertText(value, format)
+                        ttype_format = self.ttype_formater.format(ttype)
+                        modifyFormatForTag(ttype_format, "equal")
+                        cursor.insertText(value, ttype_format)
                 else:
                     cursor.insertText(line)
 
@@ -592,17 +603,18 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
                     for l in line[ix[0]:ix[1]]:
                         insertLine(cursor, l)
 
-            def modifyFormatForTag (format, tag):
+            def modifyFormatForTag(type_format, tag):
                 if tag == "replace":
-                    format.setBackground(interline_changes_background)
+                    type_format.setBackground(interline_changes_background)
                 elif tag == "equal":
-                    format.setBackground(self.background)
+                    type_format.setBackground(self.background)
                 elif self.show_intergroup_colors:
-                    format.setBackground(brushes[tag][0])
+                    type_format.setBackground(brushes[tag][0])
                 else:
-                    format.setBackground(interline_changes_background)
+                    type_format.setBackground(interline_changes_background)
 
             split_words = re.compile(r"\w+|\n\r|\r\n|\W")
+
             def insertIxsWithChangesHighlighted(ixs):
                 texts = ["".join(l[ix[0]:ix[1]]) for l, ix in zip(lines, ixs)]
                 if use_pygments:
@@ -625,13 +637,13 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
                         for l in ls[ix[0]:ix[1]]:
                             for ttype, value in l:
                                 while value:
-                                    format = self.ttype_formater.format(ttype)
-                                    modifyFormatForTag(format, tag)
+                                    ttype_format = self.ttype_formater.format(ttype)
+                                    modifyFormatForTag(ttype_format, tag)
                                     t = value[0:n]
-                                    cursor.insertText(t, format)
+                                    cursor.insertText(t, ttype_format)
                                     value = value[len(t):]
                                     n -= len(t)
-                                    if n<=0:
+                                    if n <= 0:
                                         if g:
                                             tag, n = g.pop(0)
                                         else:
@@ -643,16 +655,15 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
                                                                tuple(texts[0]),
                                                                tuple(texts[1]),
                                                                ).get_opcodes():
-                        format = QtGui.QTextCharFormat()
-                        format.setFont(self.monospacedFont)
-                        modifyFormatForTag(format, tag)
+                        ttype_format = QtGui.QTextCharFormat()
+                        ttype_format.setFont(self.monospacedFont)
+                        modifyFormatForTag(ttype_format, tag)
 
-                        cursors[0].insertText("".join(texts[0][i0:i1]),format)
-                        cursors[1].insertText("".join(texts[1][j0:j1]),format)
+                        cursors[0].insertText("".join(texts[0][i0:i1]),ttype_format)
+                        cursors[1].insertText("".join(texts[1][j0:j1]),ttype_format)
 
                     for cursor in cursors:
                         cursor.setCharFormat (self.monospacedFormat)
-
 
             for i, group in enumerate(groups):
                 if i > 0:
@@ -722,10 +733,10 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
 
             max_height = max(heights)
             for i, cursor in enumerate(self.cursors):
-                format = QtGui.QTextBlockFormat()
-                format.setBottomMargin((max_height - heights[i])/2)
-                format.setTopMargin((max_height - heights[i])/2)
-                cursor.insertBlock(format)
+                block_format = QtGui.QTextBlockFormat()
+                block_format.setBottomMargin((max_height - heights[i])/2)
+                block_format.setTopMargin((max_height - heights[i])/2)
+                cursor.insertBlock(block_format)
                 if present[i]:
                     if is_images[i]:
                         cursor.insertImage(file_id)
@@ -744,9 +755,9 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
         if not self.complete:
             maxy = max([l.position().y() for l in y_top])
             for cursor in cursors:
-                format = QtGui.QTextBlockFormat()
-                format.setBottomMargin(maxy-cursor.block().layout().position().y())
-                cursor.setBlockFormat(format)
+                block_format = QtGui.QTextBlockFormat()
+                block_format.setBottomMargin(maxy-cursor.block().layout().position().y())
+                cursor.setBlockFormat(block_format)
                 cursor.insertBlock(QtGui.QTextBlockFormat())
 
         l_block = infoBlocks[0].position().y()
@@ -810,6 +821,7 @@ class _SidebySideDiffView(QtWidgets.QSplitter):
         for gb, data in zip(self.guidebar_panels, self.guidebar_data):
             gb.bar.update_data(**data)
 
+
 class SimpleDiffView(GuideBarPanel):
     def __init__(self, parent):
         self.view = _SimpleDiffView(parent)
@@ -839,9 +851,9 @@ class _SimpleDiffView(QtWidgets.QTextBrowser):
         self.doc.setDefaultTextOption(option)
         self.rewinded = False
         self.cursor = QtGui.QTextCursor(self.doc)
-        format = QtGui.QTextCharFormat()
-        format.setAnchorNames(["top"])
-        self.cursor.insertText("", format)
+        char_format = QtGui.QTextCharFormat()
+        char_format.setAnchorNames(["top"])
+        self.cursor.insertText("", char_format)
         monospacedFont = get_monospace_font()
         self.monospacedFormat = QtGui.QTextCharFormat()
         self.monospacedFormat.setFont(monospacedFont)
@@ -898,8 +910,7 @@ class _SimpleDiffView(QtWidgets.QTextBrowser):
                 if None not in pair:
                     prop_str.append("%s to %s" % pair)
             if prop_str:
-                self.cursor.insertText(
-                    " (properties changed: %s)" % (", ".join(prop_str)))
+                self.cursor.insertText(" (properties changed: %s)" % (", ".join(prop_str)))
         self.cursor.insertText("\n")
 
         # GNU Patch uses the epoch date to detect files that are being added
@@ -963,4 +974,3 @@ class _SimpleDiffView(QtWidgets.QTextBrowser):
 
     def reset_guidebar_data(self):
         self.guidebar_data = dict(title=[], delete=[], insert=[], replace=[])
-

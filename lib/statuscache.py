@@ -95,6 +95,8 @@ class StatusCache(QtCore.QObject):
         for entry in delta.added:
             self._cacheStatus(osutils.splitpath(entry.path[0] or entry.path[1]), 'added', root=root)
         for entry in delta.removed:
+            # BUGBUG - RJLRJL this FIXME might be why the test_tree_widget rename and
+            # move_and_rename and its cousins are failing
             # FIXME
             self._cacheStatus(osutils.splitpath(entry.path[0] or entry.path[1]), 'modified', root=root)
 #            self._cacheStatus(osutils.splitpath(entry[0]), 'removed', root=root)

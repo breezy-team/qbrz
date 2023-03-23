@@ -19,10 +19,12 @@
 
 import os, sys
 from time import sleep
+from typing import Union
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy import errors
+from breezy.bzr.inventorytree import InventoryTreeChange
 from breezy.lazy_import import lazy_import
 from breezy.osutils import file_kind, minimum_path_selection
 
@@ -38,6 +40,7 @@ from breezy.plugins.qbrz.lib.trace import report_exception, SUB_LOAD_METHOD
 
 from breezy.bzr.conflicts import TextConflict
 from breezy.transport import NoSuchFile
+from breezy.tree import TreeChange
 
 lazy_import(globals(), '''
 import posixpath  # to use '/' path sep in path.join().
@@ -269,12 +272,30 @@ class ChangeDesc:
     # XXX We should may be try get this into breezy.
     # XXX We should use this in qdiff.
 
-    def __init__(self, tree_change_object, ignored_flag=None):
+    # RJLRJL BUGBUG: AS OF 2023, the above is no longer true [TreeChange no longer HAS
+    # a file_id at 0, nor a parent_id (although InventoryTreeChange HAS)]
+    # intertree.iter_changes states:
+    #         Changed_content is True if the file's content has changed.  This
+    #         includes changes to its kind, and to a symlink's target.
+    #
+    #         versioned, parent, name, kind, executable are tuples of (from, to).
+    #         If a file is missing in a tree, its kind is None.
+    #
+    # Also, is_ignored / ignored_flag, well...
+    # "If the file is ignored, returns the pattern which caused it to
+    #         be ignored, otherwise None.  So this can simply be used as a
+    #         boolean if desired" ...sayz bzr/workingtree
+
+    def __init__(self, tree_change_object: Union[TreeChange, InventoryTreeChange], ignored_pattern=None):
         self.change = tree_change_object
         # self.is_ignored = None
-        self._is_ignored = ignored_flag
+        self._ignored_pattern = ignored_pattern
+
+    def set_ignored_pattern(self, new_pattern):
+        self._ignored_pattern = new_pattern
 
     def fileid(self):
+        # N.B. TreeChange doesn't have a file_id
         return self.change.file_id
 
     def old_or_new_path(self):  # was path()
@@ -290,22 +311,23 @@ class ChangeDesc:
         oldkind, newkind = self.change.kind
         return newkind or oldkind
 
-    def is_versioned(self):
+    def is_versioned(self) -> bool:
         return self.change.versioned != (False, False)
         # return desc[3] != (False, False)
 
-    def is_modified(self):
+    def is_modified(self) -> bool:
         return self.is_versioned() and self.change.changed_content
         # return (desc[3] != (False, False) and desc[2])
 
-    def is_renamed(self):
-        old_tuple = (self.change.parent_id[0], self.change.name[0])
-        new_tuple = (self.change.parent_id[1], self.change.name[1])
-        return self.change.versioned == (True, True) and old_tuple != new_tuple
+    def is_renamed(self) -> bool:
+        return self.change.renamed
+        # old_tuple = (self.change.parent_id[0], self.change.name[0])
+        # new_tuple = (self.change.parent_id[1], self.change.name[1])
+        # return self.change.versioned == (True, True) and old_tuple != new_tuple
         # return (desc[3] == (True, True)
         #         and (desc[4][0], desc[5][0]) != (desc[4][1], desc[5][1]))
 
-    def is_tree_root(self):
+    def is_tree_root(self) -> bool:
         """Check if entry actually tree root."""
         if self.is_versioned() and self.change.parent_id == (None, None):
             return True
@@ -316,40 +338,44 @@ class ChangeDesc:
             # return True
         return False
 
-    def is_missing(self):
+    def is_missing(self) -> bool:
         """Check if file was present in previous revision but now it's gone
         (i.e. deleted manually, without invoking `bzr remove` command)
         """
         return self.change.versioned == (True, True) and self.change.kind[1] is None
         # return (desc[3] == (True, True) and desc[6][1] is None)
 
-    def is_on_disk(self):
+    def is_on_disk(self) -> bool:
         """Is the file or folder actualy on the disk"""
         return self.change.kind[1] is not None
         # return desc[6][1] is not None
 
-    def is_misadded(self):
+    def is_misadded(self) -> bool:
         """Check if file was added to the working tree but then gone
         (i.e. deleted manually, without invoking `bzr remove` command)
         """
         return self.change.versioned == (False, True) and self.change.kind[1] is None
         # return (desc[3] == (False, True) and desc[6][1] is None)
 
-    def is_ignored(self):
+    def ignored_pattern(self):
         """Returns ignore pattern if file is ignored;
         None if none pattern match;
         False is there is pattern but file actually versioned.
         """
-        if len(self.change._as_tuple()) > 8:
-            # ignored is when file match ignore pattern and not versioned
-            # HOWEVER, the old [8] position is now occupied by 'copied'
-            #return self.change.copied and self.change.versioned == (False, False)
-            return self._is_ignored and self.change.versioned == (False, False)
-            # return desc[8] and desc[3] == (False, False)
+        # if len(self.change._as_tuple()) > 8:
+        #     # ignored is when file match ignore pattern and not versioned
+        #     # HOWEVER, the old [8] position is now occupied by 'copied'
+        #     #return self.change.copied and self.change.versioned == (False, False)
+        #     return self.ignored_pattern and self.change.versioned == (False, False)
+        #     # return desc[8] and desc[3] == (False, False)
+        # else:
+        #     return None
+        if self.is_versioned() and self._ignored_pattern is not None:
+            return False
         else:
-            return None
+            return self._ignored_pattern
 
-    def dump(self):
+    def dump(self) -> str:
         c = self.change
         s = "Change: file_id {0} (Path: old [{1}], new [{2}])\n".format(self.fileid(), c.path[0], c.path[1])
         s += "\tchanged? {0}, (Versioned? old {1}, new {2})\n".format(c.changed_content, c.versioned[0], c.versioned[1])
@@ -358,11 +384,12 @@ class ChangeDesc:
         s += " (exec old {0}, new {1}), ?? copied / ignore?? {2}\n".format(c.executable[0], c.executable[1], c.copied)
         return s
 
-    def status(self):
+    def status(self) -> str:
         # Although _as_tuple is supposed to return 8 fields and apparently
         # sometimes 9, Breezy gives us 10, and we don't know what the last one is
         # Also, 'ignored' is called 'copied'
         desc = self.change._as_tuple()
+        print(f'status() {desc=} {len(desc)=}')
         if len(desc) == 8:
             (file_id,
             (path_in_source, path_in_target),
@@ -490,14 +517,16 @@ class TreeModel(QtCore.QAbstractItemModel):
                     for the_change in self.tree.iter_changes(basis_tree, want_unversioned=want_unversioned):
                         # iter_changes now seems to appear to return a TreeChange type See Jelmer's 7390.
                         # Handily, it has an as_tuple() function, so we'll cheat for now
-                        change = ChangeDesc(the_change)
+                        change = ChangeDesc(tree_change_object=the_change)
                         path = change.old_or_new_path()
                         fileid = change.fileid()
                         if fileid == root_id:
                             continue
+                        # tree.is_ignored() doesn't actually return a boolean, instead it
+                        # returns either None or the pattern to be ignored.
                         is_ignored = self.tree.is_ignored(path)
                         # change = ChangeDesc(change + (is_ignored,))
-                        change._is_ignored = is_ignored
+                        change.set_ignored_pattern(is_ignored)
 
                         if self.change_load_filter is not None and not self.change_load_filter(change):
                             continue
@@ -615,10 +644,25 @@ class TreeModel(QtCore.QAbstractItemModel):
                 (kind, executable, stat_value) = self.tree._comparison_data(None, path)
                 child = InternalItem(name, kind, None)
                 is_ignored = self.tree.is_ignored(path)
-                t = TreeChange((None, path), False, (False, False), (None, None), (None, name), (None, kind), (None, executable))
-                change = ChangeDesc(t, is_ignored)
+                # RJL BUGBUG: TreeChange initialisation looks incorrect
+                # tree.iter_changes states:
+                #  Changed_content is True if the file's content has changed.  This
+                #  includes changes to its kind, and to a symlink's target.
+                #
+                #  versioned, parent, name, kind, executable are tuples of (from, to).
+                #  If a file is missing in a tree, its kind is None.
+                # t = TreeChange((None, path), False, (False, False), (None, None), (None, name), (None, kind), (None, executable))
+                t = TreeChange(path=(None, path),
+                               changed_content=False,
+                               versioned=(False, False),
+                               name=(None, name),
+                               kind=(None, kind),
+                               executable=(None, executable))
+                change = ChangeDesc(tree_change_object=t, ignored_pattern=is_ignored)
 
-                # change = ChangeDesc((None,(None, path), False, (False, False), (None, None), (None, name), (None, kind),
+                # change = ChangeDesc((None,(None, path), False, (False, False),
+                #                       (None, None),
+                #                       (None, name), (None, kind),
                 #                      (None, executable),
                 #                      is_ignored))
 
@@ -1318,9 +1362,11 @@ class TreeFilterProxyModel(QtCore.QSortFilterProxyModel):
 
         if not is_versioned:
             if is_changed and (unversioned or ignored):
-                is_ignored = item_data.change.is_ignored()
-                if not is_ignored and unversioned: return True
-                if is_ignored: return ignored
+                is_ignored = item_data.change.ignored_pattern()
+                if not is_ignored and unversioned:
+                    return True
+                if is_ignored:
+                    return ignored
             else:
                 return False
 
