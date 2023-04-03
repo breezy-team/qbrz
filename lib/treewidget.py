@@ -274,7 +274,7 @@ class ChangeDesc:
 
     # RJLRJL BUGBUG: AS OF 2023, the above is no longer true [TreeChange no longer HAS
     # a file_id at 0, nor a parent_id (although InventoryTreeChange HAS)]
-    # intertree.iter_changes states:
+    # intertree.iter_changes states: (breezy/tree.py)
     #         Changed_content is True if the file's content has changed.  This
     #         includes changes to its kind, and to a symlink's target.
     #
@@ -286,10 +286,12 @@ class ChangeDesc:
     #         be ignored, otherwise None.  So this can simply be used as a
     #         boolean if desired" ...sayz bzr/workingtree
 
-    def __init__(self, tree_change_object: Union[TreeChange, InventoryTreeChange], ignored_pattern=None):
+    def __init__(self, tree_change_object: Union[TreeChange, InventoryTreeChange],
+                 ignored_pattern=None, associated_tree=None):
         self.change = tree_change_object
         # self.is_ignored = None
         self._ignored_pattern = ignored_pattern
+        self.associated_tree = associated_tree
 
     def set_ignored_pattern(self, new_pattern):
         self._ignored_pattern = new_pattern
@@ -375,16 +377,80 @@ class ChangeDesc:
         else:
             return self._ignored_pattern
 
-    def dump(self) -> str:
+    @staticmethod
+    def _dump_header_line():
+        s = f'{"file_id":<22} {"Path_old":<25} {"Path_new":<25} {"Changed?":<9}'
+        s += f' {"V(old)":7} {"V(new)":7} {"Name(old)":25} {"Name(new)":25}'
+        s += f' {"Kind_old":10} {"Kind_new":10} {"Exec_old":10} {"Exec_new":10}'
+        s += f' {"Copied?":10}'
+        return s
+
+    def _dump_row(self) -> str:
         c = self.change
-        s = "Change: file_id {0} (Path: old [{1}], new [{2}])\n".format(self.fileid(), c.path[0], c.path[1])
-        s += "\tchanged? {0}, (Versioned? old {1}, new {2})\n".format(c.changed_content, c.versioned[0], c.versioned[1])
-        s += "\t(parent_id old[{0}], new[{1}]), (name: old[{2}], new[{3}])\n".format(c.parent_id[0], c.parent_id[1], c.name[0], c.name[1])
-        s += "\t(kind: old {0}, new {1})".format(c.kind[0], c.kind[1])
-        s += " (exec old {0}, new {1}), ?? copied / ignore?? {2}\n".format(c.executable[0], c.executable[1], c.copied)
+        s = "{0:<22} {1:25} {2:25}".format(str(self.fileid()), str(c.path[0]), str(c.path[1]))
+        s += " {:^9} {:^7} {:^7}".format(str(c.changed_content), str(c.versioned[0]), str(c.versioned[1]))
+        s += " {0:25} {1:25}".format(str(c.name[0]), str(c.name[1]))
+        s += " {0:10} {1:10}".format(str(c.kind[0]), str(c.kind[1]))
+        s += " {0:10} {1:10}".format(str(c.executable[0]), str(c.executable[1]))
+        s += " {0:10} ".format(str(c.copied))
         return s
 
     def status(self) -> str:
+        # Although _as_tuple is supposed to return 8 fields and apparently
+        # sometimes 9, Breezy gives us 10, and we don't know what the last one is
+        # Also, 'ignored' is called 'copied'
+        # desc = self.change._as_tuple()
+        # # print(f'status() {desc=} {len(desc)=}')
+        # if len(desc) == 8:
+        #     (file_id,
+        #     (path_in_source, path_in_target),
+        #      changed_content, versioned, parent, name, kind,
+        #      executable) = desc
+        #     is_ignored = None
+        # elif len(desc) == 9:
+        #     (file_id, (path_in_source, path_in_target),
+        #      changed_content, versioned, parent, name, kind,
+        #      executable, is_ignored) = desc
+        # elif len(desc) == 10:
+        #     (file_id, (path_in_source, path_in_target),
+        #      changed_content, versioned, parent, name, kind,
+        #      executable, is_ignored, unknown) = desc
+        # else:
+        #     raise RuntimeError("Unkown number of items to unpack.")
+        is_ignored = self.associated_tree.is_ignored(self.old_or_new_path())
+        versioned = self.change.versioned
+        if versioned == (False, False):
+            if is_ignored:
+                return gettext("ignored")
+            else:
+                return gettext("non-versioned")
+        elif versioned == (False, True):
+            # if kind[1] is None:
+            if self.change.kind[1] is None:
+                return gettext("added, missing")
+            else:
+                return gettext("added")
+        elif versioned == (True, False):
+            return gettext("removed")
+        elif self.change.kind[0] is not None and self.change.kind[1] is None:
+            return gettext("missing")
+        else:
+            # versioned = True, True - so either renamed or modified
+            # or properties changed (x-bit).
+            mod_strs = []
+
+            if self.change.parent_id[0] != self.change.parent_id[1]:
+                mod_strs.append(gettext("moved"))
+            if self.change.name[0] != self.change.name[1]:
+                mod_strs.append(gettext("renamed"))
+            if self.change.changed_content:
+                mod_strs.append(gettext("modified"))
+            if self.change.executable[0] != self.change.executable[1]:
+                mod_strs.append(gettext("x-bit"))
+            return ", ".join(mod_strs)
+
+
+    def _old_status(self) -> str:
         # Although _as_tuple is supposed to return 8 fields and apparently
         # sometimes 9, Breezy gives us 10, and we don't know what the last one is
         # Also, 'ignored' is called 'copied'
@@ -488,6 +554,14 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._index_cache = {}
         self.set_select_all_kind()
 
+    @staticmethod
+    def _dump_tree(the_tree, name:str = 'A tree'):
+        print(f'\n== (Model) {name} == {type(the_tree)}')
+        entries = list(the_tree.iter_entries_by_dir())
+        for line in entries:
+            print(f' {line=}')
+        print('== end of tree ==\n')
+
     def set_tree(self, tree, branch=None, changes_mode=False, want_unversioned=True,
                  initial_checked_paths=None, change_load_filter=None, load_dirs=None):
         self.tree = tree
@@ -514,10 +588,17 @@ class TreeModel(QtCore.QAbstractItemModel):
                 root_id = self.tree.path2id('')
                 basis_tree = self.tree.basis_tree()
                 with basis_tree.lock_read():
-                    for the_change in self.tree.iter_changes(basis_tree, want_unversioned=want_unversioned):
+                    # print(f'Got basis_tree lock_read() for {basis_tree=}')
+                    self._dump_tree(basis_tree, 'Basis tree')
+                    # Compare the widget's tree with the basis (original tree)
+                    for other_lines, the_change in enumerate(self.tree.iter_changes(basis_tree, want_unversioned=want_unversioned)):
                         # iter_changes now seems to appear to return a TreeChange type See Jelmer's 7390.
                         # Handily, it has an as_tuple() function, so we'll cheat for now
-                        change = ChangeDesc(tree_change_object=the_change)
+                        change = ChangeDesc(tree_change_object=the_change, associated_tree=self.tree)
+                        # if not other_lines:
+                        #     print(f'\t{ChangeDesc._dump_header_line()}')
+                        # print(f'\t{change._dump_row()}')
+                        # print(f'\t\t{change.status()=}')
                         path = change.old_or_new_path()
                         fileid = change.fileid()
                         if fileid == root_id:
@@ -658,7 +739,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                                name=(None, name),
                                kind=(None, kind),
                                executable=(None, executable))
-                change = ChangeDesc(tree_change_object=t, ignored_pattern=is_ignored)
+                change = ChangeDesc(tree_change_object=t, ignored_pattern=is_ignored, associated_tree=self.tree)
 
                 # change = ChangeDesc((None,(None, path), False, (False, False),
                 #                       (None, None),
@@ -741,8 +822,12 @@ class TreeModel(QtCore.QAbstractItemModel):
     def _get_entry(self, tree, file_id):
         # RJLRJL BUGBUG it looks like requesting specific_files must NOT pass any
         # actual paths (e.g. dir/movedandrenamed should be stripped to movedandrenamed)
+        self._dump_tree(self.tree, name='_get_entry dump')
         the_path = self.tree.id2path(file_id)
+        # print(f'\t====== {file_id=}, {the_path=}\n\t{self.tree.id2path=} ======')
         entries = tree.iter_entries_by_dir(specific_files=[the_path,], recurse_nested=True)
+        # print(f'\t^^^^^^{the_path=}, {list(entries)=}, {tree.iter_entries_by_dir=}')
+        entries = tree.iter_entries_by_dir(specific_files=[the_path, ], recurse_nested=True)
         for _, entry in entries:
             return entry
 
@@ -1622,6 +1707,7 @@ class TreeWidget(RevisionTreeView):
             self.verticalScrollBar().setValue(v_scroll)
 
     def refresh(self):
+        # print(f'*** treewidget refresh() {type(self.tree), type(self.tree_model)}')
         with self.tree.lock_read():
             state = self.get_state()
             self.tree_model.set_tree(self.tree, self.branch,
@@ -1637,6 +1723,7 @@ class TreeWidget(RevisionTreeView):
                 # after every time we do a layout changed. The issue is similar to
                 # http://www.qtsoftware.com/developer/task-tracker/index_html?method=entry&id=236755
                 self.set_header_width_settings()
+        # print('\n*+*+*+*+*+ REFRESH DONE\n')
 
     def mousePressEvent(self, event):
         index = self.indexAt(event.pos())

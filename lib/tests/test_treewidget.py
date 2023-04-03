@@ -104,6 +104,13 @@ class TestTreeWidget(qtests.QTestCase):
 
         return tree, tree.branch
 
+    @staticmethod
+    def _dump_tree(the_tree, name:str = 'A tree'):
+        print(f'\n== {name} == {type(the_tree)}')
+        entries = list(the_tree.iter_entries_by_dir())
+        for line in entries:
+            print(f'{line=}')
+
     def modify_working_tree(self, tree):
         if 0: tree = WorkingTree()
         # RJLRJL: patched out renames as calls seem to be insoluble
@@ -118,7 +125,8 @@ class TestTreeWidget(qtests.QTestCase):
         tree.add(['added'], ids=[b'added-id'])
         tree.add(['addedmissing'], ids=[b'addedmissing-id'])
 
-        # BUGBUG: rename_one doesn't seem to behave
+        # self._dump_tree(tree, 'Before')
+
         tree.rename_one('renamed', 'renamed1')
         tree.move(('moved',), 'dir')
         tree.rename_one('movedandrenamed', 'movedandrenamed1')
@@ -136,6 +144,7 @@ class TestTreeWidget(qtests.QTestCase):
         # manually add conflicts for files that don't exist
         # See https://bugs.launchpad.net/qbrz/+bug/528548
         tree.add_conflicts([TextConflict('nofileconflict')])
+        # self._dump_tree(tree, 'After')
 
     def make_rev_tree(self):
         tree = self.make_branch_and_tree('tree')
@@ -199,8 +208,9 @@ class TestTreeWidget(qtests.QTestCase):
         # BUGBUG: patched out - rename seems to fail
         self.modify_tree(self, self.tree)
         QTest.qWaitForWindowExposed(widget)
-        # widget.refresh()
-        # QTest.qWaitForWindowExposed(widget)
+        # print(f'{widget.refresh=}')
+        widget.refresh()
+        QTest.qWaitForWindowExposed(widget)
         self.run_model_tests()
 
         widget.update()
@@ -370,18 +380,17 @@ class TestTreeWidgetSelectAll(qtests.QTestCase):
         # print('\ntest_add_select_all', self.win.filelist_widget)
         self.assertSelectedPaths(self.win.filelist_widget, ['dir-with-unversioned/child', 'unversioned', 'unversioned-with-ignored'])
 
-
     def test_commit_selectall(self):
         import breezy.plugins.qbrz.lib.commit
         self.win = breezy.plugins.qbrz.lib.commit.CommitWindow(self.tree, None)
         self.addCleanup(self.cleanup_win)
         self.win.load()
         self.assertSelectedPaths(self.win.filelist_widget, ['changed'])
-        #self.win.show_nonversioned_checkbox.setCheckState(QtCore.Qt.Checked)
+        # self.win.show_nonversioned_checkbox.setCheckState(QtCore.Qt.Checked)
         self.win.show_nonversioned_checkbox.click()
-        #self.win.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
+        # self.win.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
         self.win.selectall_checkbox.click()
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         self.assertSelectedPaths(self.win.filelist_widget, ['changed',
                                                      'dir-with-unversioned/child',
                                                      'unversioned',
@@ -459,7 +468,7 @@ filter_scenarios = (
                               '.bzrignore',
                               ],}),
     ('Unchanged',
-        {'filter': (True, False, False, False) ,
+        {'filter': (True, False, False, False),
          'expected_visible': ['dir-with-unversioned',
                               'unchanged',
                               '.bzrignore',

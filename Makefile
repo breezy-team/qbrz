@@ -82,7 +82,7 @@ checkone:
 #
 #  BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestI18n
 checkspecific:
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v  --one --strict --starting-with=bp.qbrz TestTreeWidget
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v  --one --strict --starting-with=bp.qbrz test_show_widget
 
 
 # Rather than running the test_ suite, this lets you run the actual plugin - note
@@ -98,6 +98,7 @@ qtest:
 # Note we have to use ${HOME} for BZR_PLUGINS_AT...
 #
 	BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qdiff
+	# ~/pythonstuff/bzr_test_dir/sopsteward
 	#BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qannotate ~/pythonstuff/qbrz/lib/treewidget.py
 	#BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qplugins
 

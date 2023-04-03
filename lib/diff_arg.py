@@ -119,6 +119,7 @@ class InternalDiffArgProvider(DiffArgProvider):
             args.append(revspec)
 
         from breezy.workingtree import WorkingTree
+        # RJLRJL: TODO: check this (see rev 1074)
         def get_base(branch, tree):
             if tree and isinstance(tree, WorkingTree):
                 return urlutils.local_path_to_url(tree.basedir)

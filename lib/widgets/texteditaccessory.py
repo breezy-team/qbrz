@@ -19,8 +19,9 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-GBAR_LEFT  = 1
+GBAR_LEFT = 1
 GBAR_RIGHT = 2
+
 
 class _Entry(object):
     """
@@ -34,11 +35,13 @@ class _Entry(object):
             * If index == -1, the group is renderd on all columns.
     """
     __slots__ = ['key', 'color', 'data', 'index']
+
     def __init__(self, key, color, index=0):
         self.key = key
         self.color = color
         self.data = []
         self.index = index
+
 
 class PlainTextEditHelper(QtCore.QObject):
     """
@@ -51,7 +54,6 @@ class PlainTextEditHelper(QtCore.QObject):
         if not isinstance(edit, QtWidgets.QPlainTextEdit):
             raise ValueError('edit must be QPlainTextEdit')
         self.edit = edit
-
         edit.updateRequest[QtCore.QRect, int].connect(self.onUpdateRequest)
 
     def onUpdateRequest(self, rect, dy):
@@ -66,16 +68,21 @@ class PlainTextEditHelper(QtCore.QObject):
         edit = self.edit
         height = edit.viewport().rect().height() / 2
         h = self.edit.blockBoundingRect(block).center().y()
+
         def iter_visible_block_backward(b):
             while True:
                 b = b.previous()
-                if not b.isValid(): return
-                if b.isVisible():   yield b
+                if not b.isValid():
+                    return
+                if b.isVisible():
+                    yield b
+
         for block in iter_visible_block_backward(block):
             h += edit.blockBoundingRect(block).height()
             if height < h:
                 break
         edit.verticalScrollBar().setValue(block.firstLineNumber())
+
 
 class TextEditHelper(QtCore.QObject):
     """
@@ -88,7 +95,6 @@ class TextEditHelper(QtCore.QObject):
         if not isinstance(edit, QtWidgets.QTextEdit):
             raise ValueError('edit must be QTextEdit')
         self.edit = edit
-
         edit.verticalScrollBar().valueChanged[int].connect(self.onVerticalScroll)
 
     def onVerticalScroll(self, value):
@@ -100,7 +106,8 @@ class TextEditHelper(QtCore.QObject):
         """
         y = block.layout().position().y()
         vscroll = self.edit.verticalScrollBar()
-        vscroll.setValue(y - vscroll.pageStep() / 2)
+        vscroll.setValue(int(y - vscroll.pageStep() / 2))
+
 
 def get_edit_helper(edit):
     if isinstance(edit, QtWidgets.QPlainTextEdit):
@@ -108,6 +115,7 @@ def get_edit_helper(edit):
     if isinstance(edit, QtWidgets.QTextEdit):
         return TextEditHelper(edit)
     raise ValueError("edit is unsupported type.")
+
 
 class GuideBar(QtWidgets.QWidget):
     """
@@ -142,8 +150,8 @@ class GuideBar(QtWidgets.QWidget):
         entry = _Entry(key, color, index)
         self.entries[key] = entry
 
-    def vscroll_rangeChanged(self, min, max):
-        vscroll_visible = (min < max)
+    def vscroll_rangeChanged(self, min_scroll, max_scroll):
+        vscroll_visible = (min_scroll < max_scroll)
         if self.vscroll_visible != vscroll_visible:
             self.vscroll_visible = vscroll_visible
             self.reset_gui()
@@ -259,6 +267,7 @@ class GuideBar(QtWidgets.QWidget):
             return
         self._helper.center_block(block)
 
+
 class GuideBarPanel(QtWidgets.QWidget):
     """
     Composite widget of TextEdit and GuideBar
@@ -286,14 +295,13 @@ class GuideBarPanel(QtWidgets.QWidget):
     def update_data(self, **data):
         return self.bar.update_data(**data)
 
+
 def setup_guidebar_for_find(guidebar, find_toolbar, index=0):
     """
     Make guidebar enable to show positions that highlighted by FindToolBar
     """
     def on_highlight_changed():
         if guidebar.edit in find_toolbar.text_edits:
-            guidebar.update_data(
-                find=[(n, 1) for n in guidebar.edit.highlight_lines]
-            )
-    guidebar.add_entry('find', QtGui.QColor(255, 196, 0), index) # Gold
+            guidebar.update_data(find=[(n, 1) for n in guidebar.edit.highlight_lines])
+    guidebar.add_entry('find', QtGui.QColor(255, 196, 0), index)  # Gold
     find_toolbar.highlightChanged.connect(on_highlight_changed)
