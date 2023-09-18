@@ -53,6 +53,6 @@ setup(name='qbrz',
                 ],
       ext_modules=ext_modules,
       cmdclass=cmdclass,
-      install_requires = ['patiencediff', 'breezy', 'fastbencode'],
+      install_requires=['patiencediff', 'breezy', 'fastbencode', 'python3-sip'],
 
 )
