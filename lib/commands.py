@@ -19,25 +19,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import signal
-import contextlib
 
 from breezy import errors
 from breezy.commands import Command
 from breezy.option import Option
 import breezy.builtins
 
-from breezy.lazy_import import lazy_import
-lazy_import(globals(), '''
 import sys
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
-from breezy import (
-    builtins,
-    osutils,
-    ui,
-    gpg,
-    )
+from breezy import osutils, ui, gpg
 from breezy.branch import Branch
 from breezy.controldir import ControlDir
 from breezy.workingtree import WorkingTree
@@ -62,8 +54,7 @@ from breezy.plugins.qbrz.lib.log import LogWindow
 from breezy.plugins.qbrz.lib.info import QBzrInfoWindow
 from breezy.plugins.qbrz.lib.init import QBzrInitWindow
 from breezy.plugins.qbrz.lib.main import QBzrMainWindow
-from breezy.plugins.qbrz.lib.verify_signatures import \
-QBzrVerifySignaturesWindow
+from breezy.plugins.qbrz.lib.verify_signatures import QBzrVerifySignaturesWindow
 from breezy.plugins.qbrz.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
@@ -82,17 +73,16 @@ from breezy.plugins.qbrz.lib.util import (
 from breezy.plugins.qbrz.lib.uifactory import QUIFactory
 from breezy.plugins.qbrz.lib.send import SendWindow
 from breezy.plugins.qbrz.lib.shelvewindow import ShelveWindow
-from breezy.plugins.qbrz.lib.widgets.shelvelist import ShelveListWindow
-''')
+
 
 from breezy.plugins.qbrz.lib.diff_arg import DiffArgProvider
 
-CUR_DIR='.'
+CUR_DIR = '.'
+
 
 class InvalidEncodingOption(errors.BzrError):
 
-    _fmt = ('Invalid encoding: %(encoding)s\n'
-            'Valid encodings are:\n%(valid)s')
+    _fmt = 'Invalid encoding: %(encoding)s\nValid encodings are:\n%(valid)s'
 
     def __init__(self, encoding):
         errors.BzrError.__init__(self)
@@ -109,7 +99,8 @@ def check_encoding(encoding):
 
 class PyQt4NotInstalled(errors.BzrError):
 
-    _fmt = ('QBrz requires at least PyQt 4.4 and Qt 4.4 to run. Please check your install')
+    _fmt = 'QBrz requires at least PyQt 4.4 and Qt 4.4 to run. Please check your install'
+
 
 # TODO: test this with qt5
 def report_missing_pyqt(unbound):
@@ -196,8 +187,7 @@ class QBzrCommand(Command):
 
 
 ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")
-execute_option = Option("execute", short_name='e',
-    help="Causes dialogs to start the underlying action immediately without waiting for user input.")
+execute_option = Option("execute", short_name='e', help="Causes dialogs to start the underlying action immediately without waiting for user input.")
 
 # A special option so 'revision' can be passed as a simple string, when we do
 # *not* want breezy's feature of parsing the revision string before passing it.
@@ -205,10 +195,7 @@ execute_option = Option("execute", short_name='e',
 # display in the UI, and we will later pass it to bzr for parsing. If you want
 # breezy to parse and pass a revisionspec object, just pass the string
 # 'revision' as normal.
-simple_revision_option = Option("revision",
-                             short_name='r',
-                             type=str,
-                             help='See "help revisionspec" for details.')
+simple_revision_option = Option("revision", short_name='r', type=str, help='See "help revisionspec" for details.')
 
 
 def brz_option(cmd_name, opt_name):
@@ -232,8 +219,7 @@ class cmd_qannotate(QBzrCommand):
     takes_args = ['filename']
     takes_options = ['revision',
                      Option('encoding', type=check_encoding, help='Encoding of files content (default: utf-8).'),
-                     ui_mode_option,
-                     Option('no-graph', help="Shows the log with no graph."),
+                     ui_mode_option, Option('no-graph', help="Shows the log with no graph."),
                      Option('line', short_name='L', type=int, argname='N', param_name='activate_line', help='Activate line N on start.'),
                     ]
     aliases = ['qann', 'qblame']
@@ -265,12 +251,12 @@ class cmd_qannotate(QBzrCommand):
             [(path, entry)] = list(tree.iter_entries_by_dir(specific_files=[relpath]))
             if entry.kind != 'file':
                 raise errors.BzrCommandError('brz qannotate only works for files (got %r)' % entry.kind)
-            #repo = branch.repository
-            #w = repo.weave_store.get_weave(file_id, repo.get_transaction())
-            #content = list(w.annotate_iter(entry.revision))
-            #revision_ids = set(o for o, t in content)
-            #revision_ids = [o for o in revision_ids if repo.has_revision(o)]
-            #revisions = branch.repository.get_revisions(revision_ids)
+            # repo = branch.repository
+            # w = repo.weave_store.get_weave(file_id, repo.get_transaction())
+            # content = list(w.annotate_iter(entry.revision))
+            # revision_ids = set(o for o, t in content)
+            # revision_ids = [o for o in revision_ids if repo.has_revision(o)]
+            # revisions = branch.repository.get_revisions(revision_ids)
         finally:
             if wt is not None:
                 wt.unlock()
@@ -279,13 +265,10 @@ class cmd_qannotate(QBzrCommand):
 
         return branch, tree, wt, relpath, file_id
 
-    def _qbrz_run(self, filename=None, revision=None, encoding=None,
-                  ui_mode=False, no_graph=False, activate_line=None):
+    def _qbrz_run(self, filename=None, revision=None, encoding=None, ui_mode=False, no_graph=False, activate_line=None):
         win = AnnotateWindow(None, None, None, None, None,
-                             encoding=encoding, ui_mode=ui_mode,
-                             loader=self._load_branch,
-                             loader_args=(filename, revision),
-                             no_graph=no_graph, activate_line=activate_line)
+                             encoding=encoding, ui_mode=ui_mode, loader=self._load_branch,
+                             loader_args=(filename, revision), no_graph=no_graph, activate_line=activate_line)
         win.show()
         self._application.exec_()
 
@@ -313,9 +296,7 @@ class cmd_qrevert(QBzrCommand):
         tree, selected_list = WorkingTree.open_containing_paths(selected_list)
         if selected_list == ['']:
             selected_list = None
-        self.main_window = RevertWindow(tree, selected_list, dialog=False,
-            ui_mode=ui_mode,
-            backup=not no_backup)
+        self.main_window = RevertWindow(tree, selected_list, dialog=False, ui_mode=ui_mode, backup=not no_backup)
         self.main_window.show()
         self._application.exec_()
 
@@ -342,11 +323,11 @@ class cmd_qbrowse(QBzrCommand):
     def _qbrz_run(self, revision=None, location=None):
         Branch.open_containing(location or '.')  # if there is no branch we want NotBranchError raised
         if revision is None:
-            win = BrowseWindow(location = location)
+            self.win = BrowseWindow(location=location)
         else:
-            win = BrowseWindow(location = location, revision = revision[0])
-        win.show()
-        self._application.exec_()
+            self.win = BrowseWindow(location=location, revision=revision[0])
+        self.win.show()
+        self._application.exec()
 
 
 class cmd_qcommit(QBzrCommand):
@@ -356,14 +337,12 @@ class cmd_qcommit(QBzrCommand):
             brz_option('commit', 'message'),
             brz_option('commit', 'local'),
             brz_option('commit', 'file'),
-            Option('file-encoding', type=check_encoding,
-               help='Encoding of commit message file content.'),
+            Option('file-encoding', type=check_encoding, help='Encoding of commit message file content.'),
             ui_mode_option,
             ]
     aliases = ['qci']
 
-    def _qbrz_run(self, selected_list=None, message=None, file=None,
-                  local=False, ui_mode=False, file_encoding=None):
+    def _qbrz_run(self, selected_list=None, message=None, file=None, local=False, ui_mode=False, file_encoding=None):
         if message is not None and file:
             raise errors.BzrCommandError("please specify either --message or --file")
         if file:
@@ -384,15 +363,12 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
     takes_options = [
         'revision',
         Option('complete', help='Show complete files.'),
-        Option('encoding', type=check_encoding,
-               help='Encoding of files content (default: utf-8).'),
+        Option('encoding', type=check_encoding, help='Encoding of files content (default: utf-8).'),
         Option('added', short_name='A', help='Show diff for added files.'),
         Option('deleted', short_name='K', help='Show diff for deleted files.'),
-        Option('modified', short_name='M',
-               help='Show diff for modified files.'),
+        Option('modified', short_name='M', help='Show diff for modified files.'),
         Option('renamed', short_name='R', help='Show diff for renamed files.'),
-        Option('ignore-whitespace', short_name='w',
-               help="Ignore whitespace when finding differences"),
+        Option('ignore-whitespace', short_name='w', help="Ignore whitespace when finding differences"),
         brz_option('diff', 'old'),
         brz_option('diff', 'new'),
         ]
@@ -402,8 +378,7 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
 
     def get_diff_window_args(self, processEvents, es):
         args = {}
-        (args["old_tree"], args["new_tree"],
-            args["old_branch"], args["new_branch"],
+        (args["old_tree"], args["new_tree"], args["old_branch"], args["new_branch"],
             args["specific_files"], _) = get_trees_and_branches_to_diff_locked(self.file_list, self.revision, self.old, self.new, es)
         args["ignore_whitespace"] = self.ignore_whitespace
         return args
@@ -412,23 +387,18 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
         args = []
         if self.revision and len(self.revision) == 1:
             args.append("-r%s" % (self.revision[0].user_spec,))
-        elif self.revision and  len(self.revision) == 2:
-            args.append("-r%s..%s" % (self.revision[0].user_spec,
-                                       self.revision[1].user_spec))
-
+        elif self.revision and len(self.revision) == 2:
+            args.append("-r%s..%s" % (self.revision[0].user_spec, self.revision[1].user_spec))
         if self.new and not self.new == CUR_DIR:
             args.append("--new=%s" % self.new)
         if self.old and not self.old == CUR_DIR:
             args.append("--old=%s" % self.old)
-
         if self.file_list:
             args.extend(self.file_list)
-
         return None, args
 
     def _qbrz_run(self, revision=None, file_list=None, complete=False,
-            encoding=None, ignore_whitespace=False,
-            added=None, deleted=None, modified=None, renamed=None,
+            encoding=None, ignore_whitespace=False, added=None, deleted=None, modified=None, renamed=None,
             old=None, new=None, ui_mode=False):
 
         if revision and len(revision) > 2:
@@ -541,8 +511,7 @@ class cmd_qpull(QBzrCommand):
         ]
     takes_args = ['location?']
 
-    def _qbrz_run(self, location=None, directory=None,
-                  remember=None, overwrite=None, revision=None, ui_mode=False):
+    def _qbrz_run(self, location=None, directory=None, remember=None, overwrite=None, revision=None, ui_mode=False):
         if directory is None:
             directory = CUR_DIR
         try:
@@ -552,10 +521,7 @@ class cmd_qpull(QBzrCommand):
             tree_to = None
             branch_to = Branch.open_containing(directory)[0]
         self.main_window = QBzrPullWindow(branch_to, tree_to, location,
-                                remember=remember,
-                                overwrite=overwrite,
-                                revision=revision,
-                                ui_mode=ui_mode)
+                                remember=remember, overwrite=overwrite, revision=revision, ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()
 
@@ -571,8 +537,7 @@ class cmd_qmerge(QBzrCommand):
                      'remember']
     takes_args = ['location?']
 
-    def _qbrz_run(self, location=None, directory=None, revision=None,
-                  remember=None, force=None, uncommitted=None, ui_mode=False):
+    def _qbrz_run(self, location=None, directory=None, revision=None, remember=None, force=None, uncommitted=None, ui_mode=False):
         if directory is None:
             directory = CUR_DIR
         try:
@@ -598,10 +563,8 @@ class cmd_qpush(QBzrCommand):
                      ui_mode_option]
     takes_args = ['location?']
 
-    def _qbrz_run(self, location=None, directory=None,
-                  remember=None, overwrite=None,
-                  create_prefix=None, use_existing_dir=None,
-                  ui_mode=False):
+    def _qbrz_run(self, location=None, directory=None, remember=None, overwrite=None,
+                  create_prefix=None, use_existing_dir=None, ui_mode=False):
 
         if directory is None:
             directory = CUR_DIR
@@ -612,12 +575,8 @@ class cmd_qpush(QBzrCommand):
         except errors.NoWorkingTree:
             tree_to = None
             branch_to = Branch.open_containing(directory)[0]
-        self.main_window = QBzrPushWindow(branch_to, tree_to,
-                                location=location,
-                                create_prefix=create_prefix,
-                                use_existing_dir=use_existing_dir,
-                                remember=remember,
-                                overwrite=overwrite,
+        self.main_window = QBzrPushWindow(branch_to, tree_to, location=location, create_prefix=create_prefix,
+                                use_existing_dir=use_existing_dir, remember=remember, overwrite=overwrite,
                                 ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()
@@ -626,8 +585,7 @@ class cmd_qpush(QBzrCommand):
 class cmd_qbranch(QBzrCommand):
     """Create a new copy of a branch."""
 
-    takes_options = [simple_revision_option,
-                     ui_mode_option]
+    takes_options = [simple_revision_option, ui_mode_option]
     try:
         takes_options.append(brz_option("branch", "bind"))
     except KeyError:
@@ -635,10 +593,8 @@ class cmd_qbranch(QBzrCommand):
         pass
     takes_args = ['from_location?', 'to_location?']
 
-    def _qbrz_run(self, from_location=None, to_location=None,
-                  revision=None, bind=False, ui_mode=False):
-        self.main_window = QBzrBranchWindow(from_location, to_location,
-            revision=revision, bind=bind, ui_mode=ui_mode)
+    def _qbrz_run(self, from_location=None, to_location=None, revision=None, bind=False, ui_mode=False):
+        self.main_window = QBzrBranchWindow(from_location, to_location, revision=revision, bind=bind, ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()
 
@@ -660,11 +616,8 @@ class cmd_qverify_signatures(QBzrCommand):
 
     takes_options = [
             Option('acceptable-keys',
-                   help='Comma separated list of GPG key patterns which are'
-                        ' acceptable for verification.',
-                   short_name='k',
-                   type=str,),
-            'revision',
+                   help='Comma separated list of GPG key patterns which are acceptable for verification.',
+                   short_name='k', type=str,), 'revision',
           ]
     takes_args = ['location?']
 
@@ -675,6 +628,7 @@ class cmd_qverify_signatures(QBzrCommand):
             self._application.exec_()
         else:
             raise errors.DependencyNotPresent("python-gpgme", "python-gpgme not installed")
+
 
 class cmd_qinit(QBzrCommand):
     """Initializes a new branch or shared repository."""
@@ -792,11 +746,11 @@ class cmd_qgetupdates(QBzrCommand):
     aliases = ['qgetu', 'qgetup']
 
     def _qbrz_run(self, location=CUR_DIR, ui_mode=False, execute=False):
-        branch, relpath = Branch.open_containing(location)
+        # branch, relpath = Branch.open_containing(location)
         tb = TreeBranch.open_containing(location, ui_mode=ui_mode)
         if tb is None:
             return errors.EXIT_ERROR
-        if tb.is_light_co():
+        if tb.is_lightweight_checkout():
             window = QBzrUpdateWindow(tb.tree, ui_mode, immediate=execute)
         elif tb.is_bound():
             window = UpdateCheckoutWindow(tb.branch, ui_mode=ui_mode)
@@ -819,6 +773,7 @@ class cmd_qgetnew(QBzrCommand):
         self.main_window = GetNewWorkingTreeWindow(location, ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()
+
 
 class cmd_qhelp(QBzrCommand):
     """Shows a help window"""
@@ -845,8 +800,7 @@ class cmd_qtag(QBzrCommand):
         'revision',
         ]
 
-    def _qbrz_run(self, tag_name=None, delete=None, directory=CUR_DIR,
-        force=None, revision=None, ui_mode=False):
+    def _qbrz_run(self, tag_name=None, delete=None, directory=CUR_DIR, force=None, revision=None, ui_mode=False):
         branch = Branch.open_containing(directory)[0]
         # determine action based on given options
         action = TagWindow.action_from_options(force=force, delete=delete)
@@ -875,8 +829,7 @@ class cmd_qviewer(QBzrCommand):
     aliases = []
     takes_args = ['filename']
     takes_options = [
-        Option('encoding', type=check_encoding,
-               help='Encoding of file content (default: utf-8).'),
+        Option('encoding', type=check_encoding, help='Encoding of file content (default: utf-8).'),
         ]
     _see_also = ['qcat']
 
@@ -965,7 +918,7 @@ class cmd_qunbind(QBzrCommand):
         from breezy.plugins.qbrz.lib.unbind import QBzrUnbindDialog
 
         branch = Branch.open_containing(CUR_DIR)[0]
-        if branch.get_bound_location() == None:
+        if branch.get_bound_location() is None:
             raise errors.BzrCommandError("This branch is not bound.")
 
         self.main_window = QBzrUnbindDialog(branch, ui_mode, execute)
@@ -987,7 +940,7 @@ class cmd_qexport(QBzrCommand):
     def _qbrz_run(self, dest=None, branch_or_subdir=None, ui_mode=False):
         from breezy.plugins.qbrz.lib.export import QBzrExportDialog
 
-        if branch_or_subdir == None:
+        if branch_or_subdir is None:
             branch = Branch.open_containing(CUR_DIR)[0]
         else:
             branch = Branch.open_containing(branch_or_subdir)[0]
@@ -1061,6 +1014,7 @@ class cmd_qrun(QBzrCommand):
         window.show()
         self._application.exec_()
 
+
 class cmd_qshelve(QBzrCommand):
     """Shelve selected changes away."""
     takes_args = ['file*']
@@ -1090,6 +1044,7 @@ class cmd_qshelve(QBzrCommand):
                                 select_all=all, message=message)
         self.main_window.show()
         self._application.exec_()
+
 
 class cmd_qunshelve(QBzrCommand):
     """Restore shalved changes."""

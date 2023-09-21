@@ -78,17 +78,17 @@ class StatusCache(QtCore.QObject):
             # to stop bzr-svn from trying to give status on svn checkouts
             # if not QtCore.QDir(p).exists('.bzr'):
             #    raise errors.NotBranchError(p)
-            wt, relpath = workingtree.WorkingTree.open_containing(p)
+            working_tree, relpath = workingtree.WorkingTree.open_containing(p)
         except errors.BzrError:
             self.fileSystemWatcher.addPath(p)
             return self._cacheStatus(path, 'non-versioned')
-        self.fileSystemWatcher.addPath(wt.basedir)
-        bt = wt.basis_tree()
-        root = self._cacheStatus(osutils.splitpath(wt.basedir), 'branch')
+        self.fileSystemWatcher.addPath(working_tree.basedir)
+        basis_tree = working_tree.basis_tree()
+        root = self._cacheStatus(osutils.splitpath(working_tree.basedir), 'branch')
         # delta will be a TreeDelta: commit 7389 makes TreeDelta HOLD TreeChange objects in
         # list member variables called added, removed, renamed, copied, kind_changes, modified
         # unchanged, unversioned and missing
-        delta = wt.changes_from(bt, want_unchanged=True, want_unversioned=True)
+        delta = working_tree.changes_from(basis_tree, want_unchanged=True, want_unversioned=True)
         # ... and thus entry will be a TreeChange object, with the path in,
         # perhaps unsurprisingly, 'path' rather than entry[0]. Path is a tuple of
         # old and new path, so get whatever works
@@ -115,15 +115,15 @@ class StatusCache(QtCore.QObject):
 
     def getFileStatus(self, path, name):
         try:
-            parentEntry = self._getCacheEntry(path)
+            parent_entry = self._getCacheEntry(path)
         except KeyError:
-            parentEntry = None
-        if parentEntry is None or parentEntry.status == 'unknown':
-            parentEntry = self._cacheDirectoryStatus(path)
+            parent_entry = None
+        if parent_entry is None or parent_entry.status == 'unknown':
+            parent_entry = self._cacheDirectoryStatus(path)
         try:
-            entry = parentEntry.children[name]
+            entry = parent_entry.children[name]
         except KeyError:
-            if parentEntry.status == 'non-versioned':
+            if parent_entry.status == 'non-versioned':
                 return 'non-versioned'
             else:
                 if sys.platform == 'win32':

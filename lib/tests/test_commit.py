@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+
 from breezy.tests import TestCase, TestCaseWithTransport
 from PyQt5 import QtCore
 from breezy.plugins.qbrz.lib import tests as qtests

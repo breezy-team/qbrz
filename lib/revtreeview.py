@@ -19,14 +19,10 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from breezy.plugins.qbrz.lib import MS_WINDOWS
-
-from breezy.lazy_import import lazy_import
-lazy_import(globals(), '''
 from breezy.plugins.qbrz.lib.util import run_in_loading_queue
 from breezy.plugins.qbrz.lib.lazycachedrevloader import load_revisions
 from breezy.plugins.qbrz.lib.diff import ExtDiffContext
 from breezy.transport.local import LocalTransport
-''')
 
 RevIdRole = QtCore.Qt.UserRole + 1
 
@@ -44,9 +40,9 @@ class RevisionTreeView(QtWidgets.QTreeView):
 
     def __init__(self, parent=None):
         QtWidgets.QTreeView.__init__(self, parent)
-        self.verticalScrollBar().valueChanged [int].connect(self.scroll_changed)
-        self.collapsed [QtCore.QModelIndex].connect(self.collapsed_expanded)
-        self.expanded [QtCore.QModelIndex].connect(self.collapsed_expanded)
+        self.verticalScrollBar().valueChanged[int].connect(self.scroll_changed)
+        self.collapsed[QtCore.QModelIndex].connect(self.collapsed_expanded)
+        self.expanded[QtCore.QModelIndex].connect(self.collapsed_expanded)
 
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
@@ -54,15 +50,21 @@ class RevisionTreeView(QtWidgets.QTreeView):
         self.diff_context = ExtDiffContext(self)
 
     def setModel(self, model):
-        QtWidgets.QTreeView.setModel(self, model)
+        # QtWidgets.QTreeView.setModel(self, model)
 
+        # Do NOT be tempted to simplify this back to the old version
         if isinstance(model, QtCore.QAbstractProxyModel):
-            # Connecting the below signal has funny results when we connect to
-            # to a ProxyModel, so connect to the source model.
-            model = model.sourceModel()
-
-        model.dataChanged[QtCore.QModelIndex, QtCore.QModelIndex].connect(self.data_changed)
-        model.layoutChanged.connect(self.layout_changed)
+            # Connecting the below signal has funny results when we connect to to a ProxyModel, so connect to the source model.
+            # RJLRJL: This is because, if you are doing things on the proxy rather than the source, you need to update the
+            # source using sourceModel(). You might also need to use sourceModel().layoutChanged.emit() too. Doing
+            # model = model.sourceModel() is not quite the same thing.
+            QtWidgets.QTreeView.setModel(self, model.sourceModel())
+            model.sourceModel().dataChanged[QtCore.QModelIndex, QtCore.QModelIndex].connect(self.data_changed)
+            model.sourceModel().layoutChanged.connect(self.layout_changed)
+        else:
+            QtWidgets.QTreeView.setModel(self, model)
+            model.dataChanged[QtCore.QModelIndex, QtCore.QModelIndex].connect(self.data_changed)
+            model.layoutChanged.connect(self.layout_changed)
 
     def scroll_changed(self, value):
         self.load_visible_revisions()
@@ -122,7 +124,7 @@ class RevisionTreeView(QtWidgets.QTreeView):
             if not repo_is_local:
                 # Disable this until we have thobber that does not irratate
                 # users when we show and hide quickly.
-                #if not self.load_revisions_throbber_shown \
+                # if not self.load_revisions_throbber_shown \
                 #            and hasattr(self, "throbber"):
                 #    self.throbber.show()
                 #    self.load_revisions_throbber_shown = True
@@ -132,11 +134,9 @@ class RevisionTreeView(QtWidgets.QTreeView):
             return False
 
         try:
-            load_revisions(revids, model.get_repo(),
-                           revisions_loaded = model.on_revisions_loaded,
-                           before_batch_load = before_batch_load)
+            load_revisions(revids, model.get_repo(), revisions_loaded=model.on_revisions_loaded, before_batch_load=before_batch_load)
         finally:
-            self.load_revisions_call_count -=1
+            self.load_revisions_call_count -= 1
             if self.load_revisions_call_count == 0:
                 # This is the last running method
                 if self.load_revisions_throbber_shown:
@@ -193,7 +193,7 @@ def get_text_color(option, style):
 
 class RevNoItemDelegate(QtWidgets.QStyledItemDelegate):
 
-    def __init__ (self, max_mainline_digits=4, parent=None):
+    def __init__(self, max_mainline_digits=4, parent=None):
         QtWidgets.QItemDelegate.__init__(self, parent)
         self.max_mainline_digits = max_mainline_digits
 
@@ -246,15 +246,9 @@ def paint_revno(painter, rect, revno, max_mainline_digits):
         text = revno
         if fm.width(text) > rect.width():
             text = fm.elidedText(text, QtCore.Qt.ElideRight, rect.width())
-        painter.drawText(rect, QtCore.Qt.AlignRight, text);
+        painter.drawText(rect, QtCore.Qt.AlignRight, text)
     else:
-        mainline_rect = QtCore.QRect(rect.x(),
-                                     rect.y(),
-                                     mainline_width,
-                                     rect.height())
-        therest_rect = QtCore.QRect(rect.x() + mainline_width,
-                                    rect.y(),
-                                    rect.width() - mainline_width,
-                                    rect.height())
+        mainline_rect = QtCore.QRect(rect.x(), rect.y(), mainline_width, rect.height())
+        therest_rect = QtCore.QRect(rect.x() + mainline_width, rect.y(), rect.width() - mainline_width, rect.height())
         painter.drawText(mainline_rect, QtCore.Qt.AlignRight, mainline)
         painter.drawText(therest_rect, QtCore.Qt.AlignLeft, therest)

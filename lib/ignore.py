@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from breezy.globbing import Globster
 from breezy.plugins.qbrz.lib.i18n import gettext, N_, ngettext
 from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
@@ -29,6 +29,7 @@ ACTION_BY_EXT = 'ext'
 ACTION_BY_EXT_CASE_INSENSITIVE = 'ext,case-insensitive'
 ACTION_BY_BASENAME = 'basename'
 ACTION_BY_FULLNAME = 'fullname'
+
 
 class IgnoreWindow(SubProcessDialog):
 
@@ -53,11 +54,7 @@ class IgnoreWindow(SubProcessDialog):
         self.unknowns_list.setRootIsDecorated(False)
         self.unknowns_list.setUniformRowHeights(True)
         self.unknowns_list.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.unknowns_list.setHeaderLabels([
-            gettext("File"),
-            gettext("Extension"),
-            gettext("Ignore as"),
-            ])
+        self.unknowns_list.setHeaderLabels([gettext("File"), gettext("Extension"), gettext("Ignore as"),])
         self.unknowns_list.setSortingEnabled(True)
         self.unknowns_list.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.unknowns_list.itemClicked[QTreeWidgetItem, int].connect(self.item_clicked)

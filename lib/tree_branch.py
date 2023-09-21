@@ -23,12 +23,7 @@
 
 from PyQt5 import QtGui, QtWidgets
 
-from breezy import (
-    controldir,
-    errors,
-    osutils,
-    urlutils,
-    )
+from breezy import controldir, errors, osutils, urlutils
 
 from breezy.plugins.qbrz.lib.i18n import gettext
 
@@ -46,8 +41,7 @@ class TreeBranch(object):
         self.relpath = relpath
 
     @staticmethod
-    def open_containing(location=None, require_tree=False, ui_mode=False,
-        _critical_dialog=QtWidgets.QMessageBox.critical):
+    def open_containing(location=None, require_tree=False, ui_mode=False, _critical_dialog=QtWidgets.QMessageBox.critical):
         """Open the branch and tree at location (or in current directory).
 
         @return: initialized TreeBranch if opened successfully,
@@ -65,11 +59,7 @@ class TreeBranch(object):
         if location is None:
             location = osutils.getcwd()
         try:
-            (tree,
-             branch,
-             relpath
-            ) = controldir.ControlDir.open_containing_tree_or_branch(location)
-
+            (tree, branch, relpath) = controldir.ControlDir.open_containing_tree_or_branch(location)
             if require_tree and tree is None:
                 raise errors.NoWorkingTree(location)
         except (errors.NotBranchError, errors.NoWorkingTree) as e:
@@ -80,8 +70,7 @@ class TreeBranch(object):
         return TreeBranch(location, tree, branch, relpath)
 
     @staticmethod
-    def _report_error(location, err,
-        _critical_dialog=QtWidgets.QMessageBox.critical):
+    def _report_error(location, err, _critical_dialog=QtWidgets.QMessageBox.critical):
         """Report error in GUI dialog.
         @param location: valid location for which error is reported.
         @param err: error object (NotBranchError or NoWorkingTree).
@@ -91,15 +80,11 @@ class TreeBranch(object):
             text = gettext('Not a branch "%s"') % location
         elif isinstance(err, errors.NoWorkingTree):
             text = gettext('No working tree exists for "%s"') % location
-        _critical_dialog(None,
-            gettext("Error"),
-            text,
-            gettext('&Close'))
+        _critical_dialog(None, gettext("Error"), text, gettext('&Close'))
 
-    def is_light_co(self):
+    def is_lightweight_checkout(self):
         """Return True if location is lightweight checkout."""
-        if (self.tree and self.tree.controldir.root_transport.base !=
-            self.branch.controldir.root_transport.base):
+        if self.tree and self.tree.controldir.root_transport.base != self.branch.controldir.root_transport.base:
             return True
         return False
 
@@ -111,12 +96,11 @@ class TreeBranch(object):
 
     def get_type(self):
         """Return type of the object as string.
-        @return: type of object ('tree', 'branch', 'light-checkout', 'bound'
-            or None)
+        @return: type of object ('tree', 'branch', 'light-checkout', 'bound' or None)
         """
         if self.branch is None:
             return None
-        if self.is_light_co():
+        if self.is_lightweight_checkout():
             return 'light-checkout'
         elif self.is_bound():
             return 'bound'

@@ -17,15 +17,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import sys, time
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QKeySequence
 
-from breezy.revision import CURRENT_REVISION
-from breezy.errors import (
-        NoSuchRevision,
-        NoSuchRevisionInTree,
-        PathsNotVersionedError)
 from breezy.plugins.qbrz.lib.i18n import gettext, N_
 from breezy.plugins.qbrz.lib.util import (
     QBzrWindow,
@@ -42,8 +35,7 @@ from breezy.plugins.qbrz.lib.util import (
 from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
 from breezy.plugins.qbrz.lib.trace import reports_exception
 from breezy.plugins.qbrz.lib.logwidget import LogList
-from breezy.lazy_import import lazy_import
-lazy_import(globals(), '''
+
 from breezy import transform
 from breezy.workingtree import WorkingTree
 from breezy.revisiontree import RevisionTree
@@ -54,7 +46,7 @@ from breezy.plugins.qbrz.lib.widgets.splitters import Splitters
 from patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from breezy.shelf import Unshelver
 from breezy.shelf_ui import Unshelver as Unshelver_ui
-''')
+
 
 class ShelveWindow(QBzrWindow):
 
@@ -75,12 +67,9 @@ class ShelveWindow(QBzrWindow):
 
         self.directory = directory or '.'
 
-        shelve_view = ShelveWidget(file_list=file_list, directory=self.directory,
-                                    complete=complete, encoding=encoding,
-                                    splitters=self.splitters, parent=self,
-                                    select_all=select_all, init_msg=message)
-        shelvelist_view = ShelveListWidget(directory=self.directory,
-                                    complete=complete, ignore_whitespace=ignore_whitespace,
+        shelve_view = ShelveWidget(file_list=file_list, directory=self.directory, complete=complete, encoding=encoding,
+                                    splitters=self.splitters, parent=self, select_all=select_all, init_msg=message)
+        shelvelist_view = ShelveListWidget(directory=self.directory, complete=complete, ignore_whitespace=ignore_whitespace,
                                     encoding=encoding, splitters=self.splitters, parent=self)
 
         self.tab.addTab(shelve_view, gettext('Shelve'))
@@ -89,7 +78,6 @@ class ShelveWindow(QBzrWindow):
         self.tab.currentChanged[int].connect(self.current_tab_changed)
         shelve_view.shelfCreated[int].connect(self.shelf_created)
         shelvelist_view.unshelved[int, 'QString'].connect(self.unshelved)
-
         self.splitters.restore_state()
 
     def show(self):
@@ -131,4 +119,3 @@ class ShelveWindow(QBzrWindow):
     def hideEvent(self, event):
         self.splitters.save_state()
         QBzrWindow.hideEvent(self, event)
-

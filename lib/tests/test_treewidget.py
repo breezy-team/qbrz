@@ -21,8 +21,6 @@ import os
 from breezy.tests import TestCase, TestCaseWithTransport
 from breezy import tests
 from breezy.workingtree import WorkingTree
-from breezy.branch import Branch
-from breezy.controldir import ControlDir
 from breezy import ignores
 from breezy.bzr.conflicts import TextConflict
 
@@ -104,15 +102,9 @@ class TestTreeWidget(qtests.QTestCase):
 
         return tree, tree.branch
 
-    @staticmethod
-    def _dump_tree(the_tree, name:str = 'A tree'):
-        print(f'\n== {name} == {type(the_tree)}')
-        entries = list(the_tree.iter_entries_by_dir())
-        for line in entries:
-            print(f'{line=}')
-
     def modify_working_tree(self, tree):
-        if 0: tree = WorkingTree()
+        if 0:
+            tree = WorkingTree()
         # RJLRJL: patched out renames as calls seem to be insoluble
         # and related to a problem with finding the id vs rel_path
         tree.merge_from_branch(self.branch_tree.branch, b'rev-b')
@@ -124,8 +116,6 @@ class TestTreeWidget(qtests.QTestCase):
                                   ])
         tree.add(['added'], ids=[b'added-id'])
         tree.add(['addedmissing'], ids=[b'addedmissing-id'])
-
-        # self._dump_tree(tree, 'Before')
 
         tree.rename_one('renamed', 'renamed1')
         tree.move(('moved',), 'dir')
@@ -144,7 +134,6 @@ class TestTreeWidget(qtests.QTestCase):
         # manually add conflicts for files that don't exist
         # See https://bugs.launchpad.net/qbrz/+bug/528548
         tree.add_conflicts([TextConflict('nofileconflict')])
-        # self._dump_tree(tree, 'After')
 
     def make_rev_tree(self):
         tree = self.make_branch_and_tree('tree')
@@ -178,16 +167,21 @@ class TestTreeWidget(qtests.QTestCase):
     def test_show_widget(self):
         widget = TreeWidget()
         self.widget = widget
+        widget.setGeometry(0, 0, 1000, 1000)
         QTest.qWaitForWindowExposed(widget)
+        self.widget.show()
         self.run_model_tests()
 
         self.addCleanup(widget.close)
         # make the widget bigger so that we can see what is going on.
-        widget.setGeometry(0,0,500,500)
+        widget.setGeometry(0,0,1000,1000)
+        QtCore.QCoreApplication.processEvents()
         widget.show()
+
         QTest.qWaitForWindowExposed(widget)
         QtCore.QCoreApplication.processEvents()
         widget.set_tree(self.tree, self.branch, changes_mode=self.changes_mode)
+        self.widget.show()
         self.run_model_tests()
 
         widget.update()
@@ -208,7 +202,6 @@ class TestTreeWidget(qtests.QTestCase):
         # BUGBUG: patched out - rename seems to fail
         self.modify_tree(self, self.tree)
         QTest.qWaitForWindowExposed(widget)
-        # print(f'{widget.refresh=}')
         widget.refresh()
         QTest.qWaitForWindowExposed(widget)
         self.run_model_tests()
@@ -246,7 +239,6 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
     expected_visible = None
 
     def test_filters(self):
-        # print('\n*=*=*= expected', self.expected_visible, type(self.expected_visible))
         tree = self.make_branch_and_tree('tree')
 
         self.build_tree(['tree/dir-with-unversioned/', 'tree/ignored-dir-with-child/',])
@@ -267,15 +259,12 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
         self.build_tree_contents([('tree/changed', b'bnew')])
 
         self.model = TreeModel()
-        # print('\n\t== self.model is ', self.model, type(self.model))
         load_dirs = [PersistantItemReference(None, 'dir-with-unversioned'), PersistantItemReference(None, 'ignored-dir-with-child')]
-        # print('\n set_tree being called')
         self.model.set_tree(tree, branch=tree.branch, load_dirs=load_dirs)
         self.filter_model = TreeFilterProxyModel()
         self.filter_model.setSourceModel(self.model)
         self.filter_model.setFilters(self.filter)
         self.expected_visible.sort()
-        # print('\n*=*=*= after-sort expected', self.expected_visible, type(self.expected_visible))
         self.assertEqual(self.getVisiblePaths(), self.expected_visible)
 
     def getVisiblePaths(self):
@@ -361,12 +350,8 @@ class TestTreeWidgetSelectAll(qtests.QTestCase):
         self.tree = tree
 
     def assertSelectedPaths(self, treewidget, paths):
-        # print('\n ^^^ assertSelectedPaths called\n')
-        if 0: treewidget = TreeWidget()
-        # for i in treewidget.tree_model.iter_checked():
-        #     print('\n-> is is', i)
+        # if 0: treewidget = TreeWidget()
         selected = [item.path for item in treewidget.tree_model.iter_checked()]
-        # print('\n^^^selected', selected, 'paths', paths)
         # we do not care for the order in this test.
         self.assertEqual(set(selected), set(paths))
 
@@ -374,27 +359,36 @@ class TestTreeWidgetSelectAll(qtests.QTestCase):
         import breezy.plugins.qbrz.lib.add
         self.win = breezy.plugins.qbrz.lib.add.AddWindow(self.tree, None)
         QTest.qWaitForWindowExposed(self.win)
+        self.win.show()
         self.addCleanup(self.cleanup_win)
         self.win.initial_load()
         QTest.qWaitForWindowExposed(self.win)
-        # print('\ntest_add_select_all', self.win.filelist_widget)
+        self.win.show()
+        self.win.show_ignored_checkbox.click()
+        self.win.show()
         self.assertSelectedPaths(self.win.filelist_widget, ['dir-with-unversioned/child', 'unversioned', 'unversioned-with-ignored'])
 
     def test_commit_selectall(self):
         import breezy.plugins.qbrz.lib.commit
-        self.win = breezy.plugins.qbrz.lib.commit.CommitWindow(self.tree, None)
+        self.win = breezy.plugins.qbrz.lib.commit.CommitWindow(tree=self.tree, selected_list=None)
+        self.win.show()
+        QTest.qWaitForWindowExposed(self.win)
         self.addCleanup(self.cleanup_win)
         self.win.load()
+        QTest.qWaitForWindowExposed(self.win)
         self.assertSelectedPaths(self.win.filelist_widget, ['changed'])
+        QTest.qWaitForWindowExposed(self.win)
         # self.win.show_nonversioned_checkbox.setCheckState(QtCore.Qt.Checked)
         self.win.show_nonversioned_checkbox.click()
+        QTest.qWaitForWindowExposed(self.win)
+        self.win.show()
         # self.win.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
         self.win.selectall_checkbox.click()
+        QTest.qWaitForWindowExposed(self.win)
+        # RJLRJL: this import pdb...` commented-out code was already present, so looks like this was always problematic
         # import pdb; pdb.set_trace()
-        self.assertSelectedPaths(self.win.filelist_widget, ['changed',
-                                                     'dir-with-unversioned/child',
-                                                     'unversioned',
-                                                     'unversioned-with-ignored'])
+        self.assertSelectedPaths(self.win.filelist_widget, ['changed', 'dir-with-unversioned/child',
+                                                            'unversioned', 'unversioned-with-ignored'])
 
     def test_revert_selectall(self):
         import breezy.plugins.qbrz.lib.revert
@@ -450,6 +444,7 @@ class TestModelItemData(TestCase):
             ('c', 'file')))
         self.assertEqual(models, sorted(reversed(models),
             key=ModelItemData.dirs_first_sort_key))
+
 
 # See [[../treewidget.py]] TreeFilterProxyModel
 # UNCHANGED, CHANGED, UNVERSIONED, IGNORED

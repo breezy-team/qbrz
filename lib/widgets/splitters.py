@@ -18,13 +18,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt5 import QtCore
-from breezy.plugins.qbrz.lib.util import (
-    get_qbrz_config,
-    )
+from breezy.plugins.qbrz.lib.util import get_qbrz_config
+
 
 class Splitters(object):
     """Save and restore splitter state."""
-    
+
     def __init__(self, prefix):
         self.prefix = prefix
         self.splitters = []
@@ -36,6 +35,9 @@ class Splitters(object):
         config = get_qbrz_config()
         for name, splitter in self.splitters:
             data = config.get_option('%s_%s' % (self.prefix, name))
+            if isinstance(data, str):
+                # Tends to look like "b'...'" - yes, a string with b' in it
+                data = bytes(data.lstrip("b'").rstrip("'"), 'utf8')
             if data:
                 splitter.restoreState(QtCore.QByteArray.fromBase64(data))
 

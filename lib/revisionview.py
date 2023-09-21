@@ -1,6 +1,6 @@
 # QBzr - Qt frontend to Bazaar commands
 #
-# Copyright (C) 2006-2007 Gary van der Merwe <garyvdm@gmail.com> 
+# Copyright (C) 2006-2007 Gary van der Merwe <garyvdm@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from breezy.plugins.qbrz.lib.diffwindow import DiffWindow
 from breezy.plugins.qbrz.lib.diff_arg import InternalDiffArgProvider
@@ -24,43 +24,42 @@ from breezy.plugins.qbrz.lib.revisionmessagebrowser import RevisionMessageBrowse
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.lazycachedrevloader import load_revisions
 
+
 # DiffWindow has alot of stuff that we need, so we just extend it.
 class RevisionView(DiffWindow):
     """Shows information, and a diff for a revision, in a window."""
-    
+
     def __init__(self, revid, branch, parent=None):
         self.branch = branch
         self.revid = revid
-        
+
         args = InternalDiffArgProvider(None, revid, branch, branch)
         DiffWindow.__init__(self, args, parent, allow_refresh=False)
-        
+
         self.message_browser = RevisionMessageBrowser(self)
         self.message_browser.set_display_revids([self.revid], branch.repository)
-        
+
         vsplitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         vsplitter.addWidget(self.message_browser)
         vsplitter.addWidget(self.stack)
         vsplitter.setStretchFactor(0, 1)
         vsplitter.setStretchFactor(1, 3)
-        
+
         self.centralwidget.layout().insertWidget(1, vsplitter)
         self.centralwidget.layout().removeWidget(self.stack)
-        
+
         self.set_diff_title()
-    
+
     def initial_load(self):
         self.throbber.show()
-        load_revisions([self.revid], self.branch.repository, 
-                       pass_prev_loaded_rev = True,
-                       revisions_loaded = self.revisions_loaded)
-    
+        load_revisions([self.revid], self.branch.repository, pass_prev_loaded_rev=True, revisions_loaded=self.revisions_loaded)
+
     def revisions_loaded(self, loaded_revs, last_call):
         revision = loaded_revs[self.revid]
         self.arg_provider.old_revid = revision.parent_ids[0]
         super(RevisionView, self).initial_load()
         self.throbber.hide()
-    
+
     def set_diff_title(self):
         title = [gettext("Revision"), self.revid]
         self.set_title_and_icon(title)

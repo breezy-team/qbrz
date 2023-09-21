@@ -23,7 +23,6 @@
 
 
 from PyQt5 import sip
-
 from PyQt5 import QtCore
 
 
@@ -49,7 +48,7 @@ class ModelTest(QtCore.QObject):
         self.insert = []
         self.remove = []
         self.fetchingMore = False
-        assert(self.model)
+        assert self.model
 
         self.model.columnsAboutToBeInserted[QtCore.QModelIndex, int, int].connect(self.runAllTests)
         self.model.columnsAboutToBeRemoved[QtCore.QModelIndex, int, int].connect(self.runAllTests)
@@ -335,7 +334,6 @@ class ModelTest(QtCore.QObject):
             assert( state == QtCore.Qt.Unchecked or
                 state == QtCore.Qt.PartiallyChecked or
                 state == QtCore.Qt.Checked )
-
 
     def runAllTests(self):
         if self.fetchingMore:

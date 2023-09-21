@@ -28,32 +28,21 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.revision import Revision
 
-# from breezy.config import (
-#     GlobalConfig,
-#     config_dir,
-#     ensure_config_dir_exists,
-#     config_filename,
-#     )
-
 # RJLRJL: config_dir and ensure_config_dir_exists are now in bedding..
 from breezy.config import GlobalConfig
 
 from breezy import bedding
 from breezy import lazy_regex
 
-
 from breezy.plugins.qbrz.lib import MS_WINDOWS
-
 from breezy.plugins.qbrz.lib.i18n import gettext, N_
 
 # pyflakes says this is not needed, but it is.
 import breezy.plugins.qbrz.lib.resources
 
 from breezy import errors
-
-from breezy.lazy_import import lazy_import
 from functools import reduce
-lazy_import(globals(), '''
+
 from breezy import (
     osutils,
     urlutils,
@@ -65,10 +54,13 @@ from breezy.transport import get_transport
 from breezy.lockdir import LockDir
 
 from breezy.plugins.qbrz.lib.compatibility import configobj
-''')
 
 # standard buttons with translatable labels
-BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP, BTN_REFRESH = list(range(5))
+BTN_OK = 0
+BTN_CANCEL = 1
+BTN_CLOSE = 2
+BTN_HELP = 3
+BTN_REFRESH = 4
 
 
 class StandardButton(QtWidgets.QPushButton):
@@ -105,8 +97,7 @@ class Config(object):
     def __init__(self, filename):
         self._filename = filename
         self._configobj = None
-        dir = osutils.dirname(osutils.safe_unicode(filename))
-        transport = get_transport(dir)
+        transport = get_transport(osutils.dirname(osutils.safe_unicode(filename)))
         self._lock = LockDir(transport, 'lock')
 
     def _load(self):
@@ -213,53 +204,46 @@ class QBzrConfig(Config):
           e.g.
             replace_fill = 255, 0, 128
         """
-        #utility functions.
-        if None == section:
-          name_str = '[DEFAULT]:' + name
+        # utility functions.
+        if section is None:
+            name_str = '[DEFAULT]:' + name
         else:
-          name_str = "[" + section + "]:" + name
+            name_str = "[" + section + "]:" + name
 
-        color_format_err_msg = lambda given:\
-            "Illegal color format for " + name_str +\
-            ". Given '"+ given + "' expected '<red>, <green>, <blue>'."
-
-        color_range_err_msg = lambda given:\
-            "Color components for " + name_str +\
-            " should be in the range 0..255 only. Given: "+ given +"."
+        color_format_err_msg = "Illegal color format for {0}. Given '{1}' expected '<red>, <green>, <blue>'."
+        color_range_err_msg = "Color components for {0} should be in the range 0..255 only. Given: {1]."
 
         val = self.get_option(name, section)
-        if None == val:
-          return None
+        if val is None:
+            return None
 
         if list != type(val):
-          raise ValueError(color_format_err_msg(val))
-        if 3 != len(val) or not \
-          reduce(lambda x,y: x and y.isdigit(), val, True):
-              raise ValueError(color_format_err_msg(", ".join(val)))
+            raise ValueError(color_format_err_msg.format(name_str, val))
+        if 3 != len(val) or not reduce(lambda x,y: x and y.isdigit(), val, True):
+            raise ValueError(color_format_err_msg.format(name_str, ", ".join(val)))
 
-        #Being here guarantees that color_value is a list
-        #of three elements that represent numbers.
+        # Being here guarantees that color_value is a list of three elements that represent numbers.
         color_components = list(map(int, val))
         if not reduce(lambda x,y: x and y < 256, color_components, True):
-            raise ValueError(
-              color_range_err_msg(", ".join(val)))
+            raise ValueError(color_range_err_msg.format(name_str, ", ".join(val)))
 
-        #Now we know the given color is safe to use.
+        # Now we know the given color is safe to use.
         return QtGui.QColor(*color_components)
 
 
 _global_config = None
+
+
 def get_global_config():
     global _global_config
 
-    if (_global_config is None or
-        _check_global_config_filename_valid(_global_config)):
+    if _global_config is None or _check_global_config_filename_valid(_global_config):
         _global_config = GlobalConfig()
     return _global_config
 
+
 def _check_global_config_filename_valid(config):
-    # before bzr 2.3, there was no file_name attrib, only _get_filename, and
-    # checking that would be meaningless.
+    # before bzr 2.3, there was no file_name attrib, only _get_filename, and checking that would be meaningless.
     if hasattr(config, 'file_name'):
         return not config.file_name == config_filename()
     else:
@@ -267,15 +251,17 @@ def _check_global_config_filename_valid(config):
 
 
 _qbrz_config = None
+
+
 def get_qbrz_config():
     global _qbrz_config
-    if (_qbrz_config is None or
-        not _qbrz_config._filename == config_filename()):
+    if _qbrz_config is None or not _qbrz_config._filename == config_filename():
         _qbrz_config = QBzrConfig()
     return _qbrz_config
 
+
 def get_branch_config(branch):
-    if branch: # we should check boolean branch value to support 2 fake branch cases: branch is None, branch is FakeBranch
+    if branch:  # we should check boolean branch value to support 2 fake branch cases: branch is None, branch is FakeBranch
         return branch.get_config()
     else:
         return get_global_config()
@@ -298,26 +284,6 @@ class _QBzrWindowBase(object):
         icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
-
-    # def x_create_button_box(self, *buttons):
-    #     """Create and return button box with pseudo-standard buttons
-    #     @param  buttons:    any from BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP
-    #     @return:    QtGui.QDialogButtonBox with attached buttons and signals
-    #     """
-    #     ROLES = {
-    #         BTN_OK: (QtWidgets.QDialogButtonBox.AcceptRole, "accepted()", "do_accept"),
-    #         BTN_CANCEL: (QtWidgets.QDialogButtonBox.RejectRole, "rejected()", "do_reject"),
-    #         BTN_CLOSE: (QtWidgets.QDialogButtonBox.RejectRole, "rejected()", "do_close"),
-    #         # XXX support for HelpRole
-    #         }
-    #     buttonbox = QtWidgets.QDialogButtonBox(self)
-    #     for i in buttons:
-    #         btn = StandardButton(i)
-    #         role, signal_name, method_name = ROLES[i]
-    #         buttonbox.addButton(btn, role)
-    #         buttonbox.signal_name.connect(getattr(self, method_name))
-    #         buttonbox.Signal(signal_name).connect(getattr(self, method_name))
-    #     return buttonbox
 
     def create_button_box(self, *buttons):
         """Create and return button box with pseudo-standard buttons
@@ -454,6 +420,7 @@ class _QBzrWindowBase(object):
         klass = QtWidgets.QMessageBox.question
         if type == 'warning':
             klass = QtWidgets.QMessageBox.warning
+        # RJLRJL flake8 doesn't like the following - I suspect it's change from Qt5
         button = klass(self,
             gettext("Confirm"),
             message,
@@ -514,9 +481,11 @@ class QBzrDialog(QtWidgets.QDialog, _QBzrWindowBase):
 
     def show(self):
         QtWidgets.QMainWindow.show(self)
-        self.raise_()	# Make sure it displays in the foreground
+        self.raise_()  # Make sure it displays in the foreground
+
 
 throber_movie = None
+
 
 class ThrobberWidget(QtWidgets.QWidget):
     """A widget that indicates activity."""
@@ -532,15 +501,8 @@ class ThrobberWidget(QtWidgets.QWidget):
         self.spinner.setMovie(throber_movie)
 
         self.message = QtWidgets.QLabel(gettext("Loading..."), self)
-        #self.progress = QtGui.QProgressBar(self)
-        #self.progress.setTextVisible (False)
-        #self.progress.hide()
-        #self.progress.setMaximum(sys.maxint)
         self.transport = QtWidgets.QLabel("", self)
-        for widget in (self.spinner,
-                       self.message,
-                       #self.progress,
-                       self.transport):
+        for widget in (self.spinner, self.message, self.transport):
             widget.hide()
 
         self.widgets = []
@@ -552,18 +514,16 @@ class ThrobberWidget(QtWidgets.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
 
         layout.addWidget(self.spinner)
-        #layout.addWidget(self.progress)
         layout.addWidget(self.message, 1)
         layout.addWidget(self.transport)
 
         self.widgets.append(self.spinner)
-        #self.widgets.append(self.progress)
         self.widgets.append(self.message)
         self.widgets.append(self.transport)
 
     def hide(self):
-        #if self.is_shown:
-            #QtGui.QApplication.restoreOverrideCursor()
+        # if self.is_shown:
+        # QtGui.QApplication.restoreOverrideCursor()
         self.num_show -= 1
         if self.num_show <= 0:
             self.num_show = 0
@@ -572,7 +532,7 @@ class ThrobberWidget(QtWidgets.QWidget):
                 widget.hide()
 
     def show(self):
-        #QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        # QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         # and show ourselves.
         self.num_show += 1
         QtWidgets.QWidget.show(self)
@@ -587,15 +547,9 @@ class ToolBarThrobberWidget(ThrobberWidget):
     def set_layout(self):
         layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-
         layout.addWidget(self.transport)
         layout.addWidget(self.spinner)
-        #layout.addWidget(self.progress)
-        #layout.addWidget(self.message, 1)
-
         self.widgets.append(self.spinner)
-        #self.widgets.append(self.progress)
-        #self.widgets.append(self.message)
         self.widgets.append(self.transport)
 
 
@@ -606,6 +560,7 @@ DIRECTORYPICKER_SOURCE = N_("Select Source Directory")
 # A directory picker used to select a destination
 DIRECTORYPICKER_TARGET = N_("Select Target Directory")
 
+
 def hookup_directory_picker(dialog, chooser, target, chooser_type):
     """An inline handler that serves as a 'link' between the widgets.
     @param  dialog:     dialog window object
@@ -614,6 +569,7 @@ def hookup_directory_picker(dialog, chooser, target, chooser_type):
     @param  chooser_type:   caption string for directory selector dialog
     """
     caption = gettext(chooser_type)
+
     def click_handler(dlg=dialog, chooser=chooser, target=target, caption=caption):
         try:
             # Might be a QComboBox
@@ -623,12 +579,12 @@ def hookup_directory_picker(dialog, chooser, target, chooser_type):
             # Or a QLineEdit
             getter = target.text
             setter = target.setText
-        dir = str(getter())
-        if not os.path.isdir(dir):
-            dir = ""
-        dir = QtWidgets.QFileDialog.getExistingDirectory(dlg, caption, dir)
-        if dir:
-            setter(dir)
+        directory = str(getter())
+        if not os.path.isdir(directory):
+            directory = ""
+        directory = QtWidgets.QFileDialog.getExistingDirectory(dlg, caption, directory)
+        if directory:
+            setter(directory)
 
     chooser.clicked.connect(click_handler)
 
@@ -647,6 +603,7 @@ def open_browser(url):
 
 _extract_name_re = lazy_regex.lazy_compile('(.*?) <.*?@.*?>')
 _extract_email_re = lazy_regex.lazy_compile('<(.*?@.*?)>')
+
 
 def extract_name(author, strict=False):
     m = _extract_name_re.match(author)
@@ -695,7 +652,7 @@ def get_set_encoding(encoding, branch):
                 'utf-8 will be used instead') % encoding)
             encoding = 'utf-8'
     else:
-        if branch: # we should check boolean branch value to support 2 fake branch cases: branch is None, branch is FakeBranch
+        if branch:  # we should check boolean branch value to support 2 fake branch cases: branch is None, branch is FakeBranch
             branch.get_config().set_user_option("encoding", encoding)
     return encoding
 
@@ -789,6 +746,7 @@ class FilterOptions(object):
 # We offer a number of iterators to help enumerate the possibilities,
 # and another helper to take these iterators and fill the combo.
 
+
 def iter_branch_related_locations(branch):
     for location in [branch.get_parent(),
                      branch.get_bound_location(),
@@ -797,6 +755,7 @@ def iter_branch_related_locations(branch):
                     ]:
         if location is not None:
             yield url_for_display(location)
+
 
 # A helper to fill a 'pull' combo. Returns the default value.
 def fill_pull_combo(combo, branch):
@@ -819,6 +778,7 @@ def fill_combo_with(combo, default, *iterables):
             done.add(item)
             combo.addItem(item)
 
+
 def show_shortcut_hint(action):
     """Show this action's shortcut, if any, as part of the tooltip.
 
@@ -828,6 +788,7 @@ def show_shortcut_hint(action):
     if shortcut:
         toolTip = action.toolTip()
         action.setToolTip("%s (%s)" % (toolTip, shortcut))
+
 
 def iter_saved_pull_locations():
     """ Iterate the 'pull' locations we have previously saved for the user.
@@ -888,15 +849,15 @@ def url_for_display(url):
 
 
 # RJL: on further investigation, this appears to be an attempt to detect
-# some kind of binary content (one assumes a file). Naming is important.
+# some kind of binary content (one assumes a file), so renamed.
 def content_seems_to_be_binary(lines: list) -> bool:
     """
     Check list of lines for any binary content at all (i.e. presence of 0x00 byte there).
     @return: True if 0x00 byte found: we have to hope we haven't got binary data
     that hasn't got a null-byte in it.
     """
-    for l in lines:
-        if (isinstance(l, bytes) and b'\x00' in l):
+    for line in lines:
+        if isinstance(line, bytes) and b'\x00' in line:
             return True
     return False
 
@@ -944,6 +905,7 @@ class BackgroundJob(object):
 
 loading_queue = None
 
+
 def runs_in_loading_queue(f):
     """Methods decorated with this will not run at the same time, but will be
     queued. Methods decorated with this will not be able to return results,
@@ -957,9 +919,9 @@ def runs_in_loading_queue(f):
 
     return decorate
 
+
 def run_in_loading_queue(cur_f, *cur_args, **cur_kargs):
     global loading_queue
-    # print('\n...run_in_loading_queue', loading_queue, cur_f, *cur_args, **cur_kargs)
     if loading_queue is None:
         loading_queue = []
         try:
@@ -980,9 +942,12 @@ def run_in_loading_queue(cur_f, *cur_args, **cur_kargs):
 def get_apparent_authors_new(rev):
     return rev.get_apparent_authors()
 
+
 def get_apparent_authors_old(rev):
     return [rev.properties.get('author', rev.committer)]
 
+
+# RJLRJL WARNING:! This is run on import
 if hasattr(Revision, 'get_apparent_authors'):
     get_apparent_authors = get_apparent_authors_new
 else:
@@ -996,31 +961,24 @@ def get_apparent_author(rev):
 def get_apparent_author_name(rev):
     return ', '.join(map(extract_name, get_apparent_authors(rev)))
 
+
 def get_summary(rev):
     if rev.message is None:
         return gettext('(no message)')
     return rev.get_summary() or gettext('(no message)')
 
+
 def get_message(rev):
     return rev.message or gettext('(no message)')
+
 
 # RJLRJL not needed for python3
 def ensure_unicode(s, encoding='ascii'):
     # TODO: get rid of this
     return s
-    """Convert s to unicode if s is plain string.
-    Using encoding for unicode decode.
-
-    In the case when s is not string, return it
-    without any changes.
-    """
-    if isinstance(s, str):
-        return s.decode(encoding)
-    return s
 
 
-def open_tree(directory, ui_mode=False,
-    _critical_dialog=QtWidgets.QMessageBox.critical):
+def open_tree(directory, ui_mode=False, _critical_dialog=QtWidgets.QMessageBox.critical):
     """Open working tree with its root at specified directory or above
     (similar to WorkingTree.open_containing).
     If there is no working tree and ui_mode is True then show GUI dialog
@@ -1037,21 +995,13 @@ def open_tree(directory, ui_mode=False,
         return WorkingTree.open_containing(directory)[0]
     except errors.NotBranchError:
         if ui_mode:
-            _critical_dialog(None,
-                gettext("Error"),
-                gettext('Not a branch "%s"'
-                    ) % os.path.abspath(directory),
-                gettext('&Close'))
+            _critical_dialog(None, gettext("Error"), gettext('Not a branch "%s"') % os.path.abspath(directory), gettext('&Close'))
             return None
         else:
             raise
     except errors.NoWorkingTree:
         if ui_mode:
-            _critical_dialog(None,
-                gettext("Error"),
-                gettext('No working tree exists for "%s"'
-                    ) % os.path.abspath(directory),
-                gettext('&Close'))
+            _critical_dialog(None, gettext("Error"), gettext('No working tree exists for "%s"') % os.path.abspath(directory), gettext('&Close'))
             return None
         else:
             raise
@@ -1089,14 +1039,14 @@ def launchpad_project_from_url(url):
                 # scheme://host/~USER/DISTRO/SERIES/SOURCEPACKAGE/BRANCHNAME
                 return parts[-2]
         elif parts[0] in ('%2Bbranch', '+branch'):
-            n = len(parts)
-            if n >= 2:
+            parts_length = len(parts)
+            if parts_length >= 2:
                 part1 = parts[1]
-                if n in (2,3) and part1 not in DISTROS:
+                if parts_length in (2,3) and part1 not in DISTROS:
                     # scheme://host/+branch/project-name
                     # scheme://host/+branch/project-name/series-name
                     return part1
-                elif n in (3,4) and part1 in DISTROS:
+                elif parts_length in (3,4) and part1 in DISTROS:
                     # scheme://host/+branch/DISTRO/SOURCEPACKAGE
                     # scheme://host/+branch/DISTRO/SERIES/SOURCEPACKAGE
                     # scheme://host/+branch/DISTRO/POCKET/SOURCEPACKAGE
@@ -1110,6 +1060,7 @@ def _shlex_split_unicode_linux(unicode_string):
     """Split unicode string to list of unicode arguments."""
     return [p for p in shlex.split(unicode_string)]
 
+
 def _shlex_split_unicode_windows(unicode_string):
     """Split unicode string to list of unicode arguments.
     Take care about backslashes as valid path separators.
@@ -1117,10 +1068,12 @@ def _shlex_split_unicode_windows(unicode_string):
     utf8_string = unicode_string.replace('\\', '\\\\')
     return [p for p in shlex.split(utf8_string)]
 
+
 if MS_WINDOWS:
     shlex_split_unicode = _shlex_split_unicode_windows
 else:
     shlex_split_unicode = _shlex_split_unicode_linux
+
 
 def get_icon(name, size=22):
     # TODO: Load multiple sizes
@@ -1141,12 +1094,16 @@ class InfoWidget(QtWidgets.QFrame):
 #888888888888888888888888888888888888888888888888888888888888888888888888888888
 #                                                                             8
 
+
 monospace_font = None
+
+
 def get_monospace_font():
     global monospace_font
     if monospace_font is None:
         monospace_font = _get_monospace_font()
     return monospace_font
+
 
 def _get_monospace_font():
     # TODO: Get font from system settings for Gnome, KDE, Mac.
@@ -1166,6 +1123,7 @@ def _get_monospace_font():
     font = QtGui.QFont("", size)
     font.setFixedPitch(True)
     return font
+
 
 def get_set_tab_width_chars(branch=None, tab_width_chars=None):
     """Function to get the tab width in characters from the configuration.
@@ -1192,6 +1150,7 @@ def get_set_tab_width_chars(branch=None, tab_width_chars=None):
             branch.get_config().set_user_option("tab_width", str(tab_width_chars))
 
     return tab_width_chars
+
 
 def get_tab_width_pixels(branch=None, tab_width_chars=None):
     """Function to get the tab width in pixels based on a monospaced font.

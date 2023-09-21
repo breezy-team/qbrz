@@ -37,11 +37,9 @@ def get_sys_info():
       * python-version - version of Python interpreter
       * python-lib-dir - path to Python standard library
     """
-    result = {}
+    result = {"bzr-version": breezy.__version__, "bzr-lib-path": breezy.__path__}
 
     # Bazaar installation
-    result["bzr-version"] = breezy.__version__
-    result["bzr-lib-path"] = breezy.__path__
     # is breezy itself in a branch?
     source_tree = None  # _get_bzr_source_tree()
     if source_tree:

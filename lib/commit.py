@@ -39,29 +39,19 @@ from breezy.plugins.qbrz.lib.logwidget import LogList
 from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
 from breezy.plugins.qbrz.lib.trace import reports_exception
 
-from breezy.lazy_import import lazy_import
-lazy_import(globals(), '''
-
 from breezy import errors
 from breezy.plugins.qbrz.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from breezy.plugins.qbrz.lib.autocomplete import get_wordlist_builder
 from breezy.plugins.qbrz.lib.commit_data import QBzrCommitData
-from breezy.plugins.qbrz.lib.diff import (
-    DiffButtons,
-    show_diff,
-    InternalWTDiffArgProvider,
-    )
+from breezy.plugins.qbrz.lib.diff import (DiffButtons, show_diff, InternalWTDiffArgProvider)
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib import logmodel
 from breezy.plugins.qbrz.lib.loggraphviz import BranchInfo
-from breezy.plugins.qbrz.lib.treewidget import (
-    TreeWidget,
-    SelectAllCheckBox,
-    )
+from breezy.plugins.qbrz.lib.treewidget import (TreeWidget, SelectAllCheckBox, ChangeDescription, FilterModelKeys)
 from breezy.plugins.qbrz.lib.revisionview import RevisionView
 from breezy.plugins.qbrz.lib.update import QBzrUpdateWindow
 
-''')
+
 MAX_AUTOCOMPLETE_FILES = 20
 
 
@@ -71,6 +61,7 @@ class TextEdit(QtWidgets.QTextEdit):
     def __init__(self, spell_checker, parent=None, main_window=None):
         QtWidgets.QTextEdit.__init__(self, parent)
         # RJL The completer, I think, is to provide suggestions for anything typed
+        self.context_tc = None
         self.completer = None
         self.spell_checker = spell_checker
         # RJL eow = 'end of word'?
@@ -85,23 +76,22 @@ class TextEdit(QtWidgets.QTextEdit):
         c = self.completer
         e_key = e.key()
         if (e_key in (QtCore.Qt.Key_Tab, QtCore.Qt.Key_Backtab)
-            or (c.popup().isVisible() and e_key in (QtCore.Qt.Key_Enter,
-                QtCore.Qt.Key_Return, QtCore.Qt.Key_Escape))):
+                or (c.popup().isVisible() and e_key in (QtCore.Qt.Key_Enter,
+                                                        QtCore.Qt.Key_Return,
+                                                        QtCore.Qt.Key_Escape))):
             e.ignore()
             return
-        if (self.main_window
-            and e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return)
-            and (int(e.modifiers()) & QtCore.Qt.ControlModifier)):
-                e.ignore()
-                self.messageEntered.emit()
-                return
+        if (self.main_window and e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return)
+                and (int(e.modifiers()) & QtCore.Qt.ControlModifier)):
+            e.ignore()
+            self.messageEntered.emit()
+            return
 
         isShortcut = e.modifiers() & QtCore.Qt.ControlModifier and e.key() == QtCore.Qt.Key_E
         if not isShortcut:
             QtWidgets.QTextEdit.keyPressEvent(self, e)
 
         ctrlOrShift = e.modifiers() & (QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier)
-        # if ctrlOrShift and e.text().isEmpty():
         if ctrlOrShift and not e.text():
             return
 
@@ -129,7 +119,7 @@ class TextEdit(QtWidgets.QTextEdit):
 
         cr = self.cursorRect()
         cr.setWidth(c.popup().sizeHintForColumn(0) + c.popup().verticalScrollBar().sizeHint().width())
-        c.complete(cr);
+        c.complete(cr)
 
     def textUnderCursor(self):
         tc = self.textCursor()
@@ -174,13 +164,13 @@ class TextEdit(QtWidgets.QTextEdit):
 
     def suggestion_selected(self, text):
         def _suggestion_selected(b):
-            self.context_tc.insertText(text);
+            self.context_tc.insertText(text)
         return _suggestion_selected
 
 
 class PendingMergesList(LogList):
     def __init__(self, *args, **kargs):
-        super(PendingMergesList, self).__init__(*args, **kargs)
+        super().__init__(*args, **kargs)
         # The rev numbers are currently bogus. Hide that column.
         # We could work out the revision numbers by loading whole graph, but
         # that is going to make this much slower.
@@ -189,14 +179,12 @@ class PendingMergesList(LogList):
 
     def load_tree(self, tree):
         bi = BranchInfo('', tree, tree.branch)
-        self.log_model.load(
-            (bi,), bi, None, False, logmodel.PendingMergesGraphVizLoader)
+        self.log_model.load((bi,), bi, None, False, logmodel.PendingMergesGraphVizLoader)
 
     def create_context_menu(self, file_ids):
-        super(PendingMergesList, self).create_context_menu(file_ids)
+        super().create_context_menu(file_ids)
         showinfo = QtWidgets.QAction("Show &information...", self)
-        self.context_menu.insertAction(self.context_menu.actions()[0],
-                                       showinfo)
+        self.context_menu.insertAction(self.context_menu.actions()[0], showinfo)
         self.context_menu.setDefaultAction(showinfo)
         showinfo.triggered[bool].connect(self.show_info_menu)
 
@@ -219,26 +207,25 @@ class PendingMergesList(LogList):
         parent_window.windows.append(window)
 
 
+def ignore_pattern_handler(change_description: ChangeDescription):
+    return not change_description.ignored_pattern()
+
+
 class CommitWindow(SubProcessDialog):
 
     RevisionIdRole = QtCore.Qt.UserRole + 1
     ParentIdRole = QtCore.Qt.UserRole + 2
 
-    def __init__(self, tree, selected_list, dialog=True, parent=None,
-                 local=None, message=None, ui_mode=True):
-        super(CommitWindow, self).__init__(
-                                  gettext("Commit"),
-                                  name = "commit",
-                                  default_size = (540, 540),
-                                  ui_mode = ui_mode,
-                                  dialog = dialog,
-                                  parent = parent)
+    def __init__(self, tree, selected_list, dialog=True, parent=None, local=None, message=None, ui_mode=True):
+        super().__init__(gettext("Commit"), name="commit", default_size=(540, 540),
+                         ui_mode=ui_mode, dialog=dialog, parent=parent)
+        self.is_loading = False
         self.tree = tree
         self.ci_data = QBzrCommitData(tree=tree)
         self.ci_data.load()
 
         self.is_bound = bool(tree.branch.get_bound_location())
-        self.has_pending_merges = len(tree.get_parent_ids())>1
+        self.has_pending_merges = len(tree.get_parent_ids()) > 1
 
         if self.has_pending_merges and selected_list:
             raise errors.CannotCommitSelectedFileMerge(selected_list)
@@ -281,16 +268,14 @@ class CommitWindow(SubProcessDialog):
                 'Local branch is out of date with master branch.\n'
                 'To commit to master branch, update the local branch.\n'
                 'You can also pass select local to commit to continue working disconnected.'),
-            'OutOfDateTree': gettext(
-                'Working tree is out of date. To commit, update the working tree.')
+            'OutOfDateTree': gettext('Working tree is out of date. To commit, update the working tree.')
             }
         self.not_uptodate_info = InfoWidget(branch_groupbox)
         not_uptodate_layout = QtWidgets.QHBoxLayout(self.not_uptodate_info)
 
         # XXX this is to big. Resize
         not_uptodate_icon = QtWidgets.QLabel()
-        not_uptodate_icon.setPixmap(self.style().standardPixmap(
-            QtWidgets.QStyle.SP_MessageBoxWarning))
+        not_uptodate_icon.setPixmap(self.style().standardPixmap(QtWidgets.QStyle.SP_MessageBoxWarning))
         not_uptodate_layout.addWidget(not_uptodate_icon)
 
         self.not_uptodate_label = QtWidgets.QLabel('error message goes here')
@@ -318,9 +303,9 @@ class CommitWindow(SubProcessDialog):
         self.show_nonversioned_checkbox = QtWidgets.QCheckBox(gettext("Show non-versioned files"))
         show_nonversioned = get_qbrz_config().get_option_as_bool(self._window_name + "_show_nonversioned")
         if show_nonversioned:
-            self.show_nonversioned_checkbox.setChecked(QtCore.Qt.Checked)
+            self.show_nonversioned_checkbox.setChecked(True)
         else:
-            self.show_nonversioned_checkbox.setChecked(QtCore.Qt.Unchecked)
+            self.show_nonversioned_checkbox.setChecked(False)
 
         self.filelist_widget = TreeWidget(self)
         self.filelist_widget.throbber = self.throbber
@@ -389,24 +374,19 @@ class CommitWindow(SubProcessDialog):
         vbox.addWidget(self.filelist_widget)
         self.show_nonversioned_checkbox.toggled[bool].connect(self.show_nonversioned)
         vbox.addWidget(self.show_nonversioned_checkbox)
-
         vbox.addWidget(self.selectall_checkbox)
 
         # Display a list of pending merges
         if self.has_pending_merges:
             self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
             self.selectall_checkbox.setEnabled(False)
-            self.pending_merges_list = PendingMergesList(
-                self.processEvents, self.throbber, self)
-
-            self.tabWidget.addTab(self.pending_merges_list,
-                                  gettext("Pending Merges"))
+            self.pending_merges_list = PendingMergesList(self.processEvents, self.throbber, self)
+            self.tabWidget.addTab(self.pending_merges_list,gettext("Pending Merges"))
             self.tabWidget.setCurrentWidget(self.pending_merges_list)
-
             # Pending-merge widget gets disabled as we are executing.
             self.disableUi[bool].connect(self.pending_merges_list.setDisabled)
         else:
-            self.pending_merges_list = False
+            self.pending_merges_list = None
 
         self.process_panel = self.make_process_panel()
         self.tabWidget.addTab(self.process_panel, gettext("Status"))
@@ -451,10 +431,12 @@ class CommitWindow(SubProcessDialog):
     def show(self):
         # we show the bare form as soon as possible.
         SubProcessDialog.show(self)
-        QtCore.QTimer.singleShot(1, self.load)
+        # QtCore.QTimer.singleShot(1, self.load)
+        self.load()
 
     def exec_(self):
-        QtCore.QTimer.singleShot(1, self.load)
+        # QtCore.QTimer.singleShot(1, self.load)
+        self.load()
         return SubProcessDialog.exec_(self)
 
     @runs_in_loading_queue
@@ -473,31 +455,28 @@ class CommitWindow(SubProcessDialog):
                     self.pending_merges_list._load_visible_revisions()
                     self.processEvents()
 
+                # filelist_widget is actually a TreeWidget and its model will be a TreeModel
                 self.filelist_widget.tree_model.checkable = not self.pending_merges_list
                 self.is_loading = True
                 # XXX Would be nice if we could only load the files when the
                 # user clicks on the changes tab, but that would mean that
                 # we can't load the words list.
                 if not refresh:
-                    fmodel = self.filelist_widget.tree_filter_model
-
                     want_unversioned = self.show_nonversioned_checkbox.isChecked()
-                    fmodel.setFilter(fmodel.UNVERSIONED, want_unversioned)
+                    self.filelist_widget.tree_filter_model.setFilter(FilterModelKeys.UNVERSIONED, want_unversioned)
+
                     if not want_unversioned and self.initial_selected_list:
-                        # if there are any paths from the command line that
-                        # are not versioned, we want_unversioned.
+                        # if there are any paths from the command line that are not versioned, we want_unversioned.
                         for path in self.initial_selected_list:
                             if not self.tree.is_versioned(path):
                                 want_unversioned = True
                                 break
 
-                    self.filelist_widget.set_tree(
-                        self.tree,
-                        branch=self.tree.branch,
-                        changes_mode=True,
-                        want_unversioned=want_unversioned,
-                        initial_checked_paths=self.initial_selected_list,
-                        change_load_filter=lambda c:not c.ignored_pattern())
+                    # Now we call our old pal, TreeWidget::set_tree which goes away and calls TreeModel::set_tree
+                    self.filelist_widget.set_tree(self.tree, branch=self.tree.branch, changes_mode=True,
+                                                  want_unversioned=want_unversioned,
+                                                  initial_checked_paths=self.initial_selected_list,
+                                                  change_load_filter=ignore_pattern_handler)
                 else:
                     self.filelist_widget.refresh()
                 self.is_loading = False
@@ -527,12 +506,11 @@ class CommitWindow(SubProcessDialog):
                 if num_files_loaded < MAX_AUTOCOMPLETE_FILES:
                     file_words.add(path)
                     file_words.add(os.path.split(path)[-1])
-                    change = self.filelist_widget.tree_model.inventory_data_by_path[
-                                                               ref.path].change
+                    change = self.filelist_widget.tree_model.inventory_data_by_path[ref.path].change
                     if change and change.is_renamed():
                         file_words.add(change.oldpath())
                         file_words.add(os.path.split(change.oldpath())[-1])
-                    #if num_versioned_files < MAX_AUTOCOMPLETE_FILES:
+                    # if num_versioned_files < MAX_AUTOCOMPLETE_FILES:
                     ext = file_extension(path)
                     builder = get_wordlist_builder(ext)
                     if builder is not None:
@@ -580,8 +558,7 @@ class CommitWindow(SubProcessDialog):
             self.bugsCheckBox.setChecked(True)
 
     def save_commit_data(self):
-        if (self.tree.branch.get_physical_lock_status()
-            or self.tree.branch.is_locked()):
+        if self.tree.branch.get_physical_lock_status() or self.tree.branch.is_locked():
             # XXX maybe show this in a GUI MessageBox (information box)???
             from breezy.trace import warning
             warning("Cannot save commit data because the branch is locked.")
@@ -601,8 +578,7 @@ class CommitWindow(SubProcessDialog):
             ci_data.save()
 
     def wipe_commit_data(self):
-        if (self.tree.branch.get_physical_lock_status()
-            or self.tree.branch.is_locked()):
+        if self.tree.branch.get_physical_lock_status() or self.tree.branch.is_locked():
             # XXX maybe show this in a GUI MessageBox (information box)???
             from breezy.trace import warning
             warning("Cannot wipe commit data because the branch is locked.")
@@ -635,14 +611,12 @@ class CommitWindow(SubProcessDialog):
             self.message.setFocus()
             return False
         if not self._get_selected_files()[0]:
-            if not self.ask_confirmation(gettext("No changes selected to commit.\n"
-                                                 "Do you want to commit anyway?")):
+            if not self.ask_confirmation(gettext("No changes selected to commit.\nDo you want to commit anyway?")):
                 return False
         return True
 
     def do_start(self):
         args = ["commit"]
-
         message = self._get_message()
         # AND we need to quote it...
         args.extend(['-m', message])    # keep them separated to avoid bug #297606
@@ -669,11 +643,11 @@ class CommitWindow(SubProcessDialog):
         if self.is_bound and self.local_checkbox.isChecked():
             args.append("--local")
 
-        dir = self.tree.basedir
+        base_directory = self.tree.basedir
         commands = []
         if files_to_add:
-            commands.append((dir, ["add", "--no-recurse"] + files_to_add))
-        commands.append((dir, args))
+            commands.append((base_directory, ["add", "--no-recurse"] + files_to_add))
+        commands.append((base_directory, args))
 
         self.tabWidget.setCurrentWidget(self.process_panel)
         self.process_widget.start_multi(commands)
@@ -682,18 +656,14 @@ class CommitWindow(SubProcessDialog):
         """Show/hide non-versioned files."""
         if state and not self.filelist_widget.want_unversioned:
             state = self.filelist_widget.get_state()
-            self.filelist_widget.set_tree(
-                self.tree, changes_mode=True, want_unversioned=True,
-                change_load_filter=lambda c:not c.ignored_pattern())
+            # RJLRJL: might need to set initial_checked_paths here
+            self.filelist_widget.set_tree(self.tree, changes_mode=True, want_unversioned=True, change_load_filter=ignore_pattern_handler)
             self.filelist_widget.restore_state(state)
-
         if state:
             self.filelist_widget.tree_model.set_select_all_kind('all')
         else:
             self.filelist_widget.tree_model.set_select_all_kind('versioned')
-
-        fmodel = self.filelist_widget.tree_filter_model
-        fmodel.setFilter(fmodel.UNVERSIONED, state)
+        self.filelist_widget.tree_filter_model.setFilter(FilterModelKeys.UNVERSIONED, state)
 
     def _save_or_wipe_commit_data(self):
         if not self.process_widget.is_running():
@@ -706,7 +676,7 @@ class CommitWindow(SubProcessDialog):
         self._save_or_wipe_commit_data()
         qbrz_config = get_qbrz_config()
         qbrz_config.set_option(self._window_name + "_show_nonversioned", self.show_nonversioned_checkbox.isChecked())
-        qbrz_config.save() # do I need this or is .saveSize() enough?
+        qbrz_config.save()  # do I need this or is .saveSize() enough?
         return SubProcessDialog.closeEvent(self, event)
 
     def reject(self):
@@ -717,14 +687,11 @@ class CommitWindow(SubProcessDialog):
         if not self.local_checkbox.isChecked():
             # commit to master branch selected
             loc = url_for_display(self.tree.branch.get_bound_location())
-            desc = gettext("A commit will be made directly to "
-                           "the master branch, keeping the local "
-                           "and master branches in sync.")
+            desc = gettext("A commit will be made directly to the master branch, keeping the local and master branches in sync.")
         else:
             # local commit selected
             loc = url_for_display(self.tree.branch.base)
-            desc = gettext("A local commit to the branch will be performed. "
-                           "The master branch will not be updated until "
+            desc = gettext("A local commit to the branch will be performed. The master branch will not be updated until "
                            "a non-local commit is made.")
         # update GUI
         self.branch_location.setText(loc)
@@ -761,11 +728,8 @@ class CommitWindow(SubProcessDialog):
                 # XXX show infobox with message that not all files shown in diff
                 pass
         else:
-            arg_provider = InternalWTDiffArgProvider(
-                self.tree.basis_tree().get_revision_id(), self.tree,
-                self.tree.branch, self.tree.branch)
-            show_diff(arg_provider, ext_diff=ext_diff, parent_window=self,
-                      context=self.filelist_widget.diff_context)
+            arg_provider = InternalWTDiffArgProvider(self.tree.basis_tree().get_revision_id(), self.tree, self.tree.branch, self.tree.branch)
+            show_diff(arg_provider, ext_diff=ext_diff, parent_window=self, context=self.filelist_widget.diff_context)
 
     def on_failed(self, error):
         SubProcessDialog.on_failed(self, error)

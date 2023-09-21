@@ -21,21 +21,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from contextlib import ExitStack
-import errno
-import re
-import time
-import contextlib
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.errors import NoSuchRevision, PathsNotVersionedError
 from breezy.mutabletree import MutableTree
-# from patiencediff import PatienceSequenceMatcher as SequenceMatcher
-from patiencediff import PatienceSequenceMatcher as SequenceMatcher
+
 from breezy.revisiontree import RevisionTree
 from breezy.workingtree import WorkingTree
 from breezy.bzr.workingtree_4 import DirStateRevisionTree
-from breezy import trace
+
 
 from breezy.plugins.qbrz.lib.diffview import (
     SidebySideDiffView,
@@ -71,7 +66,6 @@ from breezy.plugins.qbrz.lib.widgets.tab_width_selector import TabWidthMenuSelec
 from breezy.plugins.qbrz.lib.widgets.texteditaccessory import setup_guidebar_for_find
 
 
-
 def get_title_for_tree(tree, branch, other_branch):
     branch_title = ""
     if None not in (branch, other_branch) and branch.base != other_branch.base:
@@ -105,7 +99,7 @@ def get_title_for_tree(tree, branch, other_branch):
                 return gettext("Rev %s") % revno
         else:
             if branch_title:
-                return gettext("Revid: %(revid)s for %(branch)s") %  {"revid": revid, "branch": branch_title}
+                return gettext("Revid: %(revid)s for %(branch)s") % {"revid": revid, "branch": branch_title}
             else:
                 return gettext("Revid: %s") % revid
 
@@ -179,7 +173,7 @@ class DiffWindow(QBzrWindow):
 
     def create_main_toolbar(self, allow_refresh=True):
         toolbar = self.addToolBar(gettext("Diff"))
-        toolbar.setMovable (False)
+        toolbar.setMovable(False)
         toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
         self.show_find = self.create_find_action()
@@ -226,7 +220,7 @@ class DiffWindow(QBzrWindow):
         action.setShortcut("Ctrl+U")
         show_shortcut_hint(action)
         action.setCheckable(True)
-        action.setChecked(False);
+        action.setChecked(False)
         action.toggled[bool].connect(self.click_toggle_view_mode)
         return action
 
@@ -241,7 +235,7 @@ class DiffWindow(QBzrWindow):
     def create_ext_diff_action(self):
         action = QtWidgets.QAction(get_icon("system-run"), gettext("&External Diff"), self)
         action.setToolTip(gettext("Launch an external diff application"))
-        ext_diff_menu = ExtDiffMenu(parent=self, include_builtin = False)
+        ext_diff_menu = ExtDiffMenu(parent=self, include_builtin=False)
         action.setMenu(ext_diff_menu)
         ext_diff_menu._triggered.connect(self.ext_diff_triggered)
         return action
@@ -252,7 +246,7 @@ class DiffWindow(QBzrWindow):
         show_view_menu.setMenu(view_menu)
         view_complete = QtWidgets.QAction(gettext("&Complete"), self)
         view_complete.setCheckable(True)
-        view_complete.toggled [bool].connect(self.click_complete)
+        view_complete.toggled[bool].connect(self.click_complete)
         view_menu.addAction(view_complete)
         self.ignore_whitespace_action = self.create_ignore_ws_action()
         view_menu.addAction(self.ignore_whitespace_action)
@@ -330,7 +324,7 @@ class DiffWindow(QBzrWindow):
                 self.find_toolbar.set_text_edit(object)
         return QBzrWindow.eventFilter(self, object, event)
         # Why doesn't this work?
-        #return super(DiffWindow, self).eventFilter(object, event)
+        # return super(DiffWindow, self).eventFilter(object, event)
 
     def show(self):
         QBzrWindow.show(self)
@@ -405,12 +399,11 @@ class DiffWindow(QBzrWindow):
         self.view_refresh.setEnabled(False)
         self.processEvents()
         try:
-            no_changes = True   # if there is no changes found we need to inform the user
+            no_changes = True   # if there are no changes found we need to inform the user
             for di in DiffItem.iter_items(self.trees,
                                           specific_files=self.specific_files,
                                           filter=self.filter_options.check,
                                           lock_trees=True):
-                lines = di.lines
                 self.processEvents()
                 groups = di.groups(self.complete, self.ignore_whitespace)
                 self.processEvents()
@@ -419,9 +412,9 @@ class DiffWindow(QBzrWindow):
                      self.encoding_selector_right.encoding))
                 # If we've got binary, it'll be bytes (probably)...
                 if di.binary:
-                    data = [b''.join(l) for l in ulines]
+                    data = [b''.join(line) for line in ulines]
                 else:
-                    data = [''.join(l) for l in ulines]
+                    data = [''.join(line) for line in ulines]
                 for view in self.views:
                     view.append_diff(list(di.paths), di.file_id, di.kind, di.status,
                                      di.dates, di.versioned, di.binary, ulines, groups,
@@ -429,11 +422,11 @@ class DiffWindow(QBzrWindow):
                     self.processEvents()
                 no_changes = False
         except PathsNotVersionedError as e:
-                QtWidgets.QMessageBox.critical(self, gettext('Diff'),
-                    gettext('File %s is not versioned.\n'
-                        'Operation aborted.') % e.paths_as_string,
-                    gettext('&Close'))
-                self.close()
+            QtWidgets.QMessageBox.critical(self, gettext('Diff'),
+                gettext('File %s is not versioned.\n'
+                    'Operation aborted.') % e.paths_as_string,
+                gettext('&Close'))
+            self.close()
 
         if no_changes:
             QtWidgets.QMessageBox.information(self, gettext('Diff'),
@@ -460,9 +453,9 @@ class DiffWindow(QBzrWindow):
         index = self.stack.indexOf(view)
         self.stack.setCurrentIndex(index)
 
-    def click_complete(self, checked ):
+    def click_complete(self, checked):
         self.complete = checked
-        #Has the side effect of refreshing...
+        # Has the side effect of refreshing...
         self.diffview.set_complete(checked)
         self.sdiffview.set_complete(checked)
         self.diffview.clear()
@@ -487,10 +480,9 @@ class DiffWindow(QBzrWindow):
         """@param ext_diff: path to external diff executable."""
         show_diff(self.arg_provider, ext_diff=ext_diff, parent_window=self, context=self.diff_context)
 
-    def click_ignore_whitespace(self, checked ):
+    def click_ignore_whitespace(self, checked):
         self.ignore_whitespace = checked
         # Has the side effect of refreshing...
         self.diffview.clear()
         self.sdiffview.clear()
         run_in_loading_queue(self.load_diff)
-

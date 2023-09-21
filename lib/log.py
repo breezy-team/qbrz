@@ -31,14 +31,10 @@ from breezy.plugins.qbrz.lib.util import (
     runs_in_loading_queue,
     get_set_encoding,
     )
-from breezy.plugins.qbrz.lib.trace import reports_exception, SUB_LOAD_METHOD
+from breezy.plugins.qbrz.lib.trace import reports_exception
 from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
 from breezy.plugins.qbrz.lib.loggraphviz import GhostRevisionError
 
-from breezy.lazy_import import lazy_import
-QStringList = list
-
-lazy_import(globals(), '''
 import re
 
 from breezy import errors
@@ -50,28 +46,26 @@ from breezy.plugins.qbrz.lib.logwidget import LogList
 from breezy.plugins.qbrz.lib import logmodel
 from breezy.plugins.qbrz.lib.loggraphviz import BranchInfo
 
-from breezy.plugins.qbrz.lib.diff import (
-    has_ext_diff,
-    ExtDiffMenu,
-    DiffButtons,
-    )
+from breezy.plugins.qbrz.lib.diff import has_ext_diff, ExtDiffMenu, DiffButtons
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
 from breezy.plugins.qbrz.lib.cat import QBzrCatWindow
 from breezy.plugins.qbrz.lib.annotate import AnnotateWindow
-''')
 
+
+QStringList = list
 
 PathRole    = QtCore.Qt.UserRole + 1
 file_idRole = QtCore.Qt.UserRole + 2
 AliveRole   = QtCore.Qt.UserRole + 3
 
+have_search = None
+
 
 class Compleater(QtWidgets.QCompleter):
-    def splitPath (self, path):
+    def splitPath(self, path):
         return QStringList([path.split(" ")[-1]])
 
-have_search = None
 
 class LogWindow(QBzrWindow):
 
@@ -212,9 +206,6 @@ class LogWindow(QBzrWindow):
         # set focus on search edit widget
         self.log_list.setFocus()
 
-    # RJLRJL removed the loading queue decorator... now it runs like the clappers
-    # ...and actually works.
-    # @runs_in_loading_queue
     @ui_current_widget
     @reports_exception()
     def load(self):
@@ -297,7 +288,7 @@ class LogWindow(QBzrWindow):
                     else:
                         label = None
                     bi = BranchInfo(label, tree, br)
-                    if len(branches)==0:
+                    if len(branches) == 0:
                         # The first sepecified branch becomes the primary
                         # branch.
                         primary_bi = bi
@@ -321,8 +312,7 @@ class LogWindow(QBzrWindow):
                     file_ids.append(file_id)
             if file_ids and len(branches) > 1:
                 raise errors.BzrCommandError(gettext(
-                    'It is not possible to specify different file paths and '
-                    'different branches at the same time.'))
+                    'It is not possible to specify different file paths and different branches at the same time.'))
             return tuple(branches), primary_bi, file_ids
 
     def load_search_indexes(self, branches):
@@ -344,8 +334,7 @@ class LogWindow(QBzrWindow):
                 except (search_errors.NoSearchIndex, errors.IncompatibleAPI):
                     pass
             if indexes_availble:
-                self.searchType.insertItem(0,
-                        gettext("Messages and File text (indexed)"), self.FilterSearchRole)
+                self.searchType.insertItem(0, gettext("Messages and File text (indexed)"), self.FilterSearchRole)
                 self.searchType.setCurrentIndex(0)
                 self.completer = Compleater(self)
                 self.completer_model = QStringListModel(self)
@@ -359,19 +348,18 @@ class LogWindow(QBzrWindow):
     no_usefull_info_in_location_re = re.compile(r'^[.:/\\]*$')
 
     def branch_label(self, location, branch, shared_repo_location=None, shared_repo=None):
-        # We should rather use QFontMetrics.elidedText. How do we decide on the
-        # width.
+        # We should rather use QFontMetrics.elidedText. How do we decide on the width.
         def elided_text(text, length=20):
-            if len(text)>length + 3:
-                return text[:length]+'...'
+            if len(text) > length + 3:
+                return text[:length] + '...'
             return text
 
         def elided_path(path):
             if len(path) > 23:
-                dir, name = split(path)
-                dir = elided_text(dir, 10)
+                directory, name = split(path)
+                directory = elided_text(directory, 10)
                 name = elided_text(name)
-                return join(dir, name)
+                return join(directory, name)
             return path
 
         if shared_repo_location and shared_repo and not location:
@@ -401,7 +389,7 @@ class LogWindow(QBzrWindow):
             replace = config.get_user_option("qlog_replace")
             if replace:
                 replace = replace.split("\n")
-                replace = [tuple(replace[2*i:2*i+2]) for i in range(len(replace) // 2)]
+                replace = [tuple(replace[2 * i:2 * i + 2]) for i in range(len(replace) // 2)]
             self.replace[branch.base] = replace
         return self.replace[branch.base]
 
@@ -422,8 +410,6 @@ class LogWindow(QBzrWindow):
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
         gv = self.log_list.log_model.graph_viz
-        # print('old role', self.searchType.itemData(self.searchType.currentIndex()).toInt()[0],
-        #     'new', self.searchType.itemData(self.searchType.currentIndex()).toInt())
         role = self.searchType.itemData(self.searchType.currentIndex())
         search_text = str(self.search_edit.text())
         if search_text == "":
@@ -478,7 +464,7 @@ class LogWindow(QBzrWindow):
                 indexes = [bi.index for bi in gv.branches if bi.index is not None]
                 for index in indexes:
                     for s in index.suggest(((first_letter,),)):
-                        #if suggestions.count() % 100 == 0:
+                        # if suggestions.count() % 100 == 0:
                         #    QtCore.QCoreApplication.processEvents()
                         suggestions.add(s[0])
                 suggestions = QStringList(list(suggestions))
@@ -507,7 +493,7 @@ class LogWindow(QBzrWindow):
                     return url_for_display(location.base)
                 return str(location)
 
-            return ", ".join(title_for_location(l) for l in locations)
+            return ", ".join(title_for_location(location) for location in locations)
 
 
 class FileListContainer(QtWidgets.QWidget):
@@ -567,12 +553,11 @@ class FileListContainer(QtWidgets.QWidget):
     @ui_current_widget
     def load_delta(self):
         revids, count = self.log_list.get_selection_top_and_parent_revids_and_count()
-        # print('\nload_delta got revids, count', revids, count, self.current_revids)
         if revids == self.current_revids:
             return
 
-        gv = self.log_list.log_model.graph_viz
-        gv_is_wtgv = isinstance(gv, logmodel.WithWorkingTreeGraphVizLoader)
+        graph_viz = self.log_list.log_model.graph_viz
+        is_working_tree_graph_viz = isinstance(graph_viz, logmodel.WithWorkingTreeGraphVizLoader)
         if self.log_list.log_model.file_id_filter:
             specific_file_ids = self.log_list.log_model.file_id_filter.file_ids
         else:
@@ -581,16 +566,14 @@ class FileListContainer(QtWidgets.QWidget):
         if not revids or revids == (None, None):
             return
 
-        # print('\nself.delta_cache [{0}]\n'.format(self.delta_cache))
         if revids not in self.delta_cache:
             self.throbber.show()
             try:
-                repos = [gv.get_revid_branch(revid).repository for revid in revids]
-                # print('\nTRY worked\n', repos)
+                repos = [graph_viz.get_revid_branch(revid).repository for revid in revids]
             except GhostRevisionError:
                 delta = None
             else:
-                if (repos[0].__class__.__name__ == 'SvnRepository' or repos[1].__class__.__name__ == 'SvnRepository'):
+                if repos[0].__class__.__name__ == 'SvnRepository' or repos[1].__class__.__name__ == 'SvnRepository':
                     # Loading trees from a remote svn repo is unusably slow.
                     # See https://bugs.launchpad.net/qbrz/+bug/450225
                     # If only 1 revision is selected, use a optimized svn method
@@ -601,13 +584,11 @@ class FileListContainer(QtWidgets.QWidget):
                     else:
                         delta = None
                 else:
-                    if (len(repos)==2 and repos[0].base == repos[1].base):
+                    if len(repos) == 2 and repos[0].base == repos[1].base:
                         # Both revids are from the same repository. Load together.
                         repos_revids = [(repos[0], revids)]
-                        # print('\nBOTH FROM SAME', repos_revids)
                     else:
                         repos_revids = [(repo, [revid]) for revid, repo in zip(revids, repos)]
-                        # print('\nBoth different\n'. repos_revids)
 
                     for repo, repo_revids in repos_revids:
                         repo_revids = [revid for revid in repo_revids if revid not in self.tree_cache]
@@ -615,8 +596,8 @@ class FileListContainer(QtWidgets.QWidget):
                             with repo.lock_read():
                                 self.processEvents()
                                 for revid in repo_revids:
-                                    if (revid.startswith(CURRENT_REVISION) and gv_is_wtgv):
-                                        tree = gv.working_trees[revid]
+                                    if revid.startswith(CURRENT_REVISION) and is_working_tree_graph_viz:
+                                        tree = graph_viz.working_trees[revid]
                                     else:
                                         tree = repo.revision_tree(revid)
                                     self.tree_cache[revid] = tree
@@ -624,7 +605,6 @@ class FileListContainer(QtWidgets.QWidget):
                         self.processEvents()
 
                     delta = self.tree_cache[revids[0]].changes_from(self.tree_cache[revids[1]])
-                    # print('\n delta calculated as\n', delta, type(delta))
                 self.delta_cache[revids] = delta
             finally:
                 self.throbber.hide()
@@ -656,7 +636,7 @@ class FileListContainer(QtWidgets.QWidget):
         # unversioned
         #     (path, None, kind)
         #
-        # Now they are TreeChange objects in the lists added[[, removed[] renamed[], copied[] and modified[]
+        # Now they are TreeChange objects in the lists added[], removed[] renamed[], copied[] and modified[]
         #
         # self.file_id = file_id
         # self.path = path
@@ -697,7 +677,6 @@ class FileListContainer(QtWidgets.QWidget):
                         tree_change.file_id not in specific_file_ids,
                         tree_change.path[1], None, True))
 
-
                 # for (oldpath, newpath, id, kind, text_modified, meta_modified) in delta.renamed:
                 # for tree_change in delta.renamed:
                 #     items.append(
@@ -712,7 +691,7 @@ class FileListContainer(QtWidgets.QWidget):
                     #             "purple",
                     #             True))
 
-            for (id, path, is_not_specific_file_id, display, color, is_alive) in sorted(items, key = lambda x: (x[2],x[1])):
+            for (id, path, is_not_specific_file_id, display, color, is_alive) in sorted(items, key=lambda x: (x[2],x[1])):
                 item = QtWidgets.QListWidgetItem(display, self.file_list)
                 item.setData(PathRole, path)
                 item.setData(file_idRole, id)
@@ -730,14 +709,12 @@ class FileListContainer(QtWidgets.QWidget):
         if not isinstance(gv, logmodel.WithWorkingTreeGraphVizLoader):
             return
         cache = self.delta_cache
-        keys = [k for k in cache.keys()
-                if k[0].startswith(CURRENT_REVISION)]
+        keys = [k for k in cache.keys() if k[0].startswith(CURRENT_REVISION)]
         for key in keys:
             del(cache[key])
 
     def show_file_list_context_menu(self, pos):
-        (top_revid, old_revid), count = \
-            self.log_list.get_selection_top_and_parent_revids_and_count()
+        (top_revid, old_revid), count = self.log_list.get_selection_top_and_parent_revids_and_count()
         if count == 0:
             return
         # XXX - We should also check that the selected file is a file, and
@@ -760,9 +737,7 @@ class FileListContainer(QtWidgets.QWidget):
 
         self.file_list_context_menu_revert_file.setEnabled(menu_enabled)
         self.file_list_context_menu_revert_file.setVisible(menu_enabled)
-
-        self.file_list_context_menu.popup(
-            self.file_list.viewport().mapToGlobal(pos))
+        self.file_list_context_menu.popup(self.file_list.viewport().mapToGlobal(pos))
 
     def get_file_selection_indexes(self, index=None):
         if index is None:
@@ -822,10 +797,8 @@ class FileListContainer(QtWidgets.QWidget):
         """Saves the selected file in its revision to a directory."""
         paths, file_ids = self.get_file_selection_paths_and_ids()
         (top_revid, old_revid), count = self.log_list.get_selection_top_and_parent_revids_and_count()
-
         branch = self.log_list.log_model.graph_viz.get_revid_branch(top_revid)
         tree = branch.repository.revision_tree(top_revid)
-        file_id = file_ids[0]
         path = paths[0]
         with tree.lock_read():
             kind = tree.kind(path)
@@ -833,8 +806,7 @@ class FileListContainer(QtWidgets.QWidget):
                 file_content_bytes = tree.get_file_text(path)
         if kind != 'file':
             QtWidgets.QMessageBox.information(self, gettext("Not a file"),
-                gettext("Operation is supported for a single file only,\n"
-                        "not for a %s." % kind))
+                gettext("Operation is supported for a single file only,\nnot for a %s." % kind))
             return
         filename = QtWidgets.QFileDialog.getSaveFileName(self, gettext("Save file in this revision as..."))[0]
         if filename:
@@ -845,18 +817,17 @@ class FileListContainer(QtWidgets.QWidget):
     def revert_file(self):
         """Reverts the file to what it was at the selected revision."""
         res = QtWidgets.QMessageBox.question(self, gettext("Revert File"),
-                    gettext("Are you sure you want to revert this file "
-                            "to the state it was at the selected revision?"
-                            ),QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+                    gettext("Are you sure you want to revert this file to the state it was at the selected revision?"),
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
         if res == QtWidgets.QMessageBox.Yes:
-          paths, file_ids = self.get_file_selection_paths_and_ids()
+            paths, file_ids = self.get_file_selection_paths_and_ids()
 
-          (top_revid, old_revid), count = self.log_list.get_selection_top_and_parent_revids_and_count()
-          gv = self.log_list.log_model.graph_viz
-          assert(len(gv.branches)==1)
-          branch_info = gv.branches[0]
-          rev_tree = gv.get_revid_repo(top_revid).revision_tree(top_revid)
-          branch_info.tree.revert(paths, old_tree=rev_tree, report_changes=True)
+            (top_revid, old_revid), count = self.log_list.get_selection_top_and_parent_revids_and_count()
+            gv = self.log_list.log_model.graph_viz
+            assert(len(gv.branches) == 1)
+            branch_info = gv.branches[0]
+            rev_tree = gv.get_revid_repo(top_revid).revision_tree(top_revid)
+            branch_info.tree.revert(paths, old_tree=rev_tree, report_changes=True)
 
     @ui_current_widget
     def show_file_annotate(self):

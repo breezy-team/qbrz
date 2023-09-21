@@ -29,8 +29,6 @@ from breezy.plugins.qbrz.lib.util import (
 from breezy.plugins.qbrz.lib.trace import reports_exception, SUB_LOAD_METHOD
 from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
 
-from breezy.lazy_import import lazy_import
-lazy_import(globals(), '''
 from breezy.controldir import ControlDir
 from breezy.revisionspec import RevisionSpec
 from breezy.plugins.qbrz.lib.tag import TagWindow, CallBackTagWindow
@@ -38,7 +36,6 @@ from breezy.plugins.qbrz.lib import logmodel
 from breezy.plugins.qbrz.lib import diff
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.subprocess import SimpleSubProcessDialog
-''')
 
 
 class LogList(RevisionTreeView):
@@ -55,7 +52,7 @@ class LogList(RevisionTreeView):
         self.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
         self.setUniformRowHeights(True)
         self.setAllColumnsShowFocus(True)
-        self.setRootIsDecorated (False)
+        self.setRootIsDecorated(False)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
 
         self.setItemDelegateForColumn(logmodel.COL_MESSAGE, GraphTagsBugsItemDelegate(self))
@@ -71,11 +68,7 @@ class LogList(RevisionTreeView):
 
         header = self.header()
         header.setStretchLastSection(False)
-        # header.setResizeMode(logmodel.COL_REV, QtWidgets.QHeaderView.Interactive)
-        # header.setResizeMode(logmodel.COL_MESSAGE, QtWidgets.QHeaderView.Stretch)
-        # header.setResizeMode(logmodel.COL_DATE, QtWidgets.QHeaderView.Interactive)
-        # header.setResizeMode(logmodel.COL_AUTHOR, QtWidgets.QHeaderView.Interactive)
-        # RJLRJL: for PyQt5, use setSectionResizeMode instead
+        # RJLRJL: for PyQt5, use setSectionResizeMode
         header.setSectionResizeMode(logmodel.COL_REV, QtWidgets.QHeaderView.Interactive)
         header.setSectionResizeMode(logmodel.COL_MESSAGE, QtWidgets.QHeaderView.Stretch)
         header.setSectionResizeMode(logmodel.COL_DATE, QtWidgets.QHeaderView.Interactive)
@@ -150,6 +143,7 @@ class LogList(RevisionTreeView):
 
         if self.action_commands:
             self.context_menu.addSeparator()
+
             def add_branch_action(text, triggered, require_wt=False):
                 if branch_count == 1:
                     action = self.context_menu.addAction(text, triggered)
@@ -162,9 +156,7 @@ class LogList(RevisionTreeView):
                 return action
 
             self.context_menu_tag = add_branch_action(gettext("Tag &revision..."), self.tag_revision)
-
             self.context_menu_revert = add_branch_action(gettext("R&evert to this revision"), self.revert_to_revision, require_wt=True)
-
             self.context_menu_update = add_branch_action(gettext("&Update to this revision"), self.update_to_revision, require_wt=True)
 
             # In theory we should have a select branch option like push.
@@ -200,8 +192,8 @@ class LogList(RevisionTreeView):
         boxsize = rect.height()
         c_rev = self.log_model.c_rev_from_index(index)
         if c_rev and c_rev.twisty_state is not None:
-            twistyRect = QtCore.QRect (rect.x() + boxsize * c_rev.col_index,
-                                       rect.y() ,
+            twistyRect = QtCore.QRect(rect.x() + boxsize * c_rev.col_index,
+                                       rect.y(),
                                        boxsize,
                                        boxsize)
             if twistyRect.contains(pos):
@@ -217,7 +209,7 @@ class LogList(RevisionTreeView):
                 new_index = self.log_model.index_from_rev(c_rev.rev)
                 if new_index:
                     self.scrollTo(new_index)
-                e.accept ()
+                e.accept()
         if not collapse_expand_click:
             QtWidgets.QTreeView.mousePressEvent(self, e)
 
@@ -411,7 +403,7 @@ class LogList(RevisionTreeView):
                 desc = (gettext("Revert %s to revision %s revid:%s.") % (selected_branch_info.label, top_revno_str, top_revid))
 
             args = ["revert", '-r', 'revid:%s' % top_revid]
-            return SimpleSubProcessDialog( gettext("Revert"), desc=desc, args=args, dir=selected_branch_info.tree.basedir, parent=self)
+            return SimpleSubProcessDialog(gettext("Revert"), desc=desc, args=args, dir=selected_branch_info.tree.basedir, parent=self)
 
         self.sub_process_action(selected_branch_info, get_dialog)
 
@@ -488,7 +480,7 @@ class LogList(RevisionTreeView):
             # No revision selection.
             return
         new_branch = self.log_model.graph_viz.get_revid_branch(new_revid)
-        old_branch =  self.log_model.graph_viz.get_revid_branch(old_revid)
+        old_branch = self.log_model.graph_viz.get_revid_branch(old_revid)
 
         def get_tree_if_current(revid):
             if (revid.startswith(CURRENT_REVISION) and
@@ -503,7 +495,6 @@ class LogList(RevisionTreeView):
             new_tree=get_tree_if_current(new_revid),
             specific_files = specific_files,
             specific_file_ids = specific_file_ids)
-
 
         diff.show_diff(arg_provider, ext_diff=ext_diff,
                        parent_window=self.window(), context=self.diff_context)
@@ -562,7 +553,7 @@ class LogList(RevisionTreeView):
             self.context_menu_revert.setVisible(count == 1 and not wt_selected)
             self.context_menu_update.setVisible(count == 1 and not wt_selected)
 
-            if branch_count>1:
+            if branch_count > 1:
                 if wt_selected:
                     self.context_menu_cherry_pick.setVisible(False)
                 else:
@@ -580,7 +571,7 @@ class LogList(RevisionTreeView):
 class BranchMenu(QtWidgets.QMenu):
     bm_triggered = QtCore.pyqtSignal()
 
-    def __init__ (self, text, parent, graphprovider, require_wt):
+    def __init__(self, text, parent, graphprovider, require_wt):
         QtWidgets.QMenu.__init__(self, text, parent)
         self.graphprovider = graphprovider
         for branch in self.graphprovider.branches:
@@ -599,9 +590,8 @@ class BranchMenu(QtWidgets.QMenu):
             branch_info = action.data()
             branch_tip = branch_info.branch.last_revision()
             is_ancestor_ = (
-                frozenset((branch_tip,)) ==
-                self.graphprovider.known_graph.heads((branch_tip, rev)))
-            visible = is_ancestor_== is_ancestor
+                frozenset((branch_tip,)) == self.graphprovider.known_graph.heads((branch_tip, rev)))
+            visible = is_ancestor_ == is_ancestor
             action.setVisible(visible)
             if visible:
                 visible_action_count += 1
@@ -648,13 +638,13 @@ class GraphTagsBugsItemDelegate(QtWidgets.QStyledItemDelegate):
                 penwidth = 1
                 pen.setWidth(penwidth)
                 pen.setCapStyle(QtCore.Qt.FlatCap)
-                #this is to try get lines 1 pixel wide to actualy be 1 pixel wide.
+                # this is to try get lines 1 pixel wide to actualy be 1 pixel wide.
                 painter.translate(0.5, 0.5)
 
                 # Draw lines into the cell
                 if prev_c_rev:
                     for start, end, color, direct in prev_c_rev.lines:
-                        self.drawLine (painter, pen, rect, boxsize,
+                        self.drawLine(painter, pen, rect, boxsize,
                                        rect.y(), boxsize,
                                        start, end, color, direct)
                         graphCols = max((graphCols, min(start, end)))
@@ -662,7 +652,7 @@ class GraphTagsBugsItemDelegate(QtWidgets.QStyledItemDelegate):
                 # Draw lines out of the cell
                 if c_rev:
                     for start, end, color, direct in c_rev.lines:
-                        self.drawLine (painter, pen, rect,boxsize,
+                        self.drawLine(painter, pen, rect,boxsize,
                                        rect.y() + boxsize, boxsize,
                                        start, end, color, direct)
                         graphCols = max((graphCols, min(start, end)))
@@ -682,8 +672,8 @@ class GraphTagsBugsItemDelegate(QtWidgets.QStyledItemDelegate):
                     centerx = rect.x() + boxsize * (c_rev.col_index + 0.5)
                     centery = rect.y() + boxsize * 0.5
                     painter.drawEllipse(
-                        QtCore.QRectF(centerx - (boxsize * dotsize * 0.5 ),
-                                      centery - (boxsize * dotsize * 0.5 ),
+                        QtCore.QRectF(centerx - (boxsize * dotsize * 0.5),
+                                      centery - (boxsize * dotsize * 0.5),
                                      boxsize * dotsize, boxsize * dotsize))
 
                     # Draw twisty
@@ -706,7 +696,7 @@ class GraphTagsBugsItemDelegate(QtWidgets.QStyledItemDelegate):
 
             finally:
                 painter.restore()
-                rect.adjust( int((graphCols + 1.5) * boxsize), 0, 0, 0)
+                rect.adjust(int((graphCols + 1.5) * boxsize), 0, 0, 0)
 
             painter.save()
             x = 0
@@ -742,8 +732,7 @@ class GraphTagsBugsItemDelegate(QtWidgets.QStyledItemDelegate):
             text_width = fm.width(option.text)
             text = option.text
             if text_width > text_rect.width():
-                # RJLRJL obsolete, so changed to fm (fontMetrics) instead
-                # text = self.elidedText(fm, text_rect.width(), QtCore.Qt.ElideRight, text)
+                # RJLRJL changed to fm (fontMetrics) instead
                 text = fm.elidedText(text, QtCore.Qt.ElideRight, text_rect.width())
 
             painter.drawText(text_rect, QtCore.Qt.AlignLeft, text)
@@ -780,7 +769,7 @@ class GraphTagsBugsItemDelegate(QtWidgets.QStyledItemDelegate):
         path = QtGui.QPainterPath()
         path.moveTo(QtCore.QPointF(startx, mid - height / 2))
 
-        if start - end == 0 :
+        if start - end == 0:
             path.lineTo(QtCore.QPointF(endx, mid + height / 2))
         else:
             path.cubicTo(QtCore.QPointF(startx, mid - height / 5),

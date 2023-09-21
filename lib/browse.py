@@ -17,32 +17,27 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from breezy.plugins.qbrz.lib.util import (
     BTN_CLOSE,
     BTN_REFRESH,
     StandardButton,
     QBzrWindow,
     ThrobberWidget,
-    runs_in_loading_queue,
     url_for_display,
     )
 from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
 from breezy.plugins.qbrz.lib.trace import reports_exception
 
-from breezy.lazy_import import lazy_import
-lazy_import(globals(), '''
-from breezy import (
-    osutils,
-    errors,
-    )
+from breezy import osutils, errors
 from breezy.controldir import ControlDir
 from breezy.revisionspec import RevisionSpec
 
 from breezy.plugins.qbrz.lib.i18n import gettext
-from breezy.plugins.qbrz.lib.treewidget import TreeWidget, TreeFilterMenu
+from breezy.plugins.qbrz.lib.treewidget import TreeWidget, TreeFilterMenu, FilterModelKeys
 from breezy.plugins.qbrz.lib.diff import DiffButtons
-''')
+
+
 class BrowseWindow(QBzrWindow):
 
     def __init__(self, branch=None, location=None, revision=None,
@@ -112,19 +107,16 @@ class BrowseWindow(QBzrWindow):
         vbox.addLayout(hbox)
 
         self.windows = []
-
         self.file_tree.setFocus()   # set focus so keyboard navigation will work from the beginning
 
     def show(self):
         # we show the bare form as soon as possible.
-        # QBzrWindow.show(self)
         super().show()
-        # QtCore.QTimer.singleShot(1, self.load)
         self.load()
         self.file_tree.refresh()
 
     # @runs_in_loading_queue
-    @ui_current_widget
+    # @ui_current_widget
     @reports_exception()
     def load(self):
         self.throbber.show()
@@ -154,9 +146,7 @@ class BrowseWindow(QBzrWindow):
     def set_revision(self, revspec=None, revision_id=None, text=None):
         self.throbber.show()
         try:
-            buttons = (self.filter_button,
-                       self.diffbuttons,
-                       self.refresh_button)
+            buttons = (self.filter_button, self.diffbuttons, self.refresh_button)
             state = self.file_tree.get_state()
             if text == "wt:":
                 self.tree = self.workingtree
@@ -172,9 +162,9 @@ class BrowseWindow(QBzrWindow):
 
                     for button in buttons:
                         button.setEnabled(False)
-                    fmodel = self.file_tree.tree_filter_model
-                    fmodel.setFilter(fmodel.UNCHANGED, True)
-                    self.filter_menu.set_filters(fmodel.filters)
+
+                    self.file_tree.tree_filter_model.setFilter(FilterModelKeys.UNCHANGED, True)
+                    self.filter_menu.set_filters(self.file_tree.tree_filter_model.filters)
 
                     if revision_id is None:
                         text = revspec.spec or ''

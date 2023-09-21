@@ -93,12 +93,11 @@ qtest:
 # BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz qlog
 #
 # If you have a test directory you wish to use, you can pass it to the relevant command.
-# In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/sopsteward`` and we
-# are developing in ~/pythonstuff/qbrz - thus we call brz with qadd and the sopsteward directory
+# In this example, we have a test dir of ``~/pythonstuff/bzr_test_dir/dycco`` and we
+# are developing in ~/pythonstuff/qbrz - thus we call brz with qadd and the dycco directory
 # Note we have to use ${HOME} for BZR_PLUGINS_AT...
 #
-	BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qdiff
-	# ~/pythonstuff/bzr_test_dir/sopsteward
+	BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qadd ~/pythonstuff/bzr_test_dir/dycco/
 	#BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qannotate ~/pythonstuff/qbrz/lib/treewidget.py
 	#BRZ_PLUGINS_AT=qbrz@${HOME}/pythonstuff/qbrz brz qplugins
 

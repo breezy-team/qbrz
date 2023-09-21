@@ -41,42 +41,17 @@ from breezy.plugins.qbrz.lib.util import (
     )
 
 from breezy.ui.text import TextProgressView, TextUIFactory
-from breezy.plugins.qbrz.lib.trace import (
-   report_exception,
-   SUB_LOAD_METHOD)
-
-from breezy.lazy_import import lazy_import
-try:
-    QString = unicode
-except NameError:
-    # Python 3
-    QString = str
 
 import fastbencode as bencode
 
-lazy_import(globals(), '''
 import codecs
 import re
-import shlex
 import signal
 import tempfile
-import thread
+if MS_WINDOWS:
+    import thread
 
-from breezy import (
-    commands,
-    errors,
-    osutils,
-    ui,
-    )
-
-from breezy.controldir import ControlDir
-
-from breezy.plugins.qbrz.lib.commit import CommitWindow
-from breezy.plugins.qbrz.lib.revert import RevertWindow
-from breezy.plugins.qbrz.lib.shelvewindow import ShelveWindow
-from breezy.plugins.qbrz.lib.conflicts import ConflictsWindow
-''')
-
+from breezy import commands, errors, osutils, ui
 
 # Subprocess service messages markers
 SUB_PROGRESS = "qbrz:PROGRESS:"
@@ -137,14 +112,13 @@ class WarningInfoWidget(InfoWidget):
         self.add_button(N_('Resolve'), on_conflict)
         self.add_button(N_('Revert'), on_revert)
 
-
     def setup_for_locked(self, on_retry):
         self.remove_all_buttons()
         self.set_label(N_('Could not acquire lock. Please retry later.'))
         self.add_button(N_('Retry'), on_retry)
 
 
-class SubProcessWindowBase(object):
+class SubProcessWindowBase:
 
     subprocessStarted = QtCore.pyqtSignal(bool)
     disableUi = QtCore.pyqtSignal(bool)
@@ -209,7 +183,7 @@ class SubProcessWindowBase(object):
         self.buttonbox.addButton(self.cancelButton, QtWidgets.QDialogButtonBox.RejectRole)
         self.buttonbox.accepted.connect(self.do_accept)
         self.buttonbox.rejected.connect(self.do_reject)
-        self.closeButton.setHidden(True) # but 'close' starts as hidden.
+        self.closeButton.setHidden(True)  # but 'close' starts as hidden.
 
         self.infowidget = WarningInfoWidget(self)
         self.infowidget.hide()
@@ -303,7 +277,7 @@ class SubProcessWindowBase(object):
 
     def on_conflicted(self, tree_path):
         if tree_path:
-            self.action_url = str(tree_path) # QString -> unicode
+            self.action_url = str(tree_path)  # QString -> unicode
             self.infowidget.setup_for_conflicted(self.open_conflicts_win, self.open_revert_win)
             self.infowidget.show()
 
@@ -313,9 +287,7 @@ class SubProcessWindowBase(object):
 
         if error == 'UncommittedChanges':
             self.action_url = self.process_widget.error_data['display_url']
-            self.infowidget.setup_for_uncommitted(self.open_commit_win,
-                                                  self.open_revert_win,
-                                                  self.open_shelve_win)
+            self.infowidget.setup_for_uncommitted(self.open_commit_win, self.open_revert_win, self.open_shelve_win)
             self.infowidget.show()
 
         elif error == 'LockContention':
@@ -332,12 +304,14 @@ class SubProcessWindowBase(object):
 
     def open_commit_win(self, b):
         # XXX refactor so that the tree can be opened by the window
+        from breezy.plugins.qbrz.lib.commit import CommitWindow
         tree, branch = BzrDir.open_tree_or_branch(self.action_url)
-        commit_window = CommitWindow(tree, None, parent=self)
+        commit_window = CommitWindow(tree=tree, selected_list=None, parent=self)
         self.windows.append(commit_window)
         commit_window.show()
 
     def open_revert_win(self, b):
+        from breezy.plugins.qbrz.lib.revert import RevertWindow
         # XXX refactor so that the tree can be opened by the window
         tree, branch = BzrDir.open_tree_or_branch(self.action_url)
         revert_window = RevertWindow(tree, None, parent=self)
@@ -345,37 +319,26 @@ class SubProcessWindowBase(object):
         revert_window.show()
 
     def open_shelve_win(self, b):
+        from breezy.plugins.qbrz.lib.shelvewindow import ShelveWindow
         shelve_window = ShelveWindow(directory=self.action_url, parent=self)
         self.windows.append(shelve_window)
         shelve_window.show()
 
     def open_conflicts_win(self, b):
+        from breezy.plugins.qbrz.lib.conflicts import ConflictsWindow
         window = ConflictsWindow(self.action_url, parent=self)
         self.windows.append(window)
         window.show()
         window.allResolved[bool].connect(self.infowidget.setHidden)
 
+
 class SubProcessWindow(SubProcessWindowBase, QBzrWindow):
 
-    def __init__(self, title,
-                 name="genericsubprocess",
-                 args=None,
-                 dir=None,
-                 default_size=None,
-                 ui_mode=True,
-                 dialog=True,
-                 parent=None,
-                 hide_progress=False):
+    def __init__(self, title, name="genericsubprocess", args=None, dir=None, default_size=None,
+                 ui_mode=True, dialog=True, parent=None, hide_progress=False):
         QBzrWindow.__init__(self, title, parent)
-        self.__init_internal__(title,
-                               name=name,
-                               args=args,
-                               dir=dir,
-                               default_size=default_size,
-                               ui_mode=ui_mode,
-                               dialog=dialog,
-                               parent=parent,
-                               hide_progress=hide_progress)
+        self.__init_internal__(title, name=name, args=args, dir=dir, default_size=default_size,
+                               ui_mode=ui_mode, dialog=dialog, parent=parent, hide_progress=hide_progress)
 
     def closeEvent(self, event):
         if not self.process_widget.is_running():
@@ -393,27 +356,11 @@ class SubProcessDialog(SubProcessWindowBase, QBzrDialog):
     self.make_default_layout_widgets()
     """
 
-    def __init__(self, title=None,
-                 name="genericsubprocess",
-                 args=None,
-                 dir=None,
-                 default_size=None,
-                 ui_mode=True,
-                 dialog=True,
-                 parent=None,
-                 hide_progress=False,
-                 immediate=False):
+    def __init__(self, title=None, name="genericsubprocess", args=None, dir=None, default_size=None,
+                ui_mode=True, dialog=True, parent=None, hide_progress=False, immediate=False):
         QBzrDialog.__init__(self, title, parent)
-        self.__init_internal__(title,
-                               name=name,
-                               args=args,
-                               dir=dir,
-                               default_size=default_size,
-                               ui_mode=ui_mode,
-                               dialog=dialog,
-                               parent=parent,
-                               hide_progress=hide_progress,
-                               immediate=immediate)
+        self.__init_internal__(title, name=name, args=args, dir=dir, default_size=default_size,
+                ui_mode=ui_mode, dialog=dialog, parent=parent, hide_progress=hide_progress, immediate=immediate)
 
     def closeEvent(self, event):
         if not self.process_widget.is_running():
@@ -491,7 +438,7 @@ class SubProcessWidget(QtWidgets.QWidget):
         message_layout = QtWidgets.QHBoxLayout()
 
         self.progressMessage = QtWidgets.QLabel(self)
-        #self.progressMessage.setWordWrap(True) -- this breaks minimal window size hint
+        # self.progressMessage.setWordWrap(True) -- this breaks minimal window size hint
         self.progressMessage.setText(gettext("Ready"))
         message_layout.addWidget(self.progressMessage, 1)
 
@@ -627,9 +574,6 @@ class SubProcessWidget(QtWidgets.QWidget):
             directory = self.defaultWorkingDir
 
         self.error_class = ''
-        # failed = QtCore.pyqtSignal('QString')
-        # conflicted = QtCore.pyqtSignal('QString')
-        # finished = QtCore.pyqtSignal()
         self.error_data = {}
 
         self.process.setWorkingDirectory(directory)
@@ -791,12 +735,12 @@ class SubProcessWidget(QtWidgets.QWidget):
             terminal_stream (e.g. sys.stdout or sys.stderr)
         """
         if kind == 'error':
-            format = self.errorFormat
+            char_format = self.errorFormat
         elif kind == 'cmdline':
-            format = self.cmdlineFormat
+            char_format = self.cmdlineFormat
         else:
-            format = self.messageFormat
-        self.console.setCurrentCharFormat(format)
+            char_format = self.messageFormat
+        self.console.setCurrentCharFormat(char_format)
         self.console.append(message)
         scrollbar = self.console.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
@@ -986,13 +930,14 @@ def watch_conflicts(on_conflicted):
     finally:
         Merger.hooks.uninstall_named_hook('post_merge', hook_name)
 
+
 def run_subprocess_command(cmd, bencoded=False):
     """The actual body of qsubprocess.
     Running specified bzr command in the subprocess.
     @param cmd: string with command line to run.
     @param bencoded: either cmd_str is bencoded list or not.
 
-    (RJL: No, I don't know if that means it's always a list that's
+    (RJL: No, I don't know if the above means that it's always a list that's
     either bencoded or a list that's not, or it's either a bencoded-list
     or something else bencoded, or something else not bencoded.)
 
@@ -1000,8 +945,8 @@ def run_subprocess_command(cmd, bencoded=False):
     where actual command line string is saved (utf-8 encoded)...BUT
     see below.
 
-    RJLRJL: Because of the joy of python2 -> python3, but more because nobody
-    bothered to make a class for bencoded, we have to fanny about with bytes
+    RJLRJL: Because of the joy of python2 -> python3, but more because there
+    is/was no class for bencoded, we have to fool about with bytes
     and strings - what larks!. So, one day, we'll make bencoded a class.
     Strictly, bencoded (python3) *should* be bytes, but you never can tell.
     Particularly in this code. And don't get me started on rev_ids.
@@ -1010,9 +955,7 @@ def run_subprocess_command(cmd, bencoded=False):
     How can you tell?
     Try passing cmd to bdecode: you'll probably get an error about 'identifier 64'.
     You *can* strip off the leading '@' but what's left behind might or might not
-    be bencoded.
-
-    Standards, we've heard of them. I've fixed some of the passing code so that it
+    be bencoded. I've fixed some of the passing code so that it
     actually passes bencoded('@'+filename) not '@'+filename, but don't know if I've
     found it all.
 
@@ -1023,7 +966,7 @@ def run_subprocess_command(cmd, bencoded=False):
 
       raise errors.BzrError("argv should be list of unicode strings.")
 
-    so it *actually wants a list of strings*. Grr.
+    so it *actually wants a list of strings*.
     """
     if MS_WINDOWS:
         thread.start_new_thread(windows_emulate_ctrl_c, ())
@@ -1057,8 +1000,7 @@ def run_subprocess_command(cmd, bencoded=False):
         else:
             s_cmd = cmd
 
-    # Sometimes we get a list, decode each line
-    # Note that each LINE might be bencoded too
+    # Sometimes we get a list, decode each line: note that each LINE might be bencoded too
     if isinstance(s_cmd, list):
         for i, s in enumerate(s_cmd):
             if isinstance(s, bytes):
@@ -1088,6 +1030,7 @@ def run_subprocess_command(cmd, bencoded=False):
     try:
         def on_conflicted(wtpath):
             # See comment re: frankenstrings below for why we cast to string
+            # Yes, that *is* a def... in a try..except block.
             print("%s%s%s" % (SUB_NOTIFY, NOTIFY_CONFLICT, str(bittorrent_b_encode_prompt(wtpath), 'utf-8')))
         with watch_conflicts(on_conflicted):
             # _specified_or_unicode_argv should raise a BzrError here
@@ -1300,7 +1243,7 @@ def bittorrent_b_encode_exception_instance(e: Exception) -> bytes:
             #     val = repr(val)
             #   val = val.decode("ascii", "replace")``
             #
-            # We only need to convert other things than bytes
+            # We only need to convert things other than bytes
             if not isinstance(val, bytes):
                 if not isinstance(val, str):
                     val = repr(val)
@@ -1309,7 +1252,7 @@ def bittorrent_b_encode_exception_instance(e: Exception) -> bytes:
         except (KeyboardInterrupt, SystemExit):
             raise
         except KeyError:
-            val = b'[Qbrz could not find the key [{0}] to serialize this attribute]'.format(key)
+            val = b'[Qbrz could not find the key [%s] to serialize this attribute]' % key
         except:
             val = b"[QBrz could not serialize this attribute]"
         # The key needs to be bytes too
@@ -1351,24 +1294,3 @@ def bittorrent_b_decode_exception_instance(bencoded_bytes: bytes) -> (str, list)
         new_d[k.decode('utf-8')] = d[k].decode('utf-8')
     # And convert the exception name to a string too
     return ename.decode('utf-8'), new_d
-
-
-# GZ 2011-04-15: Remove or deprecate these functions if they remain unused?
-# def bittorrent_b_encode_unicode_escape(obj):
-#     if isinstance(obj, dict):
-#         result = {}
-#         for k,v in obj.items():
-#             result[k] = v.encode('unicode-escape')
-#         return result
-#     else:
-#         raise TypeError('bittorrent_b_encode_unicode_escape: unsupported type: %r' % type(obj))
-
-# def bittorrent_b_decode_unicode_escape(a_dict:dict) -> dict:
-#     # Receives a dictionary that has been bittorrent encoded
-#     if isinstance(obj, dict):
-#         result = {}
-#         for k,v in obj.items():
-#             result[k] = v.decode('unicode-escape')
-#         return result
-#     else:
-#         raise TypeError('bittorrent_b_decode_unicode_escape: unsupported type: %r' % type(obj))

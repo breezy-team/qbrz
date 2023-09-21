@@ -20,7 +20,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
@@ -28,8 +28,9 @@ from breezy.plugins.qbrz.lib.util import (
     url_for_display,
     )
 
+
 class QBzrUnbindDialog(SubProcessDialog):
-     
+
     def __init__(self, branch, ui_mode=None, immediate=False):
 
         super(QBzrUnbindDialog, self).__init__(
@@ -43,21 +44,21 @@ class QBzrUnbindDialog(SubProcessDialog):
                                   immediate = immediate
                                   )
         self.branch = branch
-        
+
         gbBind = QtWidgets.QGroupBox(gettext("Unbind"), self)
         bind_box = QtWidgets.QFormLayout(gbBind)
         info_label = QtWidgets.QLabel(url_for_display(branch.base))
         bind_box.addRow(gettext("Branch:"), info_label)
 
         self.currbound = branch.get_bound_location()
-        if self.currbound != None:
+        if self.currbound is not None:
             curr_label = QtWidgets.QLabel(url_for_display(self.currbound))
-            bind_box.addRow(gettext("Bound to:"), curr_label)  
-                    
+            bind_box.addRow(gettext("Bound to:"), curr_label)
+
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(gbBind)
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
-            
-    def do_start(self):        
+
+    def do_start(self):
         self.process_widget.do_start(None, 'unbind')

@@ -19,7 +19,6 @@
 
 from contextlib import ExitStack
 import os
-import sys, time
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from breezy.plugins.qbrz.lib.i18n import gettext, ngettext, N_
@@ -47,8 +46,8 @@ from breezy import errors
 from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
 from breezy.plugins.qbrz.lib.trace import reports_exception
 from breezy.patches import HunkLine, ContextLine, InsertLine, RemoveLine
-from breezy.lazy_import import lazy_import
-lazy_import(globals(), '''
+
+
 from breezy import transform, textfile, patches
 from breezy.workingtree import WorkingTree
 from breezy.plugins.qbrz.lib.encoding_selector import EncodingMenuSelector
@@ -58,8 +57,7 @@ from breezy.plugins.qbrz.lib.autocomplete import get_wordlist_builder
 from breezy.shelf import ShelfCreator
 from breezy.shelf_ui import Shelver
 from breezy.osutils import split_lines
-''')
-
+from io import StringIO
 
 """
 TODO::
@@ -77,6 +75,7 @@ change_status = (
 
 MAX_AUTOCOMPLETE_FILES = 20
 
+
 class WorkingTreeHasChanged(errors.BzrError):
     pass
 
@@ -88,6 +87,7 @@ class WorkingTreeHasPendingMarge(errors.BzrError):
 class DummyDiffWriter(object):
     def __init__(self):
         pass
+
     def write(self, *args, **kwargs):
         pass
 
@@ -179,10 +179,10 @@ class Change(object):
             return self.hunk_texts[2]
         patch = self.parsed_patch
         try:
-            texts = [[l.as_bytes().decode(encoding) for l in hunk.lines] for hunk in patch.hunks]
+            texts = [[line.as_bytes().decode(encoding) for line in hunk.lines] for hunk in patch.hunks]
         except UnicodeError:
             if self.hunk_texts[1] is None:
-                texts = [[str(l) for l in hunk.lines] for hunk in patch.hunks]
+                texts = [[str(line) for line in hunk.lines] for hunk in patch.hunks]
                 self.hunk_texts[1] = texts
             else:
                 texts = self.hunk_texts[1]
@@ -195,7 +195,7 @@ class Change(object):
         if lines[0] == encoding:
             return lines[2]
         try:
-            encoded_lines = [l.decode(encoding) for l in lines[1]]
+            encoded_lines = [line.decode(encoding) for line in lines[1]]
         except UnicodeError:
             encoded_lines = lines[1]
         lines[2] = encoded_lines
@@ -360,7 +360,7 @@ class ShelveWidget(ToolbarPanel):
 
         self.add_toolbar_button(N_('Shelve'), icon_name='shelve',
                 shortcut=QtGui.QKeySequence.Save, onclick=self.do_shelve,
-                menu = shelve_menu)
+                menu=shelve_menu)
 
         self.add_separator()
 
@@ -398,9 +398,9 @@ class ShelveWidget(ToolbarPanel):
             sp.setStretchFactor(1, 7)
 
         self.brushes = {
-            'add file' : QtGui.QBrush(QtCore.Qt.blue),
-            'delete file' : QtGui.QBrush(QtCore.Qt.red),
-            'rename' : QtGui.QBrush(QtGui.QColor(160, 32, 240)), # purple
+            'add file': QtGui.QBrush(QtCore.Qt.blue),
+            'delete file': QtGui.QBrush(QtCore.Qt.red),
+            'rename': QtGui.QBrush(QtGui.QColor(160, 32, 240)),  # purple
         }
 
         self.loaded = False
@@ -456,7 +456,7 @@ class ShelveWidget(ToolbarPanel):
         with ExitStack() as es:
             old_rev = self.revision
             old_changes = self._get_change_dictionary()
-            self.clear(clear_message = False)
+            self.clear(clear_message=False)
 
             shelver, creator = self._create_shelver_and_creator()
             es.callback(shelver.finalize)
@@ -610,7 +610,7 @@ class ShelveWidget(ToolbarPanel):
             if item.checkState(0) != state:
                 item.setCheckState(0, state)
 
-    def clear(self, clear_message = True):
+    def clear(self, clear_message=True):
         if clear_message:
             self.message.clear()
         self.file_view.clear()
@@ -839,6 +839,7 @@ class HunkView(QtWidgets.QWidget):
     def clear(self):
         self.browser.clear()
 
+
 class HunkSelector(QtWidgets.QFrame):
     def __init__(self, browser, parent):
         QtWidgets.QFrame.__init__(self, parent)
@@ -899,6 +900,7 @@ class HunkSelector(QtWidgets.QFrame):
             browser.focus_hunk_by_pos(event.y() - self.frame_width)
         QtWidgets.QFrame.mousePressEvent(self, event)
 
+
 class HunkTextBrowser(QtWidgets.QTextBrowser):
     documentChangeFinished = QtCore.pyqtSignal()
     selectedHunkChanged = QtCore.pyqtSignal()
@@ -941,8 +943,8 @@ class HunkTextBrowser(QtWidgets.QTextBrowser):
         from breezy.plugins.qbrz.lib.diffview import colors
         self.header_color = colors['blank'][0]
         self.border_pen = QtGui.QPen(QtCore.Qt.gray)
-        self.focus_color = QtGui.QColor(0x87, 0xCE, 0xEB, 0x48) # lightBlue
-        self.focus_color_inactive = QtGui.QColor(0x87, 0xCE, 0xEB, 0x20) # lightBlue
+        self.focus_color = QtGui.QColor(0x87, 0xCE, 0xEB, 0x48)  # lightBlue
+        self.focus_color_inactive = QtGui.QColor(0x87, 0xCE, 0xEB, 0x20)  # lightBlue
 
         self.complete = complete
         self._focused_index = -1
@@ -983,7 +985,7 @@ class HunkTextBrowser(QtWidgets.QTextBrowser):
         for hunk, hunk_texts in zip(patch.hunks, texts):
             # NOTE: hunk.mod_pos is 1 based value, not 0 based.
             if self.complete:
-                lines = "".join([' ' + l for l in work_lines[start:hunk.mod_pos - 1]])
+                lines = "".join([' ' + line for line in work_lines[start:hunk.mod_pos - 1]])
                 if lines:
                     cursor.insertText(lines, self.monospacedInactiveFormat)
                 start = hunk.mod_pos + hunk.mod_range - 1
@@ -1003,7 +1005,7 @@ class HunkTextBrowser(QtWidgets.QTextBrowser):
             self.hunk_list.append((hunk, y1, y2))
 
         if self.complete:
-            lines = "".join([' ' + l for l in work_lines[start:]])
+            lines = "".join([' ' + line for line in work_lines[start:]])
             if lines:
                 cursor.insertText(lines, self.monospacedInactiveFormat)
 

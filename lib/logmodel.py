@@ -23,7 +23,7 @@ import time
 import re
 import fnmatch
 
-from breezy.revision import CURRENT_REVISION, Revision
+from breezy.revision import Revision
 
 from breezy.plugins.qbrz.lib.bugs import get_bug_id
 from breezy.plugins.qbrz.lib import loggraphviz
@@ -35,7 +35,6 @@ from breezy.plugins.qbrz.lib.util import (
     extract_name,
     get_apparent_author,
     runs_in_loading_queue,
-    run_in_loading_queue
     )
 
 RevIdRole = im_RevIdRole
@@ -46,11 +45,10 @@ header_labels = (gettext("Rev"),
                  gettext("Date"),
                  gettext("Author"), )
 
-(COL_REV,
- COL_MESSAGE,
- COL_DATE,
- COL_AUTHOR,
-) = list(range(len(header_labels)))
+COL_REV = 0
+COL_MESSAGE = 1
+COL_DATE = 2
+COL_AUTHOR = 3
 
 
 class WorkingTreeRevision(Revision):
@@ -59,18 +57,17 @@ class WorkingTreeRevision(Revision):
 
         self.parent_ids = tree.get_parent_ids()
         self.committer = tree.branch.get_config().username()
-        self.message = "" # todo: try load saved commit message
+        self.message = ""  # todo: try load saved commit message
         self.timestamp = None
         self.tree = tree
 
+
 class GraphVizLoader(loggraphviz.GraphVizLoader):
 
-    def __init__(self, branches, primary_bi, no_graph,
-                 processEvents,  throbber):
+    def __init__(self, branches, primary_bi, no_graph, processEvents, throbber):
         self.processEvents = processEvents
         self.throbber = throbber
-        loggraphviz.GraphVizLoader.__init__(
-            self, branches, primary_bi, no_graph)
+        loggraphviz.GraphVizLoader.__init__(self, branches, primary_bi, no_graph)
 
     def update_ui(self):
         self.processEvents()
@@ -93,13 +90,11 @@ class PendingMergesGraphVizLoader(
         GraphVizLoader):
     pass
 
-class WithWorkingTreeGraphVizLoader(
-        loggraphviz.WithWorkingTreeGraphVizLoader,
-        GraphVizLoader):
+
+class WithWorkingTreeGraphVizLoader(loggraphviz.WithWorkingTreeGraphVizLoader, GraphVizLoader):
 
     def load(self):
         super(WithWorkingTreeGraphVizLoader, self).load()
-
         for wt_revid, tree in self.working_trees.items():
             # bla - nasty hack.
             cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, tree)
@@ -135,9 +130,7 @@ class FilterScheduler(object):
         # to update the filter cache. How often we update is bases on a ratio of
         # 10:1. If we spend 1 sec calling invaladate_filter_cache_revs, don't
         # call it again until we have spent 10 sec else where.
-        if (last_call or revs is None or
-            time.process_time() - self.last_call_time > self.last_run_time * 10):
-
+        if last_call or revs is None or time.process_time() - self.last_call_time > self.last_run_time * 10:
             start_time = time.process_time()
             self.filter_changed_callback(self.pending_revs, last_call)
             self.pending_revs = []
@@ -147,6 +140,7 @@ class FilterScheduler(object):
         if last_call:
             self.last_run_time = 0
             self.last_call_time = 0
+
 
 class LogModel(QtCore.QAbstractTableModel):
 
@@ -159,8 +153,7 @@ class LogModel(QtCore.QAbstractTableModel):
         self.processEvents = processEvents
         self.throbber = throbber
 
-        self.graph_viz = GraphVizLoader((), None, False,
-                                               processEvents, throbber)
+        self.graph_viz = GraphVizLoader((), None, False, processEvents, throbber)
         self.state = loggraphviz.GraphVizFilterState(
             self.graph_viz, self.compute_lines)
         self.computed = loggraphviz.ComputedGraphViz(self.graph_viz)
@@ -169,44 +162,37 @@ class LogModel(QtCore.QAbstractTableModel):
         self.last_rev_is_placeholder = False
         self.bugtext = gettext("bug #%s")
 
-    def load(self, branches, primary_bi, file_ids, no_graph,
-             graph_provider_type):
+    def load(self, branches, primary_bi, file_ids, no_graph, graph_provider_type):
         self.throbber.show()
         self.processEvents()
         try:
-            graph_viz = graph_provider_type(
-                branches, primary_bi, no_graph,
-                processEvents=self.processEvents, throbber=self.throbber)
+            graph_viz = graph_provider_type(branches, primary_bi, no_graph, processEvents=self.processEvents, throbber=self.throbber)
             graph_viz.load()
             graph_viz.on_filter_changed = self.on_filter_changed
 
-            state = loggraphviz.GraphVizFilterState(
-                graph_viz, self.compute_lines)
+            state = loggraphviz.GraphVizFilterState(graph_viz, self.compute_lines)
             # Copy the expanded branches from the old state to the new.
             for (branch_id, value) in self.state.branch_line_state.items():
                 if branch_id in graph_viz.branch_lines:
                     state.branch_line_state[branch_id] = value
 
-            #for branch_id in graph_viz.branch_lines.keys():
+            # for branch_id in graph_viz.branch_lines.keys():
             #    state.branch_line_state[branch_id] = None
 
             scheduler = FilterScheduler(state.filter_changed)
             if file_ids:
-                file_id_filter = FileIdFilter(
-                    graph_viz, scheduler.filter_changed, file_ids)
+                file_id_filter = FileIdFilter(graph_viz, scheduler.filter_changed, file_ids)
                 state.filters.append(file_id_filter)
             else:
                 file_id_filter = None
 
             if isinstance(graph_viz, WithWorkingTreeGraphVizLoader):
-                working_tree_filter = WorkingTreeHasChangeFilter(
-                    graph_viz, scheduler.filter_changed, file_ids)
+                working_tree_filter = WorkingTreeHasChangeFilter(graph_viz, scheduler.filter_changed, file_ids)
                 state.filters.append(working_tree_filter)
             else:
                 working_tree_filter = None
 
-            prop_search_filter = PropertySearchFilter(graph_viz,
-                                                      scheduler.filter_changed)
+            prop_search_filter = PropertySearchFilter(graph_viz,scheduler.filter_changed)
             state.filters.append(prop_search_filter)
 
             self.layoutAboutToBeChanged.emit()
@@ -238,15 +224,11 @@ class LogModel(QtCore.QAbstractTableModel):
 
     def collapse_expand_rev(self, c_rev):
         self.clicked_f_index = c_rev.f_index
-        clicked_row_index = self.createIndex (c_rev.f_index,
-                                              COL_MESSAGE,
-                                              QtCore.QModelIndex())
+        clicked_row_index = self.createIndex(c_rev.f_index, COL_MESSAGE, QtCore.QModelIndex())
         self.dataChanged.emit(clicked_row_index, clicked_row_index)
         self.graph_viz.update_ui()
         self.clicked_f_index = None
-
         self.state.collapse_expand_rev(c_rev)
-
         self.dataChanged.emit(clicked_row_index, clicked_row_index)
 
     def ensure_rev_visible(self, rev):
@@ -289,17 +271,11 @@ class LogModel(QtCore.QAbstractTableModel):
 
             tags = []
             # Branch labels
-            tags.extend([(label,
-                          QtGui.QColor(24, 80, 200),
-                          QtGui.QColor(QtCore.Qt.white))
-                         for (branch_info, label) in c_rev.branch_labels
-                         if label])
+            tags.extend([(label, QtGui.QColor(24, 80, 200), QtGui.QColor(QtCore.Qt.white))
+                         for (branch_info, label) in c_rev.branch_labels if label])
             # Tags
             if c_rev.rev.revid in self.graph_viz.tags:
-                tags.extend(
-                    [(tag,
-                      QtGui.QColor(80, 128, 32),
-                      QtGui.QColor(QtCore.Qt.white))
+                tags.extend([(tag, QtGui.QColor(80, 128, 32), QtGui.QColor(QtCore.Qt.white))
                      for tag in self.graph_viz.tags[c_rev.rev.revid]])
 
             # Bugs
@@ -315,27 +291,21 @@ class LogModel(QtCore.QAbstractTableModel):
                             if bug_id:
                                 bugs.append(self.bugtext % bug_id)
                     revision._qlog_bugs = bugs
-                tags.extend([(bug,
-                              QtGui.QColor(164, 0, 0),
-                              QtGui.QColor(QtCore.Qt.white))
-                             for bug in bugs])
+                tags.extend([ (bug, QtGui.QColor(164, 0, 0), QtGui.QColor(QtCore.Qt.white)) for bug in bugs])
             is_clicked = c_rev.f_index == self.clicked_f_index
+            return c_rev, prev_c_rev, tags, is_clicked
 
-            return (c_rev, prev_c_rev, tags, is_clicked)
-
-        if (role == QtCore.Qt.DisplayRole and index.column() == COL_REV):
+        if role == QtCore.Qt.DisplayRole and index.column() == COL_REV:
             return c_rev.rev.revno_str
 
         if role == QtCore.Qt.ToolTipRole and index.column() == COL_MESSAGE:
-            urls =  [branch_info.branch.base
-                     for (branch_info, label) in c_rev.branch_labels
-                     if label]
+            urls =  [branch_info.branch.base for (branch_info, label) in c_rev.branch_labels if label]
             return '\n'.join(urls)
 
         if role == RevIdRole:
             return c_rev.rev.revid
 
-        #Everything from here foward will need to have the revision loaded.
+        # Everything from here foward will need to have the revision loaded.
         if revision is None:
             return blank()
 
@@ -362,7 +332,8 @@ class LogModel(QtCore.QAbstractTableModel):
     def on_revisions_loaded(self, revisions, last_call):
         for revid in revisions.keys():
             rev = self.graph_viz.revid_rev[revid]
-            self.dataChanged.emit(self.index(rev.index, COL_MESSAGE, QtCore.QModelIndex()), self.index(rev.index, COL_AUTHOR, QtCore.QModelIndex()))
+            self.dataChanged.emit(self.index(rev.index, COL_MESSAGE, QtCore.QModelIndex()),
+                                  self.index(rev.index, COL_AUTHOR, QtCore.QModelIndex()))
 
     def on_filter_changed(self):
         self.compute_lines()
@@ -396,6 +367,7 @@ class LogModel(QtCore.QAbstractTableModel):
         except IndexError:
             return None
 
+
 class PropertySearchFilter (object):
     def __init__(self, graph_viz, filter_changed_callback):
         self.graph_viz = graph_viz
@@ -406,9 +378,9 @@ class PropertySearchFilter (object):
         self.index_matched_revids = None
         self.loading_revisions = False
 
-    def set_search(self, str, field):
+    def set_search(self, s, field):
         """Set search string for specified kind of data.
-        @param  str:    string to search (interpreted based on field value)
+        @param  s:    string to search (interpreted based on field value)
         @param  field:  kind of data to search, based on some field
             of revision metadata. Possible values:
                 - message
@@ -425,8 +397,7 @@ class PropertySearchFilter (object):
         self.field = field
 
         def revisions_loaded(revisions, last_call):
-            revs = [self.graph_viz.revid_rev[revid]
-                    for revid in revisions.keys()]
+            revs = [self.graph_viz.revid_rev[revid] for revid in revisions.keys()]
             self.filter_changed_callback(revs, last_call)
 
         def before_batch_load(repo, revids):
@@ -438,7 +409,7 @@ class PropertySearchFilter (object):
             """Translate shel pattern to regexp."""
             return fnmatch.translate(wildcard + '*')
 
-        if str is None or str == "":
+        if s is None or s == "":
             self.filter_re = None
             self.index_matched_revids = None
             self.filter_changed_callback(None, True)
@@ -446,27 +417,24 @@ class PropertySearchFilter (object):
             if self.field == "index":
                 from breezy.plugins.search import index as search_index
                 self.filter_re = None
-                indexes = [bi.index for bi in self.graph_viz.branches
-                           if bi.index is not None]
+                indexes = [bi.index for bi in self.graph_viz.branches if bi.index is not None]
                 if not indexes:
                     self.index_matched_revids = None
                 else:
-                    str = str.strip()
-                    query = [(query_item,) for query_item in str.split(" ")]
+                    s = s.strip()
+                    query = [(query_item,) for query_item in s.split(" ")]
                     self.index_matched_revids = {}
                     for index in indexes:
                         for result in index.search(query):
                             if isinstance(result, search_index.RevisionHit):
-                                self.index_matched_revids\
-                                        [result.revision_key[0]] = True
+                                self.index_matched_revids[result.revision_key[0]] = True
                             if isinstance(result, search_index.FileTextHit):
-                                self.index_matched_revids\
-                                        [result.text_key[1]] = True
+                                self.index_matched_revids[result.text_key[1]] = True
                             if isinstance(result, search_index.PathHit):
                                 pass
             elif self.field == "tag":
                 self.filter_re = None
-                filter_re = re.compile(wildcard2regex(str), re.IGNORECASE)
+                filter_re = re.compile(wildcard2regex(s), re.IGNORECASE)
                 self.index_matched_revids = {}
                 for revid in self.graph_viz.tags:
                     for t in self.graph_viz.tags[revid]:
@@ -474,23 +442,18 @@ class PropertySearchFilter (object):
                             self.index_matched_revids[revid] = True
                             break
             else:
-                self.filter_re = re.compile(wildcard2regex(str),
-                    re.IGNORECASE)
+                self.filter_re = re.compile(wildcard2regex(s), re.IGNORECASE)
                 self.index_matched_revids = None
 
             self.filter_changed_callback(None, True)
 
-            if self.filter_re is not None\
-               and not self.loading_revisions:
-
+            if self.filter_re is not None and not self.loading_revisions:
                 self.loading_revisions = True
                 try:
-                    revids = [rev.revid
-                              for rev in self.graph_viz.revisions ]
+                    revids = [rev.revid for rev in self.graph_viz.revisions ]
                     load_revisions(revids, self.graph_viz.get_repo_revids,
                                    time_before_first_ui_update = 0,
-                                   local_batch_size = 100,
-                                   remote_batch_size = 10,
+                                   local_batch_size = 100, remote_batch_size = 10,
                                    before_batch_load = before_batch_load,
                                    revisions_loaded = revisions_loaded)
                 finally:
