@@ -14,5 +14,6 @@ qbrz-setup-iss.log
 ./qbrz.egg-info
 env
 .idea
+.mypy_cache
 faileddummy.py
 tododummy.py

@@ -25,7 +25,17 @@ from PyQt5.QtCore import QModelIndex
 
 from breezy import errors
 from breezy.bzr.inventorytree import InventoryTreeChange
-from breezy.osutils import file_kind, minimum_path_selection
+from breezy.osutils import minimum_path_selection
+
+try:
+    from breezy.transport.local import file_kind
+except ImportError:  # breezy < 3.5
+    from breezy.osutils import file_kind
+
+try:
+    from breezy.transport import NoSuchFile
+except ImportError:
+    from breezy.errors import NoSuchFile
 
 from breezy.plugins.qbrz.lib.i18n import gettext
 

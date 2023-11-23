@@ -20,7 +20,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 import re
-from breezy import timestamp
 from patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.util import (

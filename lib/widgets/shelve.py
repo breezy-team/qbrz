@@ -21,6 +21,11 @@ from contextlib import ExitStack
 import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+try:
+    from breezy.transport import NoSuchFile
+except ImportError:
+    from breezy.errors import NoSuchFile
+
 from breezy.plugins.qbrz.lib.i18n import gettext, ngettext, N_
 from breezy.plugins.qbrz.lib.util import (
     get_global_config,
@@ -101,7 +106,7 @@ class Change(object):
         def get_kind(tree, path, id):
             try:
                 return tree.kind(path)
-            except errors.NoSuchFile:
+            except NoSuchFile:
                 return 'file'
 
         if status == 'delete file':
